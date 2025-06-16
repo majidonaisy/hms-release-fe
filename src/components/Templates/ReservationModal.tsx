@@ -7,7 +7,7 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Card, CardContent } from '@/components/Organisms/Card';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 interface ReservationModalProps {
     isOpen: boolean;
@@ -38,8 +38,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     });
 
     const formatDate = (date: Date) => {
+        
         return format(date, 'yyyy-MM-dd');
-    }
+    };
 
     useEffect(() => {
         console.log('reservation', reservation)
