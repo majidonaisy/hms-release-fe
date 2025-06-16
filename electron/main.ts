@@ -43,7 +43,8 @@ const { width, height } = screen.getPrimaryDisplay().workAreaSize
       devTools: isDev,
     },
   })
-// win.maximize();
+win.maximize();
+
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())

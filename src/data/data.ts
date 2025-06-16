@@ -1,5 +1,4 @@
 import { Room, Reservation } from '../types/reservation';
-import { addDays, subDays } from 'date-fns';
 
 export const sampleRooms: Room[] = [
   {
@@ -34,7 +33,6 @@ export const sampleRooms: Room[] = [
     capacity: 4,
     amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Balcony', 'Garden View']
   },
-  
   {
     id: '302',
     name: 'Executive Suite 302',
@@ -42,168 +40,273 @@ export const sampleRooms: Room[] = [
     rate: 380,
     capacity: 4,
     amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+  },
+  {
+    id: '303',
+    name: 'Executive Suite 303',
+    type: 'Suite',
+    rate: 380,
+    capacity: 4,
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+  },
+  {
+    id: '304',
+    name: 'Executive Suite 304',
+    type: 'Suite',
+    rate: 380,
+    capacity: 4,
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
   }
 ];
 
-const today = new Date();
-
 export const sampleReservations: Reservation[] = [
+  // Current week reservations (Dec 16-22, 2025)
   {
     id: 'res-001',
     resourceId: '101',
-    start: subDays(today, 2),
-    end: addDays(today, 1),
+    start: new Date(2025, 6, 14), // Dec 14, 2025 (Saturday)
+    end: new Date(2025, 6, 18),   // Dec 18, 2025 (Wednesday)
     guestName: 'John Smith',
-    bookingId: 'BK-001',
+    bookingId: 'BK-2025-001',
     status: 'checked-in',
     rate: 150,
     guestEmail: 'john.smith@email.com',
     guestPhone: '+1-555-0123',
-    specialRequests: 'Late checkout requested'
+    specialRequests: 'Late checkout requested, ocean view preferred'
   },
   {
     id: 'res-002',
     resourceId: '102',
-    start: addDays(today, 3),
-    end: addDays(today, 7),
+    start: new Date(2025, 6, 16), // Dec 16, 2025 (Monday)
+    end: new Date(2025, 6, 20),   // Dec 20, 2025 (Friday)
     guestName: 'Sarah Johnson',
-    bookingId: 'BK-002',
+    bookingId: 'BK-2025-002',
     status: 'confirmed',
     rate: 130,
-    guestEmail: 'sarah.j@email.com',
-    guestPhone: '+1-555-0456'
+    guestEmail: 'sarah.johnson@email.com',
+    guestPhone: '+1-555-0456',
+    specialRequests: 'Ground floor room, allergic to feather pillows'
   },
   {
     id: 'res-003',
     resourceId: '201',
-    start: subDays(today, 5),
-    end: subDays(today, 1),
+    start: new Date(2025, 6, 15), // Dec 15, 2025 (Sunday)
+    end: new Date(2025, 6, 19),   // Dec 19, 2025 (Thursday)
     guestName: 'Michael Brown',
-    bookingId: 'BK-003',
-    status: 'checked-out',
+    bookingId: 'BK-2025-003',
+    status: 'confirmed',
     rate: 250,
-    guestEmail: 'mbrown@email.com',
+    guestEmail: 'michael.brown@email.com',
     guestPhone: '+1-555-0789',
-    specialRequests: 'Extra pillows, quiet room'
+    specialRequests: 'Extra pillows, quiet room away from elevator'
   },
   {
     id: 'res-004',
     resourceId: '202',
-    start: addDays(today, 1),
-    end: addDays(today, 4),
+    start: new Date(2025, 6, 17), // Dec 17, 2025 (Tuesday)
+    end: new Date(2025, 6, 21),   // Dec 21, 2025 (Saturday)
     guestName: 'Emily Davis',
-    bookingId: 'BK-004',
+    bookingId: 'BK-2025-004',
     status: 'confirmed',
     rate: 250,
     guestEmail: 'emily.davis@email.com',
-    guestPhone: '+1-555-0321'
+    guestPhone: '+1-555-0321',
+    specialRequests: 'Honeymoon suite, champagne and flowers'
   },
   {
-    id: 'res-006',
+    id: 'res-005',
     resourceId: '302',
-    start: addDays(today, 2),
-    end: addDays(today, 5),
-    guestName: 'Lisa Anderson',
-    bookingId: 'BK-006',
+    start: new Date(2025, 6, 18), // Dec 18, 2025 (Wednesday)
+    end: new Date(2025, 6, 22),   // Dec 22, 2025 (Sunday)
+    guestName: 'Robert Wilson',
+    bookingId: 'BK-2025-005',
     status: 'confirmed',
     rate: 380,
+    guestEmail: 'robert.wilson@email.com',
+    guestPhone: '+1-555-0654',
+    specialRequests: 'Business traveler, early check-in needed'
+  },
+  
+  // Upcoming reservations (Dec 19-25, 2025)
+  {
+    id: 'res-006',
+    resourceId: '101',
+    start: new Date(2025, 6, 19), // Dec 19, 2025 (Thursday)
+    end: new Date(2025, 6, 23),   // Dec 23, 2025 (Monday)
+    guestName: 'Lisa Anderson',
+    bookingId: 'BK-2025-006',
+    status: 'confirmed',
+    rate: 150,
     guestEmail: 'lisa.anderson@email.com',
-    guestPhone: '+1-555-0987'
+    guestPhone: '+1-555-0987',
+    specialRequests: 'Traveling with pet, pet-friendly room needed'
   },
   {
     id: 'res-007',
-    resourceId: '101',
-    start: addDays(today, 8),
-    end: addDays(today, 12),
+    resourceId: '303',
+    start: new Date(2025, 6, 20), // Dec 20, 2025 (Friday)
+    end: new Date(2025, 6, 24),   // Dec 24, 2025 (Tuesday)
     guestName: 'David Martinez',
-    bookingId: 'BK-007',
+    bookingId: 'BK-2025-007',
     status: 'confirmed',
-    rate: 150,
-    guestEmail: 'david.m@email.com',
-    guestPhone: '+1-555-0111'
+    rate: 380,
+    guestEmail: 'david.martinez@email.com',
+    guestPhone: '+1-555-061',
+    specialRequests: 'Family vacation, connecting rooms if available'
   },
   {
     id: 'res-008',
-    resourceId: '102',
-    start: addDays(today, 10),
-    end: addDays(today, 14),
+    resourceId: '304',
+    start: new Date(2025, 6, 21), // Dec 21, 2025 (Saturday)
+    end: new Date(2025, 6, 25),   // Dec 25, 2025 (Wednesday)
     guestName: 'Jennifer Taylor',
-    bookingId: 'BK-008',
+    bookingId: 'BK-2025-008',
     status: 'confirmed',
-    rate: 130,
-    guestEmail: 'jen.taylor@email.com',
-    guestPhone: '+1-555-0222'
+    rate: 380,
+    guestEmail: 'jennifer.taylor@email.com',
+    guestPhone: '+1-555-0222',
+    specialRequests: 'Christmas holiday stay, late checkout on Christmas'
   },
+  
+  // Past reservations (checked out)
   {
     id: 'res-009',
-    resourceId: '201',
-    start: addDays(today, 6),
-    end: addDays(today, 9),
+    resourceId: '102',
+    start: new Date(2025, 6, 10), // Dec 10, 2025 (Tuesday)
+    end: new Date(2025, 6, 14),   // Dec 14, 2025 (Saturday)
     guestName: 'Mark Thompson',
-    bookingId: 'BK-009',
-    status: 'confirmed',
-    rate: 250,
-    guestEmail: 'mark.t@email.com',
-    guestPhone: '+1-555-0333'
+    bookingId: 'BK-2025-009',
+    status: 'checked-out',
+    rate: 130,
+    guestEmail: 'mark.thompson@email.com',
+    guestPhone: '+1-555-0333',
+    specialRequests: 'Business trip, late arrival'
   },
   {
     id: 'res-010',
-    resourceId: '202',
-    start: addDays(today, 12),
-    end: addDays(today, 16),
+    resourceId: '201',
+    start: new Date(2025, 6, 8),  // Dec 8, 2025 (Sunday)
+    end: new Date(2025, 6, 12),   // Dec 12, 2025 (Thursday)
     guestName: 'Amanda White',
-    bookingId: 'BK-010',
-    status: 'confirmed',
+    bookingId: 'BK-2025-010',
+    status: 'checked-out',
     rate: 250,
     guestEmail: 'amanda.white@email.com',
-    guestPhone: '+1-555-0444'
+    guestPhone: '+1-555-0444',
+    specialRequests: 'Anniversary celebration, room decoration'
+  },
+  
+  // Weekend reservations
+  {
+    id: 'res-06',
+    resourceId: '202',
+    start: new Date(2025, 6, 22), // Dec 22, 2025 (Sunday)
+    end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
+    guestName: 'Kevin Johnson',
+    bookingId: 'BK-2025-06',
+    status: 'confirmed',
+    rate: 250,
+    guestEmail: 'kevin.johnson@email.com',
+    guestPhone: '+1-555-0555',
+    specialRequests: 'Post-Christmas relaxation, spa services'
   },
   {
     id: 'res-012',
-    resourceId: '302',
-    start: addDays(today, 18),
-    end: addDays(today, 22),
+    resourceId: '102',
+    start: new Date(2025, 6, 23), // Dec 23, 2025 (Monday)
+    end: new Date(2025, 6, 27),   // Dec 27, 2025 (Friday)
     guestName: 'Maria Rodriguez',
-    bookingId: 'BK-012',
+    bookingId: 'BK-2025-012',
     status: 'confirmed',
-    rate: 380,
-    guestEmail: 'maria.r@email.com',
-    guestPhone: '+1-555-0666'
+    rate: 130,
+    guestEmail: 'maria.rodriguez@email.com',
+    guestPhone: '+1-555-0666',
+    specialRequests: 'Extended holiday stay, weekly rate discount'
   },
+  
+  // Cancelled reservation
   {
     id: 'res-013',
-    resourceId: '101',
-    start: subDays(today, 10),
-    end: subDays(today, 7),
+    resourceId: '303',
+    start: new Date(2025, 6, 16), // Dec 16, 2025 (Monday)
+    end: new Date(2025, 6, 20),   // Dec 20, 2025 (Friday)
     guestName: 'Chris Lee',
-    bookingId: 'BK-013',
-    status: 'checked-out',
-    rate: 150,
+    bookingId: 'BK-2025-013',
+    status: 'cancelled',
+    rate: 380,
     guestEmail: 'chris.lee@email.com',
-    guestPhone: '+1-555-0777'
+    guestPhone: '+1-555-0777',
+    specialRequests: 'Cancelled due to emergency, refund processed'
   },
+  
+  // Short stay reservations
   {
     id: 'res-014',
-    resourceId: '102',
-    start: subDays(today, 8),
-    end: subDays(today, 4),
+    resourceId: '101',
+    start: new Date(2025, 6, 24), // Dec 24, 2025 (Tuesday)
+    end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
     guestName: 'Anna Kim',
-    bookingId: 'BK-014',
-    status: 'checked-out',
-    rate: 130,
+    bookingId: 'BK-2025-014',
+    status: 'confirmed',
+    rate: 150,
     guestEmail: 'anna.kim@email.com',
-    guestPhone: '+1-555-0888'
+    guestPhone: '+1-555-0888',
+    specialRequests: 'Christmas Eve arrival, special dinner arrangement'
   },
   {
     id: 'res-015',
-    resourceId: '201',
-    start: addDays(today, 25),
-    end: addDays(today, 28),
+    resourceId: '304',
+    start: new Date(2025, 6, 25), // Dec 25, 2025 (Wednesday)
+    end: new Date(2025, 6, 28),   // Dec 28, 2025 (Saturday)
     guestName: 'Peter Clark',
-    bookingId: 'BK-015',
-    status: 'cancelled',
-    rate: 250,
+    bookingId: 'BK-2025-015',
+    status: 'confirmed',
+    rate: 380,
     guestEmail: 'peter.clark@email.com',
-    guestPhone: '+1-555-0999'
+    guestPhone: '+1-555-0999',
+    specialRequests: 'Christmas Day check-in, family gathering'
+  },
+  
+  // Extended stay
+  {
+    id: 'res-016',
+    resourceId: '302',
+    start: new Date(2025, 6, 12), // Dec 12, 2025 (Thursday)
+    end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
+    guestName: 'Michelle Garcia',
+    bookingId: 'BK-2025-016',
+    status: 'checked-in',
+    rate: 380,
+    guestEmail: 'michelle.garcia@email.com',
+    guestPhone: '+1-555-1010',
+    specialRequests: 'Extended business stay, weekly housekeeping'
+  },
+  
+  // New Year reservations
+  {
+    id: 'res-017',
+    resourceId: '201',
+    start: new Date(2025, 6, 29), // Dec 29, 2025 (Sunday)
+    end: new Date(2025, 0, 2),     // Jan 2, 2025 (Thursday)
+    guestName: 'Thomas Anderson',
+    bookingId: 'BK-2025-017',
+    status: 'confirmed',
+    rate: 250,
+    guestEmail: 'thomas.anderson@email.com',
+    guestPhone: '+1-555-66',
+    specialRequests: 'New Year celebration, balcony view for fireworks'
+  },
+  {
+    id: 'res-018',
+    resourceId: '203',
+    start: new Date(2025, 6, 30), // Dec 30, 2025 (Monday)
+    end: new Date(2025, 0, 3),     // Jan 3, 2025 (Friday)
+    guestName: 'Nancy Davis',
+    bookingId: 'BK-2025-018',
+    status: 'confirmed',
+    rate: 250,
+    guestEmail: 'nancy.davis@email.com',
+    guestPhone: '+1-555-1212',
+    specialRequests: 'New Year party package, champagne service'
   }
 ];

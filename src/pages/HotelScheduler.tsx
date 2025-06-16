@@ -16,15 +16,15 @@ import {
     ChevronRight,
 } from 'lucide-react';
 
-import { Room, Reservation, NewReservation, CalendarEvent } from '../types/reservation';
+import { Room, Reservation, NewReservation } from '../types/reservation';
 import { sampleRooms, sampleReservations } from '../data/data';
 import ReservationModal from '../components/Templates/ReservationModal';
 import { Button } from '../components/atoms/Button';
 import { Input } from '../components/atoms/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/molecules/Select';
-import { Card, CardContent } from '../components/Organisms/Card';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../components/atoms/Tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/molecules/AlertDialog';
+import { ScrollArea } from '@/components/atoms/ScrollArea';
 
 const HotelReservationCalendar: React.FC = () => {
     const [rooms] = useState<Room[]>(sampleRooms);
@@ -45,16 +45,26 @@ const HotelReservationCalendar: React.FC = () => {
 
     // Filter reservations
     const filteredReservations = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+
         return reservations.filter(reservation => {
+            // Existing filters
             const matchesSearch = !searchTerm ||
                 reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
 
             const matchesStatus = filterStatus === 'all' || reservation.status === filterStatus;
 
-            return matchesSearch && matchesStatus;
+            // Date range filtering
+            const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
+
+            // Optional: Hide past reservations (uncomment if needed)
+            // const isNotPast = reservation.end >= today;
+
+            return matchesSearch && matchesStatus && overlapsWithWeek; // && isNotPast;
         });
-    }, [reservations, searchTerm, filterStatus]);
+    }, [reservations, searchTerm, filterStatus, weekStart, weekEnd]);
 
     // Convert reservations to grid-positioned events
     const gridEvents = useMemo(() => {
@@ -137,7 +147,7 @@ const HotelReservationCalendar: React.FC = () => {
 
     return (
         <TooltipProvider>
-            <div className="h-screen bg-gray-50 flex flex-col">
+            <div className=" bg-gray-50 flex flex-col">
                 {/* Header */}
                 <div className="bg-white shadow-sm border-b border-gray-200 p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -212,7 +222,7 @@ const HotelReservationCalendar: React.FC = () => {
                     </div>
 
                     {/* Legend */}
-                    <div className="flex items-center gap-6 mt-4 text-sm">
+                    <div className="flex items-center gap-6 mt-4 text-sm ">
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-4 bg-blue-500 rounded"></div>
                             <span>Confirmed</span>
@@ -233,19 +243,19 @@ const HotelReservationCalendar: React.FC = () => {
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="flex-1 overflow-auto">
-                    <div className="min-w-max">
+                <div className="flex-1 overflow-hidden ">
+                    <ScrollArea className="h-[34rem]">
                         {/* Single Grid Container */}
                         <div
                             className="grid border-collapse"
                             style={{
-                                gridTemplateColumns: `200px repeat(${weekDates.length}, minmax(140px, 1fr))`,
+                                gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
                                 gridTemplateRows: `60px repeat(${rooms.length}, 80px)`
                             }}
                         >
                             {/* Header - Room Column */}
                             <div
-                                className="border-r border-b border-gray-200 p-4 font-semibold bg-gray-50 sticky top-0 z-20"
+                                className="border-r border-b border-gray-300 p-4 font-semibold bg-gray-100 sticky top-0 z-30"
                                 style={{ gridColumn: 1, gridRow: 1 }}
                             >
                                 Rooms
@@ -255,7 +265,7 @@ const HotelReservationCalendar: React.FC = () => {
                             {weekDates.map((date, index) => (
                                 <div
                                     key={`header-${date.toISOString()}`}
-                                    className={`border-r border-b border-gray-200 p-4 text-center text-sm sticky top-0 z-20 ${isToday(date) ? 'bg-blue-50 text-blue-700 font-semibold' : 'bg-gray-50'
+                                    className={`border-r border-b border-gray-300 p-4 text-center text-sm sticky top-0 z-50 ${isToday(date) ? 'bg-blue-50 text-blue-700 font-semibold' : 'bg-gray-100'
                                         }`}
                                     style={{ gridColumn: index + 2, gridRow: 1 }}
                                 >
@@ -283,7 +293,7 @@ const HotelReservationCalendar: React.FC = () => {
                                 weekDates.map((date, dateIndex) => (
                                     <div
                                         key={`cell-${room.id}-${date.toISOString()}`}
-                                        className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${isToday(date) ? 'bg-blue-25' : 'bg-white'
+                                        className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${isToday(date) ? 'bg-blue-50' : 'bg-white'
                                             }`}
                                         style={{
                                             gridColumn: dateIndex + 2,
@@ -299,7 +309,8 @@ const HotelReservationCalendar: React.FC = () => {
                                 <Tooltip key={event.id}>
                                     <TooltipTrigger asChild>
                                         <div
-                                            className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-105 z-30 ${getStatusColor(event.status)}`}
+                                            className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(event.status)}
+                                            `}
                                             style={{
                                                 gridColumnStart: event.gridColumnStart,
                                                 gridColumnEnd: event.gridColumnEnd,
@@ -327,7 +338,7 @@ const HotelReservationCalendar: React.FC = () => {
                                 </Tooltip>
                             ))}
                         </div>
-                    </div>
+                    </ScrollArea>
                 </div>
 
                 {/* Modals */}
