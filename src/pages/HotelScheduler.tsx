@@ -40,7 +40,7 @@ const HotelReservationCalendar: React.FC = () => {
 
     // Get week dates
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+    const weekEnd = addDays(weekStart, 10); // 10 days total (0-9 = 10 days)
     const weekDates = Array.from({ length: 10 }, (_, i) => addDays(weekStart, i));
 
     // Filter reservations
@@ -70,7 +70,7 @@ const HotelReservationCalendar: React.FC = () => {
     const gridEvents = useMemo(() => {
         return filteredReservations.map(reservation => {
             const startDate = reservation.start > weekStart ? reservation.start : weekStart;
-            const endDate = reservation.end < weekEnd ? reservation.end : weekEnd;
+            const endDate = reservation.end < weekEnd ? reservation.end : weekEnd; 
 
             const startDayIndex = differenceInDays(startDate, weekStart);
             const duration = Math.max(differenceInDays(endDate, startDate), 1);
@@ -111,8 +111,8 @@ const HotelReservationCalendar: React.FC = () => {
                     ? {
                         ...res,
                         ...newReservation,
-                        start: new Date(newReservation.checkIn),
-                        end: new Date(newReservation.checkOut)
+                        start: new Date(newReservation.checkIn ), 
+                        end: new Date(newReservation.checkOut )
                     }
                     : res
             ));
@@ -122,8 +122,8 @@ const HotelReservationCalendar: React.FC = () => {
                 id: `res-${Date.now()}`,
                 resourceId: selectedRoom.id,
                 ...newReservation,
-                start: new Date(newReservation.checkIn),
-                end: new Date(newReservation.checkOut),
+                start: new Date(newReservation.checkIn ), 
+                end: new Date(newReservation.checkOut ), 
                 status: 'confirmed'
             };
             setReservations(prev => [...prev, newRes]);

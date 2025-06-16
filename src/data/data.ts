@@ -56,7 +56,23 @@ export const sampleRooms: Room[] = [
     rate: 380,
     capacity: 4,
     amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
-  }
+  },
+  {
+    id: '305',
+    name: 'Executive Suite 304',
+    type: 'Suite',
+    rate: 380,
+    capacity: 4,
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+  },
+  {
+    id: '306',
+    name: 'Executive Suite 304',
+    type: 'Suite',
+    rate: 380,
+    capacity: 4,
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+  },
 ];
 
 export const sampleReservations: Reservation[] = [

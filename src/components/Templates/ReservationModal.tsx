@@ -7,6 +7,7 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Card, CardContent } from '@/components/Organisms/Card';
+import { format } from 'date-fns';
 
 interface ReservationModalProps {
     isOpen: boolean;
@@ -36,13 +37,18 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
         guestPhone: ''
     });
 
+    const formatDate = (date: Date) => {
+        return format(date, 'yyyy-MM-dd');
+    }
+
     useEffect(() => {
+        console.log('reservation', reservation)
         if (reservation) {
             setFormData({
                 guestName: reservation.guestName,
                 bookingId: reservation.bookingId,
-                checkIn: reservation.start.toISOString().split('T')[0],
-                checkOut: reservation.end.toISOString().split('T')[0],
+                checkIn: formatDate(reservation.start),
+                checkOut: formatDate(reservation.end),
                 rate: reservation.rate,
                 specialRequests: reservation.specialRequests || '',
                 guestEmail: reservation.guestEmail || '',
@@ -52,8 +58,8 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
             setFormData({
                 guestName: '',
                 bookingId: `BK-${Date.now().toString().slice(-6)}`,
-                checkIn: selectedDateRange.start.toISOString().split('T')[0],
-                checkOut: selectedDateRange.end.toISOString().split('T')[0],
+                checkIn: formatDate(selectedDateRange.start),
+                checkOut: formatDate(selectedDateRange.end),
                 rate: room.rate,
                 specialRequests: '',
                 guestEmail: '',
