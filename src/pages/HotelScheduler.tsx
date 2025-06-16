@@ -26,9 +26,6 @@ import { Card, CardContent } from '../components/Organisms/Card';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../components/atoms/Tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/molecules/AlertDialog';
 
-const CELL_HEIGHT = 60;
-const CELL_WIDTH = 120;
-
 const HotelReservationCalendar: React.FC = () => {
     const [rooms] = useState<Room[]>(sampleRooms);
     const [reservations, setReservations] = useState<Reservation[]>(sampleReservations);
@@ -37,8 +34,10 @@ const HotelReservationCalendar: React.FC = () => {
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
-    const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(); const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>(); const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; reservationId?: string }>({ open: false });
-    console.log('reservations', selectedReservation);
+    const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
+    const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
+    const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; reservationId?: string }>({ open: false });
+
     // Get week dates
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -57,22 +56,22 @@ const HotelReservationCalendar: React.FC = () => {
         });
     }, [reservations, searchTerm, filterStatus]);
 
-    // Convert reservations to positioned events
-    const calendarEvents: CalendarEvent[] = useMemo(() => {
+    // Convert reservations to grid-positioned events
+    const gridEvents = useMemo(() => {
         return filteredReservations.map(reservation => {
             const startDate = reservation.start > weekStart ? reservation.start : weekStart;
             const endDate = reservation.end < weekEnd ? reservation.end : weekEnd;
 
             const startDayIndex = differenceInDays(startDate, weekStart);
-            const duration = differenceInDays(endDate, startDate);
-
+            const duration = Math.max(differenceInDays(endDate, startDate), 1);
             const roomIndex = rooms.findIndex(room => room.id === reservation.resourceId);
 
             return {
                 ...reservation,
-                left: startDayIndex * CELL_WIDTH,
-                width: Math.max(duration * CELL_WIDTH, CELL_WIDTH),
-                top: roomIndex * CELL_HEIGHT
+                gridColumnStart: startDayIndex + 2, // +2 because first column is room names
+                gridColumnEnd: startDayIndex + duration + 2,
+                gridRowStart: roomIndex + 2, // +2 because first row is header
+                gridRowEnd: roomIndex + 3,
             };
         });
     }, [filteredReservations, rooms, weekStart, weekEnd]);
@@ -91,7 +90,6 @@ const HotelReservationCalendar: React.FC = () => {
             setSelectedRoom(room);
             setSelectedDateRange(undefined);
             setIsModalOpen(true);
-
         }
     }, [rooms]);
 
@@ -129,10 +127,10 @@ const HotelReservationCalendar: React.FC = () => {
 
     const getStatusColor = (status: string) => {
         const colors = {
-            confirmed: 'bg-blue-200 border-l-4 border-blue-600',
-            'checked-in': 'bg-green-200 border-l-4 border-green-600',
-            'checked-out': 'bg-gray-300 border-l-4 border-gray-600',
-            cancelled: 'bg-red-300 border-l-4 border-red-600'
+            confirmed: 'bg-blue-100 border-l-4 border-blue-500 text-blue-800',
+            'checked-in': 'bg-green-100 border-l-4 border-green-500 text-green-800',
+            'checked-out': 'bg-gray-100 border-l-4 border-gray-500 text-gray-800',
+            cancelled: 'bg-red-100 border-l-4 border-red-500 text-red-800'
         };
         return colors[status as keyof typeof colors] || colors.confirmed;
     };
@@ -160,9 +158,6 @@ const HotelReservationCalendar: React.FC = () => {
                             </Button>
                         </div>
                     </div>
-
-                    {/* Statistics */}
-
 
                     {/* Controls */}
                     <div className="flex items-center gap-4">
@@ -237,103 +232,102 @@ const HotelReservationCalendar: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Calendar */}
-                <div className="flex-1 p-4">
-                    <Card className="h-fit pb-0">
-                        <CardContent className="p-0 h-full">
-                            <div className="flex h-full">
-                                {/* Room Column */}
-                                <div className="w-[200px] border-r border-gray-200 ">
-                                    <div className="h-12 border-b border-gray-200 flex items-center px-4 font-semibold">
-                                        Rooms
-                                    </div>
-                                    {rooms.map((room) => (
-                                        <div
-                                            key={room.id}
-                                            className={`h-[60px] border-b border-gray-200 p-3`}
-                                        >
-                                            <div className="font-semibold text-sm">{room.name}</div>
-                                            {/* <div className="text-xs text-gray-600">{room.type}</div>
-                                            <div className="text-xs text-green-600 font-medium">${room.rate}/night</div> */}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Calendar Grid */}
-                                <div className="flex-1 overflow-hidden">
-                                    <div
-                                        className="relative"
-                                    >
-                                        {/* Date Headers */}
-                                        <div className="flex h-12 border-b border-gray-200 bg-white sticky top-0 z-10">
-                                            {weekDates.map((date) => (
-                                                <div
-                                                    key={date.toISOString()}
-                                                    className={`w-[14rem] border-r border-gray-200 flex flex-col items-center justify-center text-sm ${isToday(date) ? 'bg-blue-50 text-blue-700 font-semibold' : ''
-                                                        }`}
-                                                >
-                                                    <div>{format(date, 'EEE')}</div>
-                                                    <div>{format(date, 'MMM d')}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Grid Cells */}
-                                        <div className="relative">
-                                            {rooms.map((room) => (
-                                                <div key={room.id} className="flex h-[60px] border-b border-gray-200">
-                                                    {weekDates.map((date) => (<div
-                                                        key={`${room.id}-${date.toISOString()}`}
-                                                        className="w-full border-r border-gray-200 hover:bg-blue-50 cursor-pointer relative"
-                                                        onClick={() => handleCellClick(date, room)}
-                                                    >
-                                                        {isToday(date) && (
-                                                            <div className="absolute inset-0 bg-blue-100 opacity-30 pointer-events-none" />
-                                                        )}
-                                                    </div>
-                                                    ))}
-                                                </div>
-                                            ))}
-
-                                            {/* Reservations */}
-                                            {calendarEvents.map((event) => (
-                                                <Tooltip key={event.id}>
-                                                    <TooltipTrigger asChild>
-                                                        <div
-                                                            className={`absolute rounded px-2 py-1 text-slate-700 text-xs font-medium cursor-pointer transition-all hover:shadow-lg ${getStatusColor(event.status)}`}
-                                                            style={{
-                                                                left: event.left,
-                                                                top: event.top + 4,
-                                                                width: event.width - 4,
-                                                                height: CELL_HEIGHT - 8,
-                                                                zIndex: 20
-                                                            }} onClick={() => handleReservationClick(event)}
-                                                        >
-                                                            <div className="truncate font-medium">{event.guestName}</div>
-                                                            <div className="truncate text-xs opacity-90">{event.bookingId}</div>
-
-                                                        </div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <div className="space-y-1">
-                                                            <div className="font-medium">{event.guestName}</div>
-                                                            <div className="text-sm">
-                                                                {format(event.start, 'MMM d')} - {format(event.end, 'MMM d')}
-                                                            </div>
-                                                            <div className="text-sm">${event.rate}/night</div>
-                                                            {event.specialRequests && (
-                                                                <div className="text-sm text-gray-600">{event.specialRequests}</div>
-                                                            )}
-                                                        </div>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
+                {/* Calendar Grid */}
+                <div className="flex-1 overflow-auto">
+                    <div className="min-w-max">
+                        {/* Single Grid Container */}
+                        <div
+                            className="grid border-collapse"
+                            style={{
+                                gridTemplateColumns: `200px repeat(${weekDates.length}, minmax(140px, 1fr))`,
+                                gridTemplateRows: `60px repeat(${rooms.length}, 80px)`
+                            }}
+                        >
+                            {/* Header - Room Column */}
+                            <div
+                                className="border-r border-b border-gray-200 p-4 font-semibold bg-gray-50 sticky top-0 z-20"
+                                style={{ gridColumn: 1, gridRow: 1 }}
+                            >
+                                Rooms
                             </div>
-                        </CardContent>
-                    </Card>
+
+                            {/* Header - Date Columns */}
+                            {weekDates.map((date, index) => (
+                                <div
+                                    key={`header-${date.toISOString()}`}
+                                    className={`border-r border-b border-gray-200 p-4 text-center text-sm sticky top-0 z-20 ${isToday(date) ? 'bg-blue-50 text-blue-700 font-semibold' : 'bg-gray-50'
+                                        }`}
+                                    style={{ gridColumn: index + 2, gridRow: 1 }}
+                                >
+                                    <div className="font-medium">{format(date, 'EEE')}</div>
+                                    <div>{format(date, 'MMM d')}</div>
+                                </div>
+                            ))}
+
+                            {/* Room Labels */}
+                            {rooms.map((room, roomIndex) => (
+                                <div
+                                    key={`room-${room.id}`}
+                                    className="border-r border-b border-gray-200 p-3 bg-gray-50 flex items-center sticky left-0 z-10"
+                                    style={{
+                                        gridColumn: 1,
+                                        gridRow: roomIndex + 2
+                                    }}
+                                >
+                                    <div className="font-semibold text-sm">{room.name}</div>
+                                </div>
+                            ))}
+
+                            {/* Calendar Cells */}
+                            {rooms.map((room, roomIndex) =>
+                                weekDates.map((date, dateIndex) => (
+                                    <div
+                                        key={`cell-${room.id}-${date.toISOString()}`}
+                                        className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${isToday(date) ? 'bg-blue-25' : 'bg-white'
+                                            }`}
+                                        style={{
+                                            gridColumn: dateIndex + 2,
+                                            gridRow: roomIndex + 2
+                                        }}
+                                        onClick={() => handleCellClick(date, room)}
+                                    />
+                                ))
+                            )}
+
+                            {/* Events */}
+                            {gridEvents.map((event) => (
+                                <Tooltip key={event.id}>
+                                    <TooltipTrigger asChild>
+                                        <div
+                                            className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-105 z-30 ${getStatusColor(event.status)}`}
+                                            style={{
+                                                gridColumnStart: event.gridColumnStart,
+                                                gridColumnEnd: event.gridColumnEnd,
+                                                gridRowStart: event.gridRowStart,
+                                                gridRowEnd: event.gridRowEnd
+                                            }}
+                                            onClick={() => handleReservationClick(event)}
+                                        >
+                                            <div className="truncate font-medium">{event.guestName}</div>
+                                            <div className="truncate text-xs opacity-75">{event.bookingId}</div>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <div className="space-y-1">
+                                            <div className="font-medium">{event.guestName}</div>
+                                            <div className="text-sm">
+                                                {format(event.start, 'MMM d')} - {format(event.end, 'MMM d')}
+                                            </div>
+                                            <div className="text-sm">${event.rate}/night</div>
+                                            {event.specialRequests && (
+                                                <div className="text-sm text-gray-600">{event.specialRequests}</div>
+                                            )}
+                                        </div>
+                                    </TooltipContent>
+                                </Tooltip>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Modals */}

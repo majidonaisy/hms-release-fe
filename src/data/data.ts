@@ -99,19 +99,6 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0321'
   },
   {
-    id: 'res-005',
-    resourceId: '301',
-    start: addDays(today, 5),
-    end: addDays(today, 10),
-    guestName: 'Robert Wilson',
-    bookingId: 'BK-005',
-    status: 'confirmed',
-    rate: 450,
-    guestEmail: 'r.wilson@email.com',
-    guestPhone: '+1-555-0654',
-    specialRequests: 'Anniversary celebration - flowers and champagne'
-  },
-  {
     id: 'res-006',
     resourceId: '302',
     start: addDays(today, 2),
@@ -170,19 +157,6 @@ export const sampleReservations: Reservation[] = [
     rate: 250,
     guestEmail: 'amanda.white@email.com',
     guestPhone: '+1-555-0444'
-  },
-  {
-    id: 'res-011',
-    resourceId: '301',
-    start: addDays(today, 15),
-    end: addDays(today, 20),
-    guestName: 'James Garcia',
-    bookingId: 'BK-011',
-    status: 'confirmed',
-    rate: 450,
-    guestEmail: 'james.garcia@email.com',
-    guestPhone: '+1-555-0555',
-    specialRequests: 'Business meeting setup'
   },
   {
     id: 'res-012',
