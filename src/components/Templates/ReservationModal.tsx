@@ -43,7 +43,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     };
 
     useEffect(() => {
-        console.log('reservation', reservation)
         if (reservation) {
             setFormData({
                 guestName: reservation.guestName,
