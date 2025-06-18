@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // Basic reservation schema
 export const reservationSchema = z.object({

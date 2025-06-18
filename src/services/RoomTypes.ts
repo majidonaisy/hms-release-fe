@@ -1,49 +1,83 @@
-import { apiClient } from '../api/base';
-import { ENDPOINTS } from '../api/endpoints';
-import { RoomTypeFormData } from '@/validation';
+import { apiClient } from "@/api/base";
+import { ENDPOINTS } from "@/api/endpoints";
+import {
+  AddRoomTypeRequest,
+  AddRoomTypeResponse,
+  GetRoomTypesResponse,
+  UpdateRoomTypeRequest,
+  UpdateRoomTypeResponse,
+} from "@/validation";
 
-export const createRoomType = async (data: RoomTypeFormData, token: string) => { //add promise and return type when confirmed
+export const addRoomType = async (
+  data: AddRoomTypeRequest
+): Promise<AddRoomTypeResponse> => {
+  try {
     const response = await apiClient({
-        method: 'POST',
-        endpoint: ENDPOINTS.RoomType.Add,
-        data,
-        token
+      method: "POST",
+      endpoint: ENDPOINTS.RoomType.Add,
+      data,
     });
-    return response; return response;
+    return response as AddRoomTypeResponse;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to add room type";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
 
-export const getRoomTypes = async (token: string) => { //add promise and return type when confirmed
+export const getRoomTypes = async (): Promise<GetRoomTypesResponse> => {
+  try {
     const response = await apiClient({
-        method: 'GET',
-        endpoint: ENDPOINTS.RoomType.GetAll,
-        token
+      method: "GET",
+      endpoint: ENDPOINTS.RoomType.GetAll,
     });
-    return response; return response;
+    return response as GetRoomTypesResponse;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to get room types";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
 
-export const getRoomTypeById = async (token: string, roomId: string) => { //add promise and return type when confirmed
+export const updateRoomType = async (
+  id: string,
+  data: UpdateRoomTypeRequest
+): Promise<UpdateRoomTypeResponse> => {
+  try {
     const response = await apiClient({
-        method: 'GET',
-        endpoint: ENDPOINTS.RoomType.GetById + `/${roomId}`,
-        token,
+      method: "PUT",
+      endpoint: `${ENDPOINTS.RoomType.Update}/${id}`,
+      data,
     });
-    return response; return response;
+    return response as UpdateRoomTypeResponse;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to update room type";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
 
-export const updateRoomType = async (token: string, roomId: string) => { //add promise and return type when confirmed
-    const response = await apiClient({
-        method: 'PUT',
-        endpoint: ENDPOINTS.RoomType.Update + `/${roomId}`,
-        token,
+export const deleteRoomType = async (id: string): Promise<void> => {
+  try {
+    await apiClient({
+      method: "DELETE",
+      endpoint: `${ENDPOINTS.RoomType.Delete}/${id}`,
     });
-    return response; return response;
-};
-
-export const deleteRoomType = async (token: string, roomId: string) => { //add promise and return type when confirmed
-    const response = await apiClient({
-        method: 'DELETE',
-        endpoint: ENDPOINTS.RoomType.Delete + `/${roomId}`,
-        token,
-    });
-    return response; return response;
+  } catch (error: any) {
+    const errorMessage =
+      error.response?.data?.message || "Failed to delete room type";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };

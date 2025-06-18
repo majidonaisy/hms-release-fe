@@ -1,22 +1,39 @@
-import { AddUserFormData, LoginFormData, LoginResponse } from '@/validation/schemas';
-import { apiClient } from '../api/base';
-import { ENDPOINTS } from '../api/endpoints';
+import {  AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
+import { apiClient } from '@/api/base';
+import { ENDPOINTS } from '@/api/endpoints';
 
-export const loginService = async (credentials: LoginFormData): Promise<LoginResponse> => {
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+  try {
     const response = await apiClient({
-        method: 'POST',
-        endpoint: ENDPOINTS.Auth.Login,
-        data: credentials,
+      method: "POST",
+      endpoint: ENDPOINTS.Auth.Login,
+      data,
     });
     return response as LoginResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Login failed";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
 
-export const addUser = async (token: string, data: AddUserFormData) => { //add promise and return type when confirmed
+export const addUser = async (
+  data: AddUserRequest
+): Promise<AddUserResponse> => {
+  try {
     const response = await apiClient({
-        method: 'POST',
-        endpoint: ENDPOINTS.Auth.AddUser,
-        token,
-        data
+      method: "POST",
+      endpoint: "/auth/add-user",
+      data,
     });
-    return response;
+    return response as AddUserResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to add user";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
