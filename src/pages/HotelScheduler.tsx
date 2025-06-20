@@ -143,39 +143,39 @@ const HotelReservationCalendar: React.FC = () => {
     [rooms]
   );
 
-const handleSaveReservation = useCallback(
-  (newReservation: NewReservation) => {
-    if (selectedReservation) {
-      // Update existing reservation
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === selectedReservation.id
-            ? {
+  const handleSaveReservation = useCallback(
+    (newReservation: NewReservation) => {
+      if (selectedReservation) {
+        // Update existing reservation
+        setReservations((prev) =>
+          prev.map((res) =>
+            res.id === selectedReservation.id
+              ? {
                 ...res,
                 ...newReservation,
                 // Fix: Ensure dates are parsed correctly with local timezone
                 start: parseISO(`${newReservation.checkIn}T00:00:00`),
                 end: parseISO(`${newReservation.checkOut}T00:00:00`),
               }
-            : res
-        )
-      );
-    } else if (selectedRoom && selectedDateRange) {
-      // Create new reservation
-      const newRes: Reservation = {
-        id: `res-${Date.now()}`,
-        resourceId: selectedRoom.id,
-        ...newReservation,
-        // Fix: Ensure dates are parsed correctly with local timezone
-        start: parseISO(`${newReservation.checkIn}T00:00:00`),
-        end: parseISO(`${newReservation.checkOut}T00:00:00`),
-        status: "confirmed",
-      };
-      setReservations((prev) => [...prev, newRes]);
-    }
-  },
-  [selectedReservation, selectedRoom, selectedDateRange]
-);
+              : res
+          )
+        );
+      } else if (selectedRoom && selectedDateRange) {
+        // Create new reservation
+        const newRes: Reservation = {
+          id: `res-${Date.now()}`,
+          resourceId: selectedRoom.id,
+          ...newReservation,
+          // Fix: Ensure dates are parsed correctly with local timezone
+          start: parseISO(`${newReservation.checkIn}T00:00:00`),
+          end: parseISO(`${newReservation.checkOut}T00:00:00`),
+          status: "confirmed",
+        };
+        setReservations((prev) => [...prev, newRes]);
+      }
+    },
+    [selectedReservation, selectedRoom, selectedDateRange]
+  );
 
   const handleDeleteReservation = useCallback((reservationId: string) => {
     setReservations((prev) => prev.filter((res) => res.id !== reservationId));
@@ -203,6 +203,7 @@ const handleSaveReservation = useCallback(
             </h1>
             <div className="flex items-center gap-3">
               <Button
+                variant='default'
                 onClick={() => {
                   setSelectedRoom(rooms[0]);
                   setSelectedDateRange({
@@ -215,10 +216,6 @@ const handleSaveReservation = useCallback(
               >
                 <Plus size={18} className="mr-2" />
                 New Reservation
-              </Button>
-              <Button variant="outline">
-                <Download size={18} className="mr-2" />
-                Export
               </Button>
             </div>
           </div>
@@ -319,11 +316,10 @@ const handleSaveReservation = useCallback(
               {weekDates.map((date, index) => (
                 <div
                   key={`header-${date.toISOString()}`}
-                  className={`border-r border-b border-gray-300 p-4 text-center text-sm sticky top-0 z-50 ${
-                    isToday(date)
-                      ? "bg-blue-50 text-blue-700 font-semibold"
-                      : "bg-gray-100"
-                  }`}
+                  className={`border-r border-b border-gray-300 p-4 text-center text-sm sticky top-0 z-50 ${isToday(date)
+                    ? "bg-blue-50 text-blue-700 font-semibold"
+                    : "bg-gray-100"
+                    }`}
                   style={{ gridColumn: index + 2, gridRow: 1 }}
                 >
                   <div className="font-medium">{format(date, "EEE")}</div>
@@ -350,9 +346,8 @@ const handleSaveReservation = useCallback(
                 weekDates.map((date, dateIndex) => (
                   <div
                     key={`cell-${room.id}-${date.toISOString()}`}
-                    className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${
-                      isToday(date) ? "bg-blue-50" : "bg-white"
-                    }`}
+                    className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${isToday(date) ? "bg-blue-50" : "bg-white"
+                      }`}
                     style={{
                       gridColumn: dateIndex + 2,
                       gridRow: roomIndex + 2,
