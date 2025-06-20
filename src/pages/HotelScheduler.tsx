@@ -8,9 +8,6 @@ import {
   parseISO,
 } from "date-fns";
 import {
-  Search,
-  Filter,
-  Plus,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -199,39 +196,36 @@ const HotelReservationCalendar: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               Hotel Reservation Calendar
             </h1>
-            <div className="flex items-center gap-3">
-              <Button
-                // variant=''
-                onClick={() => {
-                  setSelectedRoom(rooms[0]);
-                  setSelectedDateRange({
-                    start: new Date(),
-                    end: addDays(new Date(), 1),
-                  });
-                  setSelectedReservation(undefined);
-                  setIsModalOpen(true);
-                }}
-              >
-                <Plus size={18} className="mr-2" />
-                New Reservation
-              </Button>
-            </div>
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 flex-1">
-              <Search size={18} className="text-gray-500" />
-              <Input
-                placeholder="Search by guest name or booking ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1"
-              />
+          <div className="flex items-center justify-between gap-4">
+            <div className="grid grid-cols-5 gap-2 text-sm ">
+              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
+                <span>Reserved</span>
+              </div>
+              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
+                <span>Occupied</span>
+              </div>
+              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
+                <span>Checked-in</span>
+              </div>
+              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
+                <span>Checked-out</span>
+              </div>
+              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
+                <span>Blocked</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Filter size={18} className="text-gray-500" />
+            <div className="flex gap-2">
+              <Input
+                placeholder="Search Text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-fit"
+              />
+
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-40">
                   <SelectValue />
@@ -245,50 +239,30 @@ const HotelReservationCalendar: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCurrentDate((prev) => addDays(prev, -7))}
-              >
-                <ChevronLeft size={18} />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentDate(new Date())}
-              >
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCurrentDate((prev) => addDays(prev, 7))}
-              >
-                <ChevronRight size={18} />
-              </Button>
-            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCurrentDate((prev) => addDays(prev, -7))}
+            >
+              <ChevronLeft size={18} />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentDate(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCurrentDate((prev) => addDays(prev, 7))}
+            >
+              <ChevronRight size={18} />
+            </Button>
           </div>
 
-          {/* Legend */}
-          <div className="flex items-center gap-6 mt-4 text-sm ">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
-              <span>Confirmed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Checked In</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-500 rounded"></div>
-              <span>Checked Out</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>Cancelled</span>
-            </div>
-          </div>
         </div>
 
         {/* Calendar Grid */}

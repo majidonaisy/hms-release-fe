@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, useLocation, Link } from 'react-router-dom';
 
 import {
@@ -17,9 +17,12 @@ import {
     SidebarTrigger,
 } from '@/components/Organisms/Sidebar'
 import { routes } from '@/routes';
+import { Button } from '@/components/atoms/Button';
+import { Plus } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
     const location = useLocation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <SidebarProvider>
@@ -71,13 +74,34 @@ const MainLayout: React.FC = () => {
 
                 <SidebarInset className="flex flex-col flex-1 min-w-0">
                     {/* Fixed Header */}
-                    <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b bg-white sticky top-0 z-10">
-                        <SidebarTrigger />
-                        <h1 className="text-xl font-semibold">
-                            {routes.find(route => route.path === location.pathname)?.title || 'Dashboard'}
-                        </h1>
+                    <header className="flex h-16 shrink-0 items-center px-4 border-b bg-white sticky top-0 z-10 justify-between ">
+                        <div className='flex gap-1'>
+                            <SidebarTrigger />
+                            <h1 className="text-xl font-semibold">
+                                {routes.find(route => route.path === location.pathname)?.title || 'Dashboard'}
+                            </h1>
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    variant='primaryOutline'
+                                    onClick={() => {
+                                        //     setSelectedRoom(rooms[0]);
+                                        //     setSelectedDateRange({
+                                        //         start: new Date(),
+                                        //         end: addDays(new Date(), 1),
+                                        //     });
+                                        //     setSelectedReservation(undefined);
+                                        setIsModalOpen(true);
+                                    }}
+                                >
+                                    <Plus size={18} className="mr-2" />
+                                    New Reservation
+                                </Button>
+                            </div>
+                        </div>
                     </header>
-                    
+
                     {/* Content Area - This is the only space available for children */}
                     <main className="flex-1 overflow-auto bg-white">
                         <Routes>

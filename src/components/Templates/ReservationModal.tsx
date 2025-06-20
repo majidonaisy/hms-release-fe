@@ -82,9 +82,9 @@ const ReservationModal: React.FC<ReservationModalProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                <ScrollArea className="h-[40rem]">
+                <ScrollArea className="h-[40rem] px-5">
                     <DialogHeader>
-                        <DialogTitle>
+                        <DialogTitle className='mb-4'>
                             {reservation ? 'Edit Reservation' : 'New Reservation'}
                         </DialogTitle>
                     </DialogHeader>
