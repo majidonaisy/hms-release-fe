@@ -3,7 +3,6 @@ import {
   format,
   addDays,
   startOfWeek,
-  endOfWeek,
   differenceInDays,
   isToday,
   parseISO,
@@ -11,7 +10,6 @@ import {
 import {
   Search,
   Filter,
-  Download,
   Plus,
   ChevronLeft,
   ChevronRight,
@@ -203,7 +201,7 @@ const HotelReservationCalendar: React.FC = () => {
             </h1>
             <div className="flex items-center gap-3">
               <Button
-                variant='default'
+                // variant=''
                 onClick={() => {
                   setSelectedRoom(rooms[0]);
                   setSelectedDateRange({

@@ -8,16 +8,26 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default:
+                foreground:
                     "bg-hms-primary text-primary-foreground shadow hover:bg-hms-primary/80",
-                destructive:
+                background:
                     "bg-hms-accent text-primary shadow-sm hover:bg-hms-accent/80",
-                outline:
+                slatePrimary:
                     "bg-slate-50 shadow-sm hover:bg-accent hover:text-accent-foreground",
-                secondary:
+                slateSecondary:
                     "bg-slate-200 text-secondary-foreground shadow-sm hover:bg-secondary/80",
-                ghost:
+                negative:
                     "bg-primary text-primary-foreground hover:bg-primary-foreground hover:text-primary border hover:border-primary",
+                default:
+                    "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+                destructive:
+                    "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+                outline:
+                    "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+                secondary:
+                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+                ghost:
+                    "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
                 link:
                     "text-primary underline-offset-4 hover:underline",
             },
@@ -29,7 +39,7 @@ const buttonVariants = cva(
             },
         },
         defaultVariants: {
-            variant: "default",
+            variant: "foreground",
             size: "default",
         },
     }

@@ -24,8 +24,8 @@ export interface Room {
   export interface NewReservation {
     guestName: string;
     bookingId: string;
-    checkIn: string;
-    checkOut: string;
+    checkIn: Date;
+    checkOut: Date;
     rate: number;
     specialRequests?: string;
     guestEmail?: string;
