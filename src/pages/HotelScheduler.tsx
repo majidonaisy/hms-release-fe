@@ -1,62 +1,33 @@
 import React, { useState, useCallback, useMemo } from "react";
-import {
-  format,
-  addDays,
-  startOfWeek,
-  differenceInDays,
-  isToday,
-  parseISO,
-} from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-
-import { Room, Reservation, NewReservation } from "../types/reservation";
+import { format, addDays, startOfWeek, differenceInDays, isToday, } from "date-fns";
+import { ChevronLeft, ChevronRight, } from "lucide-react";
+import { Room, Reservation } from "../types/reservation";
 import { sampleRooms, sampleReservations } from "../data/data";
-import ReservationModal from "../components/Templates/ReservationModal";
 import { Button } from "../components/atoms/Button";
 import { Input } from "../components/atoms/Input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/molecules/Select";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "../components/atoms/Tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../components/molecules/AlertDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "../components/molecules/Select";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent, } from "../components/atoms/Tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "../components/molecules/AlertDialog";
 import { ScrollArea } from "@/components/atoms/ScrollArea";
 
-const HotelReservationCalendar: React.FC = () => {
+interface HotelReservationCalendarProps {
+  modalContext?: {
+    openReservationModal: (data: {
+      room?: Room;
+      reservation?: Reservation;
+      dateRange?: { start: Date; end: Date };
+    }) => void;
+  };
+  pageTitle?: string;
+}
+
+const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ modalContext, pageTitle }) => {
   const [rooms] = useState<Room[]>(sampleRooms);
   const [reservations, setReservations] =
     useState<Reservation[]>(sampleReservations);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<
-    Reservation | undefined
-  >();
-  const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
-  const [selectedDateRange, setSelectedDateRange] = useState<
-    { start: Date; end: Date } | undefined
-  >();
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     reservationId?: string;
@@ -119,57 +90,25 @@ const HotelReservationCalendar: React.FC = () => {
   }, [filteredReservations, rooms, weekStart, weekEnd]);
 
   const handleCellClick = useCallback((date: Date, room: Room) => {
-    setSelectedRoom(room);
-    setSelectedDateRange({ start: date, end: addDays(date, 1) });
-    setSelectedReservation(undefined);
-    setIsModalOpen(true);
-  }, []);
+    if (modalContext) {
+      modalContext.openReservationModal({
+        room,
+        dateRange: { start: date, end: addDays(date, 1) }
+      });
+    }
+  }, [modalContext]);
 
   const handleReservationClick = useCallback(
     (reservation: Reservation) => {
       const room = rooms.find((r) => r.id === reservation.resourceId);
-      if (room) {
-        setSelectedReservation(reservation);
-        setSelectedRoom(room);
-        setSelectedDateRange(undefined);
-        setIsModalOpen(true);
+      if (room && modalContext) {
+        modalContext.openReservationModal({
+          reservation,
+          room
+        });
       }
     },
-    [rooms]
-  );
-
-  const handleSaveReservation = useCallback(
-    (newReservation: NewReservation) => {
-      if (selectedReservation) {
-        // Update existing reservation
-        setReservations((prev) =>
-          prev.map((res) =>
-            res.id === selectedReservation.id
-              ? {
-                ...res,
-                ...newReservation,
-                // Fix: Ensure dates are parsed correctly with local timezone
-                start: parseISO(`${newReservation.checkIn}T00:00:00`),
-                end: parseISO(`${newReservation.checkOut}T00:00:00`),
-              }
-              : res
-          )
-        );
-      } else if (selectedRoom && selectedDateRange) {
-        // Create new reservation
-        const newRes: Reservation = {
-          id: `res-${Date.now()}`,
-          resourceId: selectedRoom.id,
-          ...newReservation,
-          // Fix: Ensure dates are parsed correctly with local timezone
-          start: parseISO(`${newReservation.checkIn}T00:00:00`),
-          end: parseISO(`${newReservation.checkOut}T00:00:00`),
-          status: "confirmed",
-        };
-        setReservations((prev) => [...prev, newRes]);
-      }
-    },
-    [selectedReservation, selectedRoom, selectedDateRange]
+    [rooms, modalContext]
   );
 
   const handleDeleteReservation = useCallback((reservationId: string) => {
@@ -179,12 +118,13 @@ const HotelReservationCalendar: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      confirmed: "bg-blue-100 border-l-4 border-blue-500 text-blue-800",
-      "checked-in": "bg-green-100 border-l-4 border-green-500 text-green-800",
-      "checked-out": "bg-gray-100 border-l-4 border-gray-500 text-gray-800",
-      cancelled: "bg-red-100 border-l-4 border-red-500 text-red-800",
+      reserved: "bg-chart-1/20 border-l-4 border-chart-1",
+      occupied: "bg-chart-2/20 border-l-4 border-chart-2",
+      "checked-in": "bg-chart-3/20 border-l-4 border-chart-3",
+      "checked-out": "bg-chart-4/20 border-l-4 border-chart-4",
+      blocked: "bg-chart-5/20 border-l-4 border-chart-5",
     };
-    return colors[status as keyof typeof colors] || colors.confirmed;
+    return colors[status as keyof typeof colors] || colors.reserved;
   };
 
   return (
@@ -194,27 +134,27 @@ const HotelReservationCalendar: React.FC = () => {
         <div className="bg-white shadow-sm border-b border-gray-200 p-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              Hotel Reservation Calendar
+              {pageTitle}
             </h1>
           </div>
 
           {/* Controls */}
           <div className="flex items-center justify-between gap-4">
-            <div className="grid grid-cols-5 gap-2 text-sm ">
-              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Reserved</span>
+            <div className="flex gap-2 text-sm w-full">
+              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Reserved</span>
               </div>
-              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Occupied</span>
+              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Occupied</span>
               </div>
-              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Checked-in</span>
+              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Checked-in</span>
               </div>
-              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Checked-out</span>
+              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Checked-out</span>
               </div>
-              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Blocked</span>
+              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Blocked</span>
               </div>
             </div>
 
@@ -232,10 +172,11 @@ const HotelReservationCalendar: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="reserved">Reserved</SelectItem>
+                  <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="checked-in">Checked In</SelectItem>
                   <SelectItem value="checked-out">Checked Out</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="blocked">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -334,10 +275,7 @@ const HotelReservationCalendar: React.FC = () => {
                 <Tooltip key={event.id}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 
-                                                
-                                                ${getStatusColor(event.status)}
-                                            `}
+                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(event.status)}`}
                       style={{
                         gridColumnStart: event.gridColumnStart,
                         gridColumnEnd: event.gridColumnEnd,
@@ -374,18 +312,6 @@ const HotelReservationCalendar: React.FC = () => {
             </div>
           </ScrollArea>
         </div>
-
-        {/* Modals */}
-        {selectedRoom && (
-          <ReservationModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSave={handleSaveReservation}
-            reservation={selectedReservation}
-            room={selectedRoom}
-            selectedDateRange={selectedDateRange}
-          />
-        )}
 
         <AlertDialog
           open={deleteDialog.open}

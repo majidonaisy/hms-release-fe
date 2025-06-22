@@ -14,7 +14,7 @@ export interface Room {
     bookingId: string;
     start: Date;
     end: Date;
-    status: 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+    status: 'reserved' | 'checked-in' | 'checked-out' | 'blocked' | 'occupied';
     rate: number;
     specialRequests?: string;
     guestEmail?: string;

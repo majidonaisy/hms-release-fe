@@ -17,8 +17,8 @@ export const routes: RouteItem[] = [
     component: Dashboard,
   },
   {
-    path: "/calendar",
-    title: "Calendar",
+    path: "/reservations",
+    title: "Reservations",
     icon: Calendar,
     component: HotelReservationCalendar,
   },
