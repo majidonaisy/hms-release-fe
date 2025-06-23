@@ -1,35 +1,15 @@
-import React, { useState, useCallback, useMemo } from "react";
-import {
-  format,
-  addDays,
-  startOfWeek,
-  differenceInDays,
-  isToday,
-  parseISO,
-} from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+"use client"
 
-import { Room, Reservation, NewReservation } from "../types/reservation";
-import { sampleRooms, sampleReservations } from "../data/data";
-import ReservationModal from "../components/Templates/ReservationModal";
-import { Button } from "../components/atoms/Button";
-import { Input } from "../components/atoms/Input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/molecules/Select";
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "../components/atoms/Tooltip";
+import type React from "react"
+import { useState, useCallback, useMemo } from "react"
+import { format, addDays, startOfWeek, differenceInDays, isToday } from "date-fns"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import type { Room, Reservation } from "../types/reservation"
+import { sampleRooms, sampleReservations } from "../data/data"
+import { Button } from "../components/atoms/Button"
+import { Input } from "../components/atoms/Input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/molecules/Select"
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../components/atoms/Tooltip"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,182 +19,171 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../components/molecules/AlertDialog";
-import { ScrollArea } from "@/components/atoms/ScrollArea";
+} from "../components/molecules/AlertDialog"
+import { ScrollArea } from "@/components/atoms/ScrollArea"
 
-const HotelReservationCalendar: React.FC = () => {
-  const [rooms] = useState<Room[]>(sampleRooms);
-  const [reservations, setReservations] =
-    useState<Reservation[]>(sampleReservations);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<
-    Reservation | undefined
-  >();
-  const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
-  const [selectedDateRange, setSelectedDateRange] = useState<
-    { start: Date; end: Date } | undefined
-  >();
+interface HotelReservationCalendarProps {
+  modalContext?: {
+    openReservationModal: (data: {
+      room?: Room
+      reservation?: Reservation
+      dateRange?: { start: Date; end: Date }
+    }) => void
+  }
+  pageTitle?: string
+}
+
+const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ modalContext, pageTitle }) => {
+  const [rooms] = useState<Room[]>(sampleRooms)
+  const [reservations, setReservations] = useState<Reservation[]>(sampleReservations)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterStatus, setFilterStatus] = useState<string>("all")
   const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    reservationId?: string;
-  }>({ open: false });
+    open: boolean
+    reservationId?: string
+  }>({ open: false })
 
-  // Get week dates
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-  const weekEnd = addDays(weekStart, 10); // 10 days total (0-9 = 10 days)
-  const weekDates = Array.from({ length: 10 }, (_, i) => addDays(weekStart, i));
+  // Get week dates - consistently 10 days
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
+  const weekEnd = addDays(weekStart, 9) // 10 days total (0-9 = 10 days)
+  const weekDates = Array.from({ length: 10 }, (_, i) => addDays(weekStart, i))
+
+  // Group rooms by type
+  const roomsByType = useMemo(() => {
+    const grouped = rooms.reduce(
+      (acc, room) => {
+        if (!acc[room.type]) {
+          acc[room.type] = []
+        }
+        acc[room.type].push(room)
+        return acc
+      },
+      {} as Record<string, Room[]>,
+    )
+    return grouped
+  }, [rooms])
+
+  // Create flattened room list with type headers for grid positioning
+  const flattenedRooms = useMemo(() => {
+    const flattened: (Room | { type: "header"; name: string })[] = []
+    Object.entries(roomsByType).forEach(([type, typeRooms]) => {
+      flattened.push({ type: "header", name: type })
+      flattened.push(...typeRooms)
+    })
+    return flattened
+  }, [roomsByType])
 
   // Filter reservations
   const filteredReservations = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
+    const today = new Date()
+    today.setHours(0, 0, 0, 0) // Start of today
 
     return reservations.filter((reservation) => {
       // Existing filters
       const matchesSearch =
         !searchTerm ||
-        reservation.guestName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
+        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesStatus =
-        filterStatus === "all" || reservation.status === filterStatus;
+      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus
 
-      // Date range filtering
-      const overlapsWithWeek =
-        reservation.start <= weekEnd && reservation.end >= weekStart;
+      // Date range filtering - fix the end date calculation
+      const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart
 
-      // Optional: Hide past reservations (uncomment if needed)
-      // const isNotPast = reservation.end >= today;
+      return matchesSearch && matchesStatus && overlapsWithWeek
+    })
+  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd])
 
-      return matchesSearch && matchesStatus && overlapsWithWeek; // && isNotPast;
-    });
-  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd]);
-
-  // Convert reservations to grid-positioned events
+  // Convert reservations to grid-positioned events - FIXED MAPPING
   const gridEvents = useMemo(() => {
     return filteredReservations.map((reservation) => {
-      const startDate =
-        reservation.start > weekStart ? reservation.start : weekStart;
-      const endDate = reservation.end < weekEnd ? reservation.end : weekEnd;
+      const startDate = reservation.start > weekStart ? reservation.start : weekStart
+      const endDate = reservation.end < weekEnd ? reservation.end : weekEnd
 
-      const startDayIndex = differenceInDays(startDate, weekStart);
-      const duration = Math.max(differenceInDays(endDate, startDate), 1);
-      const roomIndex = rooms.findIndex(
-        (room) => room.id === reservation.resourceId
-      );
+      const startDayIndex = differenceInDays(startDate, weekStart)
+      const duration = Math.max(differenceInDays(endDate, startDate), 1)
+
+      // Find the actual room in the flattened array (skip headers)
+      const roomGridIndex = flattenedRooms.findIndex((item) => "id" in item && item.id === reservation.resourceId)
 
       return {
         ...reservation,
         gridColumnStart: startDayIndex + 2, // +2 because first column is room names
         gridColumnEnd: startDayIndex + duration + 2,
-        gridRowStart: roomIndex + 2, // +2 because first row is header
-        gridRowEnd: roomIndex + 3,
-      };
-    });
-  }, [filteredReservations, rooms, weekStart, weekEnd]);
+        gridRowStart: roomGridIndex + 1, // +1 because grid is 1-indexed
+        gridRowEnd: roomGridIndex + 2,
+      }
+    })
+  }, [filteredReservations, flattenedRooms, weekStart, weekEnd])
 
-  const handleCellClick = useCallback((date: Date, room: Room) => {
-    setSelectedRoom(room);
-    setSelectedDateRange({ start: date, end: addDays(date, 1) });
-    setSelectedReservation(undefined);
-    setIsModalOpen(true);
-  }, []);
+  const handleCellClick = useCallback(
+    (date: Date, room: Room) => {
+      if (modalContext) {
+        modalContext.openReservationModal({
+          room,
+          dateRange: { start: date, end: addDays(date, 1) },
+        })
+      }
+    },
+    [modalContext],
+  )
 
   const handleReservationClick = useCallback(
     (reservation: Reservation) => {
-      const room = rooms.find((r) => r.id === reservation.resourceId);
-      if (room) {
-        setSelectedReservation(reservation);
-        setSelectedRoom(room);
-        setSelectedDateRange(undefined);
-        setIsModalOpen(true);
+      const room = rooms.find((r) => r.id === reservation.resourceId)
+      if (room && modalContext) {
+        modalContext.openReservationModal({
+          reservation,
+          room,
+        })
       }
     },
-    [rooms]
-  );
-
-  const handleSaveReservation = useCallback(
-    (newReservation: NewReservation) => {
-      if (selectedReservation) {
-        // Update existing reservation
-        setReservations((prev) =>
-          prev.map((res) =>
-            res.id === selectedReservation.id
-              ? {
-                ...res,
-                ...newReservation,
-                // Fix: Ensure dates are parsed correctly with local timezone
-                start: parseISO(`${newReservation.checkIn}T00:00:00`),
-                end: parseISO(`${newReservation.checkOut}T00:00:00`),
-              }
-              : res
-          )
-        );
-      } else if (selectedRoom && selectedDateRange) {
-        // Create new reservation
-        const newRes: Reservation = {
-          id: `res-${Date.now()}`,
-          resourceId: selectedRoom.id,
-          ...newReservation,
-          // Fix: Ensure dates are parsed correctly with local timezone
-          start: parseISO(`${newReservation.checkIn}T00:00:00`),
-          end: parseISO(`${newReservation.checkOut}T00:00:00`),
-          status: "confirmed",
-        };
-        setReservations((prev) => [...prev, newRes]);
-      }
-    },
-    [selectedReservation, selectedRoom, selectedDateRange]
-  );
+    [rooms, modalContext],
+  )
 
   const handleDeleteReservation = useCallback((reservationId: string) => {
-    setReservations((prev) => prev.filter((res) => res.id !== reservationId));
-    setDeleteDialog({ open: false });
-  }, []);
+    setReservations((prev) => prev.filter((res) => res.id !== reservationId))
+    setDeleteDialog({ open: false })
+  }, [])
 
   const getStatusColor = (status: string) => {
     const colors = {
-      confirmed: "bg-blue-100 border-l-4 border-blue-500 text-blue-800",
-      "checked-in": "bg-green-100 border-l-4 border-green-500 text-green-800",
-      "checked-out": "bg-gray-100 border-l-4 border-gray-500 text-gray-800",
-      cancelled: "bg-red-100 border-l-4 border-red-500 text-red-800",
-    };
-    return colors[status as keyof typeof colors] || colors.confirmed;
-  };
+      reserved: "bg-chart-1/20 border-l-4 border-chart-1",
+      occupied: "bg-chart-2/20 border-l-4 border-chart-2",
+      "checked-in": "bg-chart-3/20 border-l-4 border-chart-3",
+      "checked-out": "bg-chart-4/20 border-l-4 border-chart-4",
+      blocked: "bg-chart-5/20 border-l-4 border-chart-5",
+    }
+    return colors[status as keyof typeof colors] || colors.reserved
+  }
 
   return (
     <TooltipProvider>
-      <div className=" bg-gray-50 flex flex-col">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+      <div className="px-4">
+        {/* Page Header */}
+        <div className="bg-white border-b border-gray-200 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Hotel Reservation Calendar
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           </div>
 
           {/* Controls */}
           <div className="flex items-center justify-between gap-4">
-            <div className="grid grid-cols-5 gap-2 text-sm ">
-              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Reserved</span>
+            <div className="flex gap-2 text-sm w-full">
+              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Reserved</span>
               </div>
-              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Occupied</span>
+              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Occupied</span>
               </div>
-              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Checked-in</span>
+              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Checked-in</span>
               </div>
-              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Checked-out</span>
+              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Checked-out</span>
               </div>
-              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 px-2 rounded py-0.5 font-semibold w-40">
-                <span>Blocked</span>
+              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+                <span className="text-xs">Blocked</span>
               </div>
             </div>
 
@@ -232,112 +201,144 @@ const HotelReservationCalendar: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="reserved">Reserved</SelectItem>
+                  <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="checked-in">Checked In</SelectItem>
                   <SelectItem value="checked-out">Checked Out</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="blocked">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentDate((prev) => addDays(prev, -7))}
-            >
-              <ChevronLeft size={18} />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentDate(new Date())}
-            >
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentDate((prev) => addDays(prev, 7))}
-            >
-              <ChevronRight size={18} />
-            </Button>
-          </div>
-
         </div>
 
-        {/* Calendar Grid */}
-        <div className="flex-1 overflow-hidden ">
+        {/* Calendar Header - Rooms and Dates */}
+        <div className="bg-white border-b border-gray-300 mb-10">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
+              gridTemplateRows: `auto auto auto`,
+            }}
+          >
+            {/* Rooms header */}
+            <div className="border-x border-gray-300 p-4 flex items-center" style={{ gridColumn: 1, gridRow: "1 / 4" }}>
+              <span className="font-semibold">Rooms</span>
+            </div>
+
+            {/* Month navigation - spans all date columns */}
+            <div
+              className="border-b border-gray-300 p-2 flex items-center justify-start gap-2"
+              style={{ gridColumn: `2 / ${weekDates.length + 2}`, gridRow: 1 }}
+            >
+              <span className="text-md font-bold">{format(currentDate, "MMMM yyyy")}</span>
+              <Button
+                size="icon"
+                onClick={() => setCurrentDate((prev) => addDays(prev, -7))}
+                className="h-6 w-6 rounded-full bg-hms-accent/25 text-black hover:bg-hms-accent/50"
+              >
+                <ChevronLeft size={14} />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => setCurrentDate((prev) => addDays(prev, 7))}
+                className="h-6 w-6 rounded-full bg-hms-accent/25 text-black hover:bg-hms-accent/50"
+              >
+                <ChevronRight size={14} />
+              </Button>
+            </div>
+
+            {/* Day names row - all 10 days */}
+            {weekDates.map((date, index) => (
+              <div
+                key={`day-${date.toISOString()}`}
+                className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${
+                  isToday(date) ? "bg-blue-50 text-blue-700" : ""
+                }`}
+                style={{ gridColumn: index + 2, gridRow: 2 }}
+              >
+                {format(date, "EEE").toUpperCase()}
+              </div>
+            ))}
+
+            {/* Date numbers row - all 10 days */}
+            {weekDates.map((date, index) => (
+              <div
+                key={`date-${date.toISOString()}`}
+                className={`border-r border-b border-gray-300 text-start px-2 text-lg font-semibold ${
+                  isToday(date) ? "bg-blue-50 text-blue-700" : ""
+                }`}
+                style={{ gridColumn: index + 2, gridRow: 3 }}
+              >
+                {format(date, "d")}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Calendar Grid - Rooms and Reservations */}
+        <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-[34rem]">
-            {/* Single Grid Container */}
             <div
               className="grid border-collapse"
               style={{
                 gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
-                gridTemplateRows: `60px repeat(${rooms.length}, 80px)`,
+                gridTemplateRows: flattenedRooms
+                  .map((item) => ("type" in item && item.type === "header" ? "40px" : "80px"))
+                  .join(" "),
               }}
             >
-              {/* Header - Room Column */}
-              <div
-                className="border-r border-b border-gray-300 p-4 font-semibold bg-gray-100 sticky top-0 z-30"
-                style={{ gridColumn: 1, gridRow: 1 }}
-              >
-                Rooms
-              </div>
-
-              {/* Header - Date Columns */}
-              {weekDates.map((date, index) => (
+              {/* Room Labels and Type Headers */}
+              {flattenedRooms.map((item, index) => (
                 <div
-                  key={`header-${date.toISOString()}`}
-                  className={`border-r border-b border-gray-300 p-4 text-center text-sm sticky top-0 z-50 ${isToday(date)
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "bg-gray-100"
-                    }`}
-                  style={{ gridColumn: index + 2, gridRow: 1 }}
-                >
-                  <div className="font-medium">{format(date, "EEE")}</div>
-                  <div>{format(date, "MMM d")}</div>
-                </div>
-              ))}
-
-              {/* Room Labels */}
-              {rooms.map((room, roomIndex) => (
-                <div
-                  key={`room-${room.id}`}
-                  className="border-r border-b border-gray-200 p-3 bg-gray-50 flex items-center sticky left-0 z-10"
+                  key={`room-${index}`}
+                  className={`border-r border-b border-gray-200 flex items-center sticky left-0 z-10 ${
+                    "type" in item && item.type === "header"
+                      ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
+                      : "bg-gray-50 p-3"
+                  }`}
                   style={{
                     gridColumn: 1,
-                    gridRow: roomIndex + 2,
+                    gridRow: index + 1,
                   }}
                 >
-                  <div className="font-semibold text-sm">{room.name}</div>
+                  {"type" in item && item.type === "header" ? (
+                    <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
+                  ) : (
+                    <div className="font-semibold text-sm">{item.name}</div>
+                  )}
                 </div>
               ))}
 
-              {/* Calendar Cells */}
-              {rooms.map((room, roomIndex) =>
+              {/* Calendar Cells - all 10 days for each row */}
+              {flattenedRooms.map((item, roomIndex) =>
                 weekDates.map((date, dateIndex) => (
                   <div
-                    key={`cell-${room.id}-${date.toISOString()}`}
-                    className={`border-r border-b border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors ${isToday(date) ? "bg-blue-50" : "bg-white"
-                      }`}
+                    key={`cell-${roomIndex}-${date.toISOString()}`}
+                    className={`border-r border-b border-gray-200 transition-colors ${
+                      "type" in item && item.type === "header"
+                        ? "bg-hms-accent/15 cursor-default"
+                        : `hover:bg-blue-50 cursor-pointer ${isToday(date) ? "bg-blue-50" : "bg-white"}`
+                    }`}
                     style={{
                       gridColumn: dateIndex + 2,
-                      gridRow: roomIndex + 2,
+                      gridRow: roomIndex + 1,
                     }}
-                    onClick={() => handleCellClick(date, room)}
+                    onClick={() => {
+                      if ("id" in item) {
+                        handleCellClick(date, item)
+                      }
+                    }}
                   />
-                ))
+                )),
               )}
 
-              {/* Events */}
+              {/* Events - positioned correctly on actual room rows */}
               {gridEvents.map((event) => (
                 <Tooltip key={event.id}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 
-                                                
-                                                ${getStatusColor(event.status)}
-                                            `}
+                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(event.status)}`}
                       style={{
                         gridColumnStart: event.gridColumnStart,
                         gridColumnEnd: event.gridColumnEnd,
@@ -346,27 +347,18 @@ const HotelReservationCalendar: React.FC = () => {
                       }}
                       onClick={() => handleReservationClick(event)}
                     >
-                      <div className="truncate font-medium">
-                        {event.guestName}
-                      </div>
-                      <div className="truncate text-xs opacity-75">
-                        {event.bookingId}
-                      </div>
+                      <div className="truncate font-medium">{event.guestName}</div>
+                      <div className="truncate text-xs opacity-75">{event.bookingId}</div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
                       <div className="font-medium">{event.guestName}</div>
                       <div className="text-sm">
-                        {format(event.start, "MMM d")} -{" "}
-                        {format(event.end, "MMM d")}
+                        {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
                       </div>
                       <div className="text-sm">${event.rate}/night</div>
-                      {event.specialRequests && (
-                        <div className="text-sm text-gray-600">
-                          {event.specialRequests}
-                        </div>
-                      )}
+                      {event.specialRequests && <div className="text-sm text-gray-600">{event.specialRequests}</div>}
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -375,37 +367,18 @@ const HotelReservationCalendar: React.FC = () => {
           </ScrollArea>
         </div>
 
-        {/* Modals */}
-        {selectedRoom && (
-          <ReservationModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onSave={handleSaveReservation}
-            reservation={selectedReservation}
-            room={selectedRoom}
-            selectedDateRange={selectedDateRange}
-          />
-        )}
-
-        <AlertDialog
-          open={deleteDialog.open}
-          onOpenChange={(open) => setDeleteDialog({ open })}
-        >
+        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open })}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this reservation? This action
-                cannot be undone.
+                Are you sure you want to delete this reservation? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() =>
-                  deleteDialog.reservationId &&
-                  handleDeleteReservation(deleteDialog.reservationId)
-                }
+                onClick={() => deleteDialog.reservationId && handleDeleteReservation(deleteDialog.reservationId)}
                 className="bg-red-600 hover:bg-red-700"
               >
                 Delete
@@ -415,7 +388,7 @@ const HotelReservationCalendar: React.FC = () => {
         </AlertDialog>
       </div>
     </TooltipProvider>
-  );
-};
+  )
+}
 
-export default HotelReservationCalendar;
+export default HotelReservationCalendar

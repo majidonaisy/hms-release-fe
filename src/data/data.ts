@@ -97,7 +97,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 20),   // Dec 20, 2025 (Friday)
     guestName: 'Sarah Johnson',
     bookingId: 'BK-2025-002',
-    status: 'confirmed',
+    status: 'reserved',
     rate: 130,
     guestEmail: 'sarah.johnson@email.com',
     guestPhone: '+1-555-0456',
@@ -110,7 +110,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 19),   // Dec 19, 2025 (Thursday)
     guestName: 'Michael Brown',
     bookingId: 'BK-2025-003',
-    status: 'confirmed',
+    status: 'reserved',
     rate: 250,
     guestEmail: 'michael.brown@email.com',
     guestPhone: '+1-555-0789',
@@ -123,7 +123,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 21),   // Dec 21, 2025 (Saturday)
     guestName: 'Emily Davis',
     bookingId: 'BK-2025-004',
-    status: 'confirmed',
+    status: 'blocked',
     rate: 250,
     guestEmail: 'emily.davis@email.com',
     guestPhone: '+1-555-0321',
@@ -136,7 +136,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 22),   // Dec 22, 2025 (Sunday)
     guestName: 'Robert Wilson',
     bookingId: 'BK-2025-005',
-    status: 'confirmed',
+    status: 'occupied',
     rate: 380,
     guestEmail: 'robert.wilson@email.com',
     guestPhone: '+1-555-0654',
@@ -151,7 +151,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 23),   // Dec 23, 2025 (Monday)
     guestName: 'Lisa Anderson',
     bookingId: 'BK-2025-006',
-    status: 'confirmed',
+    status: 'reserved',
     rate: 150,
     guestEmail: 'lisa.anderson@email.com',
     guestPhone: '+1-555-0987',
@@ -164,7 +164,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 24),   // Dec 24, 2025 (Tuesday)
     guestName: 'David Martinez',
     bookingId: 'BK-2025-007',
-    status: 'confirmed',
+    status: 'occupied',
     rate: 380,
     guestEmail: 'david.martinez@email.com',
     guestPhone: '+1-555-061',
@@ -177,7 +177,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 25),   // Dec 25, 2025 (Wednesday)
     guestName: 'Jennifer Taylor',
     bookingId: 'BK-2025-008',
-    status: 'confirmed',
+    status: 'reserved',
     rate: 380,
     guestEmail: 'jennifer.taylor@email.com',
     guestPhone: '+1-555-0222',
@@ -220,7 +220,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
     guestName: 'Kevin Johnson',
     bookingId: 'BK-2025-06',
-    status: 'confirmed',
+    status: 'blocked',
     rate: 250,
     guestEmail: 'kevin.johnson@email.com',
     guestPhone: '+1-555-0555',
@@ -233,7 +233,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 27),   // Dec 27, 2025 (Friday)
     guestName: 'Maria Rodriguez',
     bookingId: 'BK-2025-012',
-    status: 'confirmed',
+    status: 'blocked',
     rate: 130,
     guestEmail: 'maria.rodriguez@email.com',
     guestPhone: '+1-555-0666',
@@ -248,7 +248,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 20),   // Dec 20, 2025 (Friday)
     guestName: 'Chris Lee',
     bookingId: 'BK-2025-013',
-    status: 'cancelled',
+    status: 'occupied',
     rate: 380,
     guestEmail: 'chris.lee@email.com',
     guestPhone: '+1-555-0777',
@@ -263,7 +263,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
     guestName: 'Anna Kim',
     bookingId: 'BK-2025-014',
-    status: 'confirmed',
+    status: 'occupied',
     rate: 150,
     guestEmail: 'anna.kim@email.com',
     guestPhone: '+1-555-0888',
@@ -276,28 +276,12 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 6, 28),   // Dec 28, 2025 (Saturday)
     guestName: 'Peter Clark',
     bookingId: 'BK-2025-015',
-    status: 'confirmed',
+    status: 'reserved',
     rate: 380,
     guestEmail: 'peter.clark@email.com',
     guestPhone: '+1-555-0999',
     specialRequests: 'Christmas Day check-in, family gathering'
   },
-  
-  // Extended stay
-  {
-    id: 'res-016',
-    resourceId: '302',
-    start: new Date(2025, 6, 12), // Dec 12, 2025 (Thursday)
-    end: new Date(2025, 6, 26),   // Dec 26, 2025 (Thursday)
-    guestName: 'Michelle Garcia',
-    bookingId: 'BK-2025-016',
-    status: 'checked-in',
-    rate: 380,
-    guestEmail: 'michelle.garcia@email.com',
-    guestPhone: '+1-555-1010',
-    specialRequests: 'Extended business stay, weekly housekeeping'
-  },
-  
   // New Year reservations
   {
     id: 'res-017',
@@ -306,7 +290,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 0, 2),     // Jan 2, 2025 (Thursday)
     guestName: 'Thomas Anderson',
     bookingId: 'BK-2025-017',
-    status: 'confirmed',
+    status: 'blocked',
     rate: 250,
     guestEmail: 'thomas.anderson@email.com',
     guestPhone: '+1-555-66',
@@ -319,7 +303,7 @@ export const sampleReservations: Reservation[] = [
     end: new Date(2025, 0, 3),     // Jan 3, 2025 (Friday)
     guestName: 'Nancy Davis',
     bookingId: 'BK-2025-018',
-    status: 'confirmed',
+    status: 'occupied',
     rate: 250,
     guestEmail: 'nancy.davis@email.com',
     guestPhone: '+1-555-1212',
