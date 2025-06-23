@@ -4,11 +4,10 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
-import {  Router, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Rooms = () => {
-    const navigate = useNavigate()
-    console.log(navigate)
+    const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [showFilter, setShowFilter] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -118,7 +117,7 @@ const Rooms = () => {
             default:
                 return 'bg-gray-100 text-gray-700 hover:bg-gray-100';
         }
-      };
+    };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -134,7 +133,7 @@ const Rooms = () => {
 
                 {/* Search Bar and Actions */}
                 <div className="flex items-center gap-4">
-                    <div className="flex flex-row justify-between items-center border boder-slate-300 rounded-full px-3">
+                    <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
                         <Input
                             type="text"
                             placeholder="Search text"
@@ -164,7 +163,7 @@ const Rooms = () => {
                             New Room Type
                         </Button>
                         <Button
-                            onClick={() => navigate('/rooms/newroom')}
+                            onClick={() => navigate('/rooms/new')}
 
                         >
                             <Plus className="h-4 w-4" />
@@ -253,7 +252,7 @@ const Rooms = () => {
                         Next →
                     </Button>
                 </div>
-                </div>
+            </div>
 
         </div>
     );

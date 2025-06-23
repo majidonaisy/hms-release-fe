@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Routes, Route, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, Outlet } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
     Sidebar,
     SidebarContent,
@@ -15,20 +16,23 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/Organisms/Sidebar'
-import { routes, getSidebarRoutes, RouteItem } from '@/routes';
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import ReservationModal from '../components/Templates/ReservationModal';
 import { Room, Reservation } from '../types/reservation';
 import { sampleRooms } from '../data/data';
 
-const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+    routes: any[];
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
     const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
     const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
-
+    const [openTabs, setOpenTabs] = useState<string[]>([]); // Add this for collapsible subroutes
 
     const defaultRoom = sampleRooms[0];
 
@@ -68,59 +72,109 @@ const MainLayout: React.FC = () => {
         openReservationModal: handleOpenReservationModal,
     };
 
-    // Get routes that should be shown in sidebar based on user role
-    const sidebarRoutes = getSidebarRoutes();
+    // Get current active route
+    const activeRouteSeg = location.pathname.split('/').pop() || '';
+    const activeRoute = decodeURIComponent(activeRouteSeg);
 
-    // Helper function to check if current path matches route (including children)
-    const isRouteActive = (route: RouteItem) => {
-        if (location.pathname === route.path) return true;
-        if (route.children) {
-            return location.pathname.startsWith(route.path + '/');
-        }
-        return false;
+    // Handle toggle for subroutes
+    const handleToggle = (path: string) => {
+        setOpenTabs((prevOpenTabs) =>
+            prevOpenTabs.includes(path)
+                ? prevOpenTabs.filter((tab) => tab !== path)
+                : [...prevOpenTabs, path]
+        );
     };
 
-    // Recursive function to render routes
-    const renderRoutes = (routeList: RouteItem[], parentPath = ''): React.ReactNode[] => {
-        return routeList.map((route) => {
-            const Component = route.component;
-            const fullPath = parentPath + route.path;
+    // Render menu items with subroute support
+    const renderMenuItems = (routes: any[], parentPath = "") => {
+        return routes
+            .filter((route: any) => route.isAuthenticated !== false && route.isShown !== false)
+            .map((route: any) => {
+                // For subroutes, use the full path directly, for main routes use as is
+                const fullPath = route.path;
+                const isOpen = openTabs.includes(fullPath);
 
-            if (route.children && route.children.length > 0) {
-                // Parent route with children
+                // Check if there are any visible subroutes
+                const hasVisibleSubroutes = route.subRoutes && route.subRoutes.some((subRoute: any) => subRoute.isShown !== false);
+
+                // Check if route is active
+                const isActive = location.pathname === fullPath ||
+                    location.pathname.startsWith(fullPath + '/') ||
+                    (route.subRoutes && route.subRoutes.some((subRoute: any) => {
+                        return location.pathname === subRoute.path;
+                    }));
+
                 return (
-                    <Route key={fullPath} path={`${fullPath}/*`} element={
-                        Component ? (
-                            <Component
-                                modalContext={modalContext}
-                                pageTitle={route.title}
-                            />
-                        ) : (
-                            <div className="p-4">Component not found for {route.title}</div>
-                        )
-                    } />
-                );
-            } else {
-                // Regular route without children
-                return (
-                    <Route
-                        key={fullPath}
-                        path={fullPath}
-                        element={
-                            Component ? (
-                                <Component
-                                    modalContext={modalContext}
-                                    pageTitle={route.title}
-                                />
+                    <React.Fragment key={fullPath}>
+                        <SidebarMenuItem>
+                            {hasVisibleSubroutes ? (
+                                // Parent with visible subroutes - show chevron
+                                <div className="flex items-center w-full">
+                                    <SidebarMenuButton asChild isActive={isActive} className="flex-1">
+                                        <Link to={fullPath} className="flex items-center">
+                                            {typeof route.icon === 'function' ?
+                                                <route.icon className="!size-4" /> :
+                                                <span className="!size-4">{route.icon}</span>
+                                            }
+                                            <span className={`group-data-[collapsible=icon]:hidden text-lg ml-2 ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                                                {route.title || route.path}
+                                            </span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                    <button
+                                        onClick={() => handleToggle(fullPath)}
+                                        className="p-2 hover:bg-gray-100 rounded transition-colors duration-200 group-data-[collapsible=icon]:hidden"
+                                    >
+                                        {isOpen ? (
+                                            <ChevronUp className="size-4" />
+                                        ) : (
+                                            <ChevronDown className="size-4" />
+                                        )}
+                                    </button>
+                                </div>
                             ) : (
-                                <div className="p-4">Component not found for {route.title}</div>
-                            )
-                        }
-                    />
+                                // Regular route link (no visible subroutes or no subroutes at all)
+                                <SidebarMenuButton
+                                    tooltip={route.title}
+                                    asChild
+                                    isActive={isActive}
+                                >
+                                    <Link to={fullPath}>
+                                        {typeof route.icon === 'function' ?
+                                            <route.icon className="!size-4" /> :
+                                            <span className="!size-4">{route.icon}</span>
+                                        }
+                                        <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                                            {route.title || route.path}
+                                        </span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            )}
+                        </SidebarMenuItem>
+
+                        {/* Render subroutes only if there are visible ones */}
+                        {hasVisibleSubroutes && (
+                            <div
+                                className={`pl-4 overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:hidden ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                                    }`}
+                            >
+                                <SidebarMenu>
+                                    {renderMenuItems(route.subRoutes)}
+                                </SidebarMenu>
+                            </div>
+                        )}
+                    </React.Fragment>
                 );
-            }
-        });
+            });
     };
+
+    const getSidebarRoutes = () => {
+        console.log('routes', routes)
+        if (!routes || !Array.isArray(routes)) return [];
+        return routes.filter(route => route.isShown === true);
+    };
+
+    const menuItems = React.useMemo(() => renderMenuItems(getSidebarRoutes()), [routes, openTabs, location.pathname]);
 
     return (
         <SidebarProvider>
@@ -143,22 +197,7 @@ const MainLayout: React.FC = () => {
                         <SidebarGroup>
                             <SidebarGroupContent>
                                 <SidebarMenu>
-                                    {sidebarRoutes.map((route) => (
-                                        <SidebarMenuItem key={route.path}>
-                                            <SidebarMenuButton
-                                                tooltip={route.title}
-                                                asChild
-                                                isActive={isRouteActive(route)}
-                                            >
-                                                <Link to={route.path} className='transition-all duration-200'>
-                                                    <route.icon className="!size-4" />
-                                                    <span className={`group-data-[collapsible=icon]:hidden text-lg ${isRouteActive(route) ? 'font-bold' : 'font-semibold'}`}>
-                                                        {route.title}
-                                                    </span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                    ))}
+                                    {menuItems}
                                 </SidebarMenu>
                             </SidebarGroupContent>
                         </SidebarGroup>
@@ -200,11 +239,7 @@ const MainLayout: React.FC = () => {
                     </header>
 
                     <main className="flex-1 overflow-auto">
-                        <Routes>
-                            {renderRoutes(routes)}
-                            {/* Catch-all route for 404 */}
-                            <Route path="*" element={<div className="p-4">Page not found</div>} />
-                        </Routes>
+                        <Outlet context={modalContext} />
                     </main>
                 </SidebarInset>
 
