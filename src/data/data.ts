@@ -7,7 +7,8 @@ export const sampleRooms: Room[] = [
     type: 'Standard',
     rate: 150,
     capacity: 2,
-    amenities: ['WiFi', 'TV', 'AC', 'Ocean View']
+    amenities: ['WiFi', 'TV', 'AC', 'Ocean View'],
+    needsHousekeeping: false
   },
   {
     id: '102',
@@ -15,7 +16,8 @@ export const sampleRooms: Room[] = [
     type: 'Standard',
     rate: 130,
     capacity: 2,
-    amenities: ['WiFi', 'TV', 'AC', 'Garden View']
+    amenities: ['WiFi', 'TV', 'AC', 'Garden View'],
+    needsHousekeeping: true
   },
   {
     id: '201',
@@ -23,7 +25,8 @@ export const sampleRooms: Room[] = [
     type: 'Deluxe',
     rate: 250,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Balcony', 'Ocean View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Balcony', 'Ocean View'],
+    needsHousekeeping: false
   },
   {
     id: '202',
@@ -31,7 +34,8 @@ export const sampleRooms: Room[] = [
     type: 'Deluxe',
     rate: 250,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Balcony', 'Garden View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Balcony', 'Garden View'],
+    needsHousekeeping: false
   },
   {
     id: '302',
@@ -39,7 +43,8 @@ export const sampleRooms: Room[] = [
     type: 'Suite',
     rate: 380,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View'],
+    needsHousekeeping: true
   },
   {
     id: '303',
@@ -47,7 +52,8 @@ export const sampleRooms: Room[] = [
     type: 'Suite',
     rate: 380,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View'],
+    needsHousekeeping: false
   },
   {
     id: '304',
@@ -55,7 +61,8 @@ export const sampleRooms: Room[] = [
     type: 'Suite',
     rate: 380,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View'],
+    needsHousekeeping: false
   },
   {
     id: '305',
@@ -63,7 +70,8 @@ export const sampleRooms: Room[] = [
     type: 'Suite',
     rate: 380,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View'],
+    needsHousekeeping: false
   },
   {
     id: '306',
@@ -71,7 +79,8 @@ export const sampleRooms: Room[] = [
     type: 'Suite',
     rate: 380,
     capacity: 4,
-    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View']
+    amenities: ['WiFi', 'TV', 'AC', 'Kitchenette', 'Living Room', 'Balcony', 'City View'],
+    needsHousekeeping: true
   },
 ];
 
