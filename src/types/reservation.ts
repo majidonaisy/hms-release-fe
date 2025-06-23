@@ -5,6 +5,7 @@ export interface Room {
     rate: number;
     capacity: number;
     amenities: string[];
+    needsHousekeeping: boolean
   }
   
   export interface Reservation {
