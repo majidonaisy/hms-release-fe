@@ -54,7 +54,7 @@ const RoutesList = () => {
                     isShown: false,
                 },
                 {
-                    path: "/team-members/profile",
+                    path: "/team-members/profile/:id",
                     title: "Team Member Profile",
                     icon: <User />,
                     component: TeamMemberProfile,
