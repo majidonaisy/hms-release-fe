@@ -15,7 +15,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/Organisms/Sidebar'
-import { routes } from '@/routes';
+import { routes, getSidebarRoutes, RouteItem } from '@/routes';
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import ReservationModal from '../components/Templates/ReservationModal';
@@ -28,6 +28,7 @@ const MainLayout: React.FC = () => {
     const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
     const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
     const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
+
 
     const defaultRoom = sampleRooms[0];
 
@@ -67,6 +68,60 @@ const MainLayout: React.FC = () => {
         openReservationModal: handleOpenReservationModal,
     };
 
+    // Get routes that should be shown in sidebar based on user role
+    const sidebarRoutes = getSidebarRoutes();
+
+    // Helper function to check if current path matches route (including children)
+    const isRouteActive = (route: RouteItem) => {
+        if (location.pathname === route.path) return true;
+        if (route.children) {
+            return location.pathname.startsWith(route.path + '/');
+        }
+        return false;
+    };
+
+    // Recursive function to render routes
+    const renderRoutes = (routeList: RouteItem[], parentPath = ''): React.ReactNode[] => {
+        return routeList.map((route) => {
+            const Component = route.component;
+            const fullPath = parentPath + route.path;
+
+            if (route.children && route.children.length > 0) {
+                // Parent route with children
+                return (
+                    <Route key={fullPath} path={`${fullPath}/*`} element={
+                        Component ? (
+                            <Component
+                                modalContext={modalContext}
+                                pageTitle={route.title}
+                            />
+                        ) : (
+                            <div className="p-4">Component not found for {route.title}</div>
+                        )
+                    } />
+                );
+            } else {
+                // Regular route without children
+                return (
+                    <Route
+                        key={fullPath}
+                        path={fullPath}
+                        element={
+                            Component ? (
+                                <Component
+                                    modalContext={modalContext}
+                                    pageTitle={route.title}
+                                />
+                            ) : (
+                                <div className="p-4">Component not found for {route.title}</div>
+                            )
+                        }
+                    />
+                );
+            }
+        });
+    };
+
     return (
         <SidebarProvider>
             <div className="flex h-screen w-full overflow-hidden ">
@@ -88,16 +143,18 @@ const MainLayout: React.FC = () => {
                         <SidebarGroup>
                             <SidebarGroupContent>
                                 <SidebarMenu>
-                                    {routes.map((route) => (
+                                    {sidebarRoutes.map((route) => (
                                         <SidebarMenuItem key={route.path}>
                                             <SidebarMenuButton
                                                 tooltip={route.title}
                                                 asChild
-                                                isActive={location.pathname === route.path}
+                                                isActive={isRouteActive(route)}
                                             >
                                                 <Link to={route.path} className='transition-all duration-200'>
                                                     <route.icon className="!size-4" />
-                                                    <span className={`group-data-[collapsible=icon]:hidden text-lg ${location.pathname === route.path ? 'font-bold' : 'font-semibold'}`}>{route.title}</span>
+                                                    <span className={`group-data-[collapsible=icon]:hidden text-lg ${isRouteActive(route) ? 'font-bold' : 'font-semibold'}`}>
+                                                        {route.title}
+                                                    </span>
                                                 </Link>
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
@@ -144,22 +201,9 @@ const MainLayout: React.FC = () => {
 
                     <main className="flex-1 overflow-auto">
                         <Routes>
-                            {routes.map((route) => {
-                                const Component = route.component;
-                                return (
-                                    <Route
-                                        key={route.path}
-                                        path={route.path}
-                                        element={Component ?
-                                            <Component
-                                                modalContext={modalContext}
-                                                pageTitle={route.title}
-                                            /> :
-                                            <div className="p-4">Page not found</div>
-                                        }
-                                    />
-                                );
-                            })}
+                            {renderRoutes(routes)}
+                            {/* Catch-all route for 404 */}
+                            <Route path="*" element={<div className="p-4">Page not found</div>} />
                         </Routes>
                     </main>
                 </SidebarInset>

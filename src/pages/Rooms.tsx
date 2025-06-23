@@ -4,8 +4,11 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
+import {  Router, useNavigate } from 'react-router-dom';
 
 const Rooms = () => {
+    const navigate = useNavigate()
+    console.log(navigate)
     const [searchText, setSearchText] = useState('');
     const [showFilter, setShowFilter] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -156,13 +159,13 @@ const Rooms = () => {
                     {/* Action Buttons */}
                     <div className="flex gap-2 ml-auto">
                         <Button
-                            
                         >
                             <Plus className="h-4 w-4" />
                             New Room Type
                         </Button>
                         <Button
-                            
+                            onClick={() => navigate('/rooms/newroom')}
+
                         >
                             <Plus className="h-4 w-4" />
                             New Room

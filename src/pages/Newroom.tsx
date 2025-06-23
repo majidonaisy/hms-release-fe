@@ -1,7 +1,7 @@
-const NewRoom = () => {
+const Newroom = () => {
   return (
     <div>Newroom</div>
   )
 }
 
-export default NewRoom
+export default Newroom
