@@ -151,7 +151,7 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0654',
     specialRequests: 'Business traveler, early check-in needed'
   },
-  
+
   // Upcoming reservations (Dec 19-25, 2025)
   {
     id: 'res-006',
@@ -192,7 +192,7 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0222',
     specialRequests: 'Christmas holiday stay, late checkout on Christmas'
   },
-  
+
   // Past reservations (checked out)
   {
     id: 'res-009',
@@ -220,7 +220,7 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0444',
     specialRequests: 'Anniversary celebration, room decoration'
   },
-  
+
   // Weekend reservations
   {
     id: 'res-06',
@@ -248,7 +248,7 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0666',
     specialRequests: 'Extended holiday stay, weekly rate discount'
   },
-  
+
   // Cancelled reservation
   {
     id: 'res-013',
@@ -263,7 +263,7 @@ export const sampleReservations: Reservation[] = [
     guestPhone: '+1-555-0777',
     specialRequests: 'Cancelled due to emergency, refund processed'
   },
-  
+
   // Short stay reservations
   {
     id: 'res-014',
@@ -317,5 +317,295 @@ export const sampleReservations: Reservation[] = [
     guestEmail: 'nancy.davis@email.com',
     guestPhone: '+1-555-1212',
     specialRequests: 'New Year party package, champagne service'
+  }
+];
+
+export const teamMembersData = [
+  {
+    id: 1,
+    name: "Olivia RHye",
+    username: "@olivia",
+    status: "Active",
+    type: "Front Desk",
+    floor: "Receptionist",
+    occupancy: "Product Designer",
+    logs: "olivia@untitledui.com",
+    email: "olivia@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg"
+  },
+  {
+    id: 2,
+    name: "Phoenix Baker",
+    username: "@phoenix",
+    status: "Inactive",
+    type: "Housekeeping",
+    floor: "Supervisor",
+    occupancy: "Product Manager",
+    logs: "phoenix@untitledui.com",
+    email: "phoenix@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
+  },
+  {
+    id: 3,
+    name: "Lana Steiner",
+    username: "@lana",
+    status: "Active",
+    type: "IT",
+    floor: "Frontend Developer",
+    occupancy: "Frontend Developer",
+    logs: "lana@untitledui.com",
+    email: "lana@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/68.jpg"
+  },
+  {
+    id: 4,
+    name: "Demi Wilkinson",
+    username: "@demi",
+    status: "Active",
+    type: "Management",
+    floor: "Backend Developer",
+    occupancy: "Backend Developer",
+    logs: "demi@untitledui.com",
+    email: "demi@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/47.jpg"
+  },
+  {
+    id: 5,
+    name: "Candice Wu",
+    username: "@candice",
+    status: "Pending",
+    type: "Security",
+    floor: "Fullstack Developer",
+    occupancy: "Fullstack Developer",
+    logs: "candice@untitledui.com",
+    email: "candice@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/65.jpg"
+  },
+  {
+    id: 6,
+    name: "Natali Craig",
+    username: "@natali",
+    status: "Active",
+    type: "UX Designer",
+    floor: "UX Designer",
+    occupancy: "UX Designer",
+    logs: "natali@untitledui.com",
+    email: "natali@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/56.jpg"
+  },
+  {
+    id: 7,
+    name: "Drew Cano",
+    username: "@drew",
+    status: "Inactive",
+    type: "UX Copywriter",
+    floor: "UX Copywriter",
+    occupancy: "UX Copywriter",
+    logs: "drew@untitledui.com",
+    email: "drew@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/men/45.jpg"
+  },
+  {
+    id: 8,
+    name: "Orlando Diggs",
+    username: "@orlando",
+    status: "Pending",
+    type: "UI Designer",
+    floor: "UI Designer",
+    occupancy: "UI Designer",
+    logs: "orlando@untitledui.com",
+    email: "orlando@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/men/48.jpg"
+  },
+  {
+    id: 9,
+    name: "Andi Lane",
+    username: "@andi",
+    status: "Active",
+    type: "Product Manager",
+    floor: "Product Manager",
+    occupancy: "Product Manager",
+    logs: "andi@untitledui.com",
+    email: "andi@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/62.jpg"
+  },
+  {
+    id: 10,
+    name: "Kate Morrison",
+    username: "@kate",
+    status: "Pending",
+    type: "QA Engineer",
+    floor: "QA Engineer",
+    occupancy: "QA Engineer",
+    logs: "kate@untitledui.com",
+    email: "kate@untitledui.com",
+    imageUrl: "https://randomuser.me/api/portraits/women/38.jpg"
+  }
+];
+
+export const teamProfilesData = [
+  {
+    accountId: 1,
+    phoneNumber: "+123 456 001",
+    loginId: "olivia",
+    password: "********",
+    department: "Front Desk",
+    assignedRole: "Receptionist",
+    permissions: null,
+    shift: "Morning shifts",
+    supervisor: "None",
+    dateJoined: "2023-08-15",
+    performanceNotes: [
+      "Consistently receives positive feedback from guests.",
+      "Takes initiative in solving on-site problems."
+    ],
+    activityLogs: [
+      { date: "2025-06-21", time: "09:15 am", description: "Checked in guest Room 101" },
+      { date: "2025-06-21", time: "11:00 am", description: "Logged out" }
+    ]
+  },
+  {
+    accountId: 2,
+    phoneNumber: "+123 456 002",
+    loginId: "phoenix",
+    password: "********",
+    department: "Housekeeping",
+    assignedRole: "Supervisor",
+    permissions: "Staff overview",
+    shift: "Evening shifts",
+    supervisor: "None",
+    dateJoined: "2022-01-10",
+    performanceNotes: [
+      "Improved team efficiency by 20% through scheduling changes.",
+      "Excellent cleanliness audit scores."
+    ],
+    activityLogs: [
+      { date: "2025-06-20", time: "5:15 pm", description: "Logged out" }
+    ]
+  },
+  {
+    accountId: 3,
+    phoneNumber: "+123 456 789",
+    loginId: "lana",
+    password: "********",
+    department: "IT Department",
+    assignedRole: "Front desk agent",
+    permissions: null,
+    shift: "Morning shifts",
+    supervisor: "Olivia RHye",
+    dateJoined: "2024-03-01",
+    performanceNotes: [
+      "Promoted from trainee to full-time receptionist in March 2024.",
+      "Handles VIP guest check-ins reliably.",
+      "Recommended for future shift lead role."
+    ],
+    activityLogs: [
+      { date: "2025-06-21", time: "8:30 am", description: "Checked in guest Room 204" },
+      { date: "2025-06-21", time: "10:36 am", description: "Edited reservation #R3281" },
+      { date: "2025-06-21", time: "4:56 pm", description: "Logged out" }
+    ]
+  },
+  {
+    accountId: 4,
+    phoneNumber: "+123 456 004",
+    loginId: "demi",
+    password: "********",
+    department: "Management",
+    assignedRole: "Backend Developer",
+    permissions: "Admin",
+    shift: "Flexible",
+    supervisor: "None",
+    dateJoined: "2021-12-01",
+    performanceNotes: [
+      "Led backend migration to scalable infrastructure.",
+      "High code quality and reliability."
+    ],
+    activityLogs: []
+  },
+  {
+    accountId: 5,
+    phoneNumber: "+123 456 005",
+    loginId: "candice",
+    password: "********",
+    department: "Security",
+    assignedRole: "Fullstack Developer",
+    permissions: "System Monitor",
+    shift: "Night",
+    supervisor: "Demi Wilkinson",
+    dateJoined: "2022-06-18",
+    performanceNotes: [],
+    activityLogs: []
+  },
+  {
+    accountId: 6,
+    phoneNumber: "+123 456 006",
+    loginId: "natali",
+    password: "********",
+    department: "Design",
+    assignedRole: "UX Designer",
+    permissions: null,
+    shift: "Day",
+    supervisor: "Lana Steiner",
+    dateJoined: "2023-03-22",
+    performanceNotes: [
+      "UX redesign led to 30% increase in booking conversions."
+    ],
+    activityLogs: []
+  },
+  {
+    accountId: 7,
+    phoneNumber: "+123 456 007",
+    loginId: "drew",
+    password: "********",
+    department: "Design",
+    assignedRole: "UX Copywriter",
+    permissions: null,
+    shift: "Day",
+    supervisor: "Natali Craig",
+    dateJoined: "2023-04-10",
+    performanceNotes: [],
+    activityLogs: []
+  },
+  {
+    accountId: 8,
+    phoneNumber: "+123 456 008",
+    loginId: "orlando",
+    password: "********",
+    department: "Design",
+    assignedRole: "UI Designer",
+    permissions: null,
+    shift: "Evening",
+    supervisor: "Natali Craig",
+    dateJoined: "2023-04-10",
+    performanceNotes: [],
+    activityLogs: []
+  },
+  {
+    accountId: 9,
+    phoneNumber: "+123 456 009",
+    loginId: "andi",
+    password: "********",
+    department: "Product",
+    assignedRole: "Product Manager",
+    permissions: "Admin",
+    shift: "Flexible",
+    supervisor: "None",
+    dateJoined: "2021-09-01",
+    performanceNotes: [],
+    activityLogs: []
+  },
+  {
+    accountId: 10,
+    phoneNumber: "+123 456 010",
+    loginId: "kate",
+    password: "********",
+    department: "QA",
+    assignedRole: "QA Engineer",
+    permissions: "Test Access",
+    shift: "Day",
+    supervisor: "Andi Lane",
+    dateJoined: "2022-05-30",
+    performanceNotes: [],
+    activityLogs: []
   }
 ];
