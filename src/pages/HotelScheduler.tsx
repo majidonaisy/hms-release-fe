@@ -1,7 +1,9 @@
+"use client"
+
 import type React from "react"
 import { useState, useCallback, useMemo } from "react"
 import { format, addDays, startOfWeek, differenceInDays, isToday } from "date-fns"
-import { ChevronLeft, ChevronRight, BrushCleaning } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Paintbrush } from "lucide-react"
 import type { Room, Reservation } from "../types/reservation"
 import { sampleRooms, sampleReservations } from "../data/data"
 import { Button } from "../components/atoms/Button"
@@ -96,28 +98,47 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
   // Convert reservations to grid-positioned events - CONSTRAINED TO 7 DAYS
   const gridEvents = useMemo(() => {
     return filteredReservations.map((reservation) => {
+      // Calculate the visible portion of the reservation within the current week
+      const reservationStart = new Date(reservation.start)
+      const reservationEnd = new Date(reservation.end)
+
       // Constrain the reservation display to only the visible 7-day week
-      const startDate = reservation.start > weekStart ? reservation.start : weekStart
-      const endDate = reservation.end < weekEnd ? reservation.end : weekEnd
+      const visibleStart = reservationStart > weekStart ? reservationStart : weekStart
+      const visibleEnd = reservationEnd < weekEnd ? reservationEnd : weekEnd
 
-      const startDayIndex = differenceInDays(startDate, weekStart)
-      const endDayIndex = differenceInDays(endDate, weekStart)
+      // Calculate day indices within the week (0-6)
+      const startDayIndex = differenceInDays(visibleStart, weekStart)
+      const endDayIndex = differenceInDays(visibleEnd, weekStart)
 
-      // Ensure we don't go beyond the 7-day boundary
+      // Ensure indices are within bounds (0-6 for 7 days)
       const constrainedStartIndex = Math.max(0, Math.min(startDayIndex, 6))
       const constrainedEndIndex = Math.max(constrainedStartIndex, Math.min(endDayIndex, 6))
 
-      const duration = constrainedEndIndex - constrainedStartIndex + 1
+      // For reservations that end on a date, we need to include that day
+      // Grid columns are 1-indexed and we need +2 offset for room column
+      const gridStart = constrainedStartIndex + 2
+      const gridEnd = constrainedEndIndex + 3 // +3 because we want to include the end day
 
       // Find the actual room in the flattened array (skip headers)
       const roomGridIndex = flattenedRooms.findIndex((item) => "id" in item && item.id === reservation.resourceId)
 
       return {
         ...reservation,
-        gridColumnStart: constrainedStartIndex + 2, // +2 because first column is room names
-        gridColumnEnd: constrainedStartIndex + duration + 1,
+        gridColumnStart: gridStart,
+        gridColumnEnd: gridEnd,
         gridRowStart: roomGridIndex + 1, // +1 because grid is 1-indexed
         gridRowEnd: roomGridIndex + 2,
+        // Add debug info to help track the mapping
+        _debug: {
+          originalStart: format(reservationStart, "MMM dd"),
+          originalEnd: format(reservationEnd, "MMM dd"),
+          visibleStart: format(visibleStart, "MMM dd"),
+          visibleEnd: format(visibleEnd, "MMM dd"),
+          startIndex: constrainedStartIndex,
+          endIndex: constrainedEndIndex,
+          gridStart,
+          gridEnd,
+        },
       }
     })
   }, [filteredReservations, flattenedRooms, weekStart, weekEnd])
@@ -255,16 +276,13 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
 
             {/* Day names row - all 7 days */}
             {weekDates.map((date, index) => {
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6
               return (
                 <div
                   key={`day-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${isToday(date)
-                    ? "bg-blue-50 text-blue-700"
-                    : isWeekend
-                      ? "bg-hms-accent/15"
-                      : ""
-                    }`}
+                  className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${
+                    isToday(date) ? "bg-blue-50 text-blue-700" : isWeekend ? "bg-hms-accent/15" : ""
+                  }`}
                   style={{ gridColumn: index + 2, gridRow: 2 }}
                 >
                   {format(date, "EEE").toUpperCase()}
@@ -274,16 +292,13 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
 
             {/* Date numbers row - all 7 days */}
             {weekDates.map((date, index) => {
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6
               return (
                 <div
                   key={`date-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-lg font-semibold ${isToday(date)
-                    ? "bg-blue-50 text-blue-700"
-                    : isWeekend
-                      ? "bg-hms-accent/15"
-                      : ""
-                    }`}
+                  className={`border-r border-gray-300 text-start px-2 text-lg font-semibold ${
+                    isToday(date) ? "bg-blue-50 text-blue-700" : isWeekend ? "bg-hms-accent/15" : ""
+                  }`}
                   style={{ gridColumn: index + 2, gridRow: 3 }}
                 >
                   {format(date, "d")}
@@ -309,10 +324,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
               {flattenedRooms.map((item, index) => (
                 <div
                   key={`room-${index}`}
-                  className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
-                    ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
-                    : "bg-gray-50 border-r p-1"
-                    }`}
+                  className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${
+                    "type" in item && item.type === "header"
+                      ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
+                      : "bg-gray-50 border-r p-1"
+                  }`}
                   style={{
                     gridColumn: 1,
                     gridRow: index + 1,
@@ -324,7 +340,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
                     <div className="flex items-center gap-1">
                       {"needsHousekeeping" in item && item.needsHousekeeping && (
                         <div className="">
-                          <BrushCleaning className="p-1 rounded-full border border-green-500 bg-green-500 text-white" />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Paintbrush className="p-1  rounded-full border border-green-500 bg-green-500 text-white" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Needs housekeeping</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       )}
                       <div className="font-semibold text-sm">{item.name}</div>
@@ -336,19 +359,17 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
               {/* Calendar Cells - exactly 7 days for each row, matching the header */}
               {flattenedRooms.map((item, roomIndex) =>
                 weekDates.map((date, dateIndex) => {
-                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6
                   return (
                     <div
                       key={`cell-${roomIndex}-${date.toISOString()}`}
-                      className={`border-b border-gray-200 transition-colors ${"type" in item && item.type === "header"
-                        ? "bg-hms-accent/15 cursor-default"
-                        : `hover:bg-blue-50 cursor-pointer border-r ${isToday(date)
-                          ? "bg-blue-50"
-                          : isWeekend
-                            ? "bg-hms-accent/15"
-                            : "bg-white"
-                        }`
-                        }`}
+                      className={`border-b border-gray-200 transition-colors ${
+                        "type" in item && item.type === "header"
+                          ? "bg-hms-accent/15 cursor-default"
+                          : `hover:bg-blue-50 cursor-pointer border-r ${
+                              isToday(date) ? "bg-blue-50" : isWeekend ? "bg-hms-accent/15" : "bg-white"
+                            }`
+                      }`}
                       style={{
                         gridColumn: dateIndex + 2,
                         gridRow: roomIndex + 1,
