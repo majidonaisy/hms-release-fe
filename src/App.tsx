@@ -1,12 +1,12 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { RoleProvider } from './context/CASLContext';
-import MainLayout from './layout/MainLayout';
+import HomeRoutes from './routes/Home/homeRoutes';
 
 function App() {
   return (
     <RoleProvider>
       <Router>
-        <MainLayout />
+        <HomeRoutes />
       </Router>
     </RoleProvider>
   );
