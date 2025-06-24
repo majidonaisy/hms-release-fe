@@ -7,6 +7,7 @@ import { Textarea } from '@/components/atoms/Textarea';
 import { Upload, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Checkbox } from '@/components/atoms/Checkbox';
+import { cn } from '@/lib/utils';
 
 // Types for better TypeScript support
 export interface RoomFormData {
@@ -348,6 +349,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
               <div className="flex items-center justify-between">
                 <Label>Is this a connecting room?</Label>
                 <Checkbox
+                className={cn("data-[state=checked]:bg-hms-primary")}
                   checked={formData.isConnecting}
                   onCheckedChange={(checked:any) => handleInputChange('isConnecting', checked)}
                 />
@@ -424,6 +426,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   <div key={facility.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={facility.id}
+                      className={cn("data-[state=checked]:bg-hms-primary")}
                       checked={formData.facilities.includes(facility.id)}
                       onCheckedChange={(checked:any) => handleFacilityChange(facility.id, checked as boolean)}
                     />
