@@ -310,7 +310,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
 
         {/* Calendar Grid - Rooms and Reservations */}
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[34rem]">
+          <ScrollArea className="h-[calc(100vh-280px)]">
             <div
               className="grid border-collapse"
               style={{
