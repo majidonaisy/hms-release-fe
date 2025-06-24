@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/atoms/Textarea';
 import { Upload, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
-import { Checkbox } from '@radix-ui/react-checkbox';
+import { Checkbox } from '@/components/atoms/Checkbox';
 
 // Types for better TypeScript support
 export interface RoomFormData {
