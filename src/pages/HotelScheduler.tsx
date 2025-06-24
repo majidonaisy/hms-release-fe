@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "../components/molecules/AlertDialog"
 import { ScrollArea } from "@/components/atoms/ScrollArea"
+import { useOutletContext } from "react-router-dom"
 
 interface HotelReservationCalendarProps {
   modalContext?: {
@@ -33,7 +34,7 @@ interface HotelReservationCalendarProps {
   pageTitle?: string
 }
 
-const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ modalContext, pageTitle }) => {
+const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
   const [rooms] = useState<Room[]>(sampleRooms)
   const [reservations, setReservations] = useState<Reservation[]>(sampleReservations)
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -48,6 +49,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
   const weekEnd = addDays(weekStart, 6) // 7 days total (0-6 = 7 days)
   const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+
+  const modalContext = useOutletContext<{
+    openReservationModal: (data: {
+      room?: Room
+      reservation?: Reservation
+      dateRange?: { start: Date; end: Date }
+    }) => void
+  }>()
 
   // Group rooms by type
   const roomsByType = useMemo(() => {
@@ -157,7 +166,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ mod
 
   const handleReservationClick = useCallback(
     (reservation: Reservation) => {
+      console.log(rooms, "reservation", reservation)
       const room = rooms.find((r) => r.id === reservation.resourceId)
+      console.log(room,"rooom")
       if (room && modalContext) {
         modalContext.openReservationModal({
           reservation,
