@@ -24,17 +24,17 @@ const Newroom = () => {
   };
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
+    <div className="p-5 min-h-screen">
       {/* Header with Back Button */}
       <div className="flex items-center gap-3 mb-6">
         <Button
           variant="ghost"
           onClick={handleBack}
-          className="h-8 w-8 p-0 hover:bg-slate-100"
+          className="p-0 hover:bg-slate-100"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-semibold text-slate-900">New Room</h1>
+        <h1 className="text-xl font-bold">New Room</h1>
       </div>
 
       {/* Room Form */}
