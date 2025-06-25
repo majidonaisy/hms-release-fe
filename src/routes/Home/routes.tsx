@@ -1,5 +1,5 @@
-import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile } from "@/pages";
-import { Calendar, DoorOpen, Home, Plus, User, Users } from "lucide-react";
+import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Home, Plus, User, Users } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 
 const RoutesList = () => {
@@ -62,6 +62,13 @@ const RoutesList = () => {
                     isShown: false,
                 },
             ]
+        },
+        {
+            path: '/roles-permissions',
+            title: "Roles",
+            icon: <ChartColumnBig className="size-5" />,
+            component: Roles,
+            isShown: true
         },
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes
