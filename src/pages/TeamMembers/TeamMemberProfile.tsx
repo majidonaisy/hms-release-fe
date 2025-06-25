@@ -164,7 +164,7 @@ const TeamMemberProfile = () => {
                 <div className="flex items-center gap-4 mb-6">
                     <Button
                         variant="ghost"
-                        onClick={() => navigate('/team-members')}
+                        onClick={() => navigate(-1)}
                         className="p-1"
                     >
                         <ChevronLeft className="h-5 w-5" />
@@ -181,7 +181,7 @@ const TeamMemberProfile = () => {
             <div className="flex items-center gap-4">
                 <Button
                     variant="ghost"
-                    onClick={() => navigate('/team-members')}
+                    onClick={() => navigate(-1)}
                     className="p-1"
                 >
                     <ChevronLeft className="h-5 w-5" />

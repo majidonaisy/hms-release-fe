@@ -5,9 +5,9 @@ import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Upload, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/atoms/Switch';
 
 // Types for better TypeScript support
 export interface RoomFormData {
@@ -169,11 +169,9 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Side - Form Section */}
-        <Card >
-          <CardHeader>
-            <CardTitle>Room Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className='px-7'>
+
+          <div className="space-y-6">
             {/* Room Number */}
             <div className="space-y-2">
               <Label htmlFor="roomNumber">Room Number</Label>
@@ -183,17 +181,18 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 value={formData.roomNumber}
                 onChange={(e) => handleInputChange('roomNumber', e.target.value)}
                 required
+                className='border border-slate-300'
               />
             </div>
 
             {/* Room Type */}
             <div className="space-y-2">
               <Label htmlFor="roomType">Room Type</Label>
-              <Select 
-                value={formData.roomType} 
+              <Select
+                value={formData.roomType}
                 onValueChange={(value) => handleInputChange('roomType', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className='border border-slate-300 w-full'>
                   <SelectValue placeholder="Select Single, Double, Twin, Suite..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,11 +208,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             {/* Floor */}
             <div className="space-y-2">
               <Label htmlFor="floor">Floor</Label>
-              <Select 
-                value={formData.floor} 
+              <Select
+                value={formData.floor}
                 onValueChange={(value) => handleInputChange('floor', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className='border border-slate-300 w-full'>
                   <SelectValue placeholder="e.g. 2nd Floor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -229,11 +228,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             {/* Status */}
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
+              <Select
+                value={formData.status}
                 onValueChange={(value) => handleInputChange('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className='border border-slate-300 w-full'>
                   <SelectValue placeholder="Select Active, Under Maintenance, Out of Service..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -258,6 +257,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     placeholder="Max 5"
                     value={formData.adults}
                     onChange={(e) => handleInputChange('adults', e.target.value)}
+                    className='border border-slate-300'
                   />
                 </div>
                 <div className="space-y-2">
@@ -268,6 +268,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     placeholder="Max 2"
                     value={formData.children}
                     onChange={(e) => handleInputChange('children', e.target.value)}
+                    className='border border-slate-300'
                   />
                 </div>
               </div>
@@ -276,11 +277,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             {/* Bed Types */}
             <div className="space-y-4">
               <Label>Bed Types</Label>
-              <Select 
-                value={formData.bedType} 
+              <Select
+                value={formData.bedType}
                 onValueChange={(value) => handleInputChange('bedType', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className='border border-slate-300 w-full'>
                   <SelectValue placeholder="Select Single, Double, King, Sofa Bed, Crib..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -304,6 +305,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       placeholder="1, 2, 3"
                       value={formData.singleBeds}
                       onChange={(e) => handleInputChange('singleBeds', e.target.value)}
+                      className='border border-slate-300'
                     />
                   </div>
                   <div className="space-y-2">
@@ -314,6 +316,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       placeholder="1, 2, 3"
                       value={formData.doubleBeds}
                       onChange={(e) => handleInputChange('doubleBeds', e.target.value)}
+                      className='border border-slate-300'
                     />
                   </div>
                 </div>
@@ -329,6 +332,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 placeholder="e.g. 4"
                 value={formData.maxOccupancy}
                 onChange={(e) => handleInputChange('maxOccupancy', e.target.value)}
+                className='border border-slate-300'
               />
             </div>
 
@@ -341,6 +345,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 placeholder="e.g. 150"
                 value={formData.baseRate}
                 onChange={(e) => handleInputChange('baseRate', e.target.value)}
+                className='border border-slate-300'
               />
             </div>
 
@@ -348,10 +353,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Is this a connecting room?</Label>
-                <Checkbox
-                className={cn("data-[state=checked]:bg-hms-primary")}
+                <Switch
                   checked={formData.isConnecting}
-                  onCheckedChange={(checked:any) => handleInputChange('isConnecting', checked)}
+                  onCheckedChange={(checked) => handleInputChange('isConnecting', checked)}
+                  className='border border-slate-300 data-[state=checked]:bg-hms-primary'
                 />
               </div>
 
@@ -363,19 +368,19 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     placeholder="Add room"
                     value={formData.connectingRoom}
                     onChange={(e) => handleInputChange('connectingRoom', e.target.value)}
+                    className='border border-slate-300'
                   />
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Right Side - Photo and Additional Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Room Photos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="space-y-6">
+
+          <div className="space-y-2">
+            <Label className=''>Room Photo</Label>
             {/* Photo Upload Area */}
             <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
               <Upload className="mx-auto h-12 w-12 text-slate-400 mb-4" />
@@ -395,78 +400,79 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 />
               </label>
             </div>
+          </div>
 
-            {/* Preview uploaded photos */}
-            {formData.photos.length > 0 && (
-              <div className="grid grid-cols-2 gap-4">
-                {formData.photos.map((photo, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={URL.createObjectURL(photo)}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-20 object-cover rounded"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(index)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Facilities */}
-            <div className="space-y-4">
-              <Label>Facilities:</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {facilitiesOptions.map((facility) => (
-                  <div key={facility.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={facility.id}
-                      className={cn("data-[state=checked]:bg-hms-primary")}
-                      checked={formData.facilities.includes(facility.id)}
-                      onCheckedChange={(checked:any) => handleFacilityChange(facility.id, checked as boolean)}
-                    />
-                    <Label htmlFor={facility.id} className="text-sm">
-                      {facility.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+          {/* Preview uploaded photos */}
+          {formData.photos.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              {formData.photos.map((photo, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={URL.createObjectURL(photo)}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-20 object-cover rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(index)}
+                    className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
             </div>
+          )}
 
-            {/* Room Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Room Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe the room and any featured guests should know about"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-              />
+          {/* Facilities */}
+          <div className="space-y-4">
+            <Label>Facilities:</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {facilitiesOptions.map((facility) => (
+                <div key={facility.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={facility.id}
+                    className={cn("data-[state=checked]:bg-hms-primary")}
+                    checked={formData.facilities.includes(facility.id)}
+                    onCheckedChange={(checked: any) => handleFacilityChange(facility.id, checked as boolean)}
+                  />
+                  <Label htmlFor={facility.id} className="text-sm">
+                    {facility.label}
+                  </Label>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Room Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Room Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Describe the room and any featured guests should know about"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              rows={4}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end gap-3 pt-6">
+      <div className="flex justify-center gap-3 pt-6">
         {onSaveDraft && (
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant='background'
+            className='text-white'
             onClick={handleSaveDraft}
             disabled={isLoading}
           >
             {draftButtonText}
           </Button>
         )}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           variant="foreground"
           disabled={isLoading}
         >
