@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Search, Filter, Plus, ChevronDown, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
@@ -27,6 +27,26 @@ const TeamMembers = () => {
     const [searchText, setSearchText] = useState<string>('');
     const [showFilter, setShowFilter] = useState<boolean>(false);
 
+    const filteredTeamMembers = useMemo(() => {
+        if (!searchText.trim()) {
+            return teamMembersData;
+        }
+
+        const searchTerm = searchText.toLowerCase().trim();
+
+        return teamMembersData.filter((member) => {
+            return (
+                member.name.toLowerCase().includes(searchTerm) ||
+                member.username.toLowerCase().includes(searchTerm) ||
+                member.email.toLowerCase().includes(searchTerm)
+            );
+        });
+    }, [searchText]);
+
+    const clearSearch = (): void => {
+        setSearchText('');
+    };
+
     const getStatusColor = (status: string): string => {
         switch (status) {
             case 'Active':
@@ -41,15 +61,15 @@ const TeamMembers = () => {
     };
 
     const handleRowClick = (teamMember: TeamMember): void => {
-        navigate(`/team-members/profile/${teamMember.id}`, { 
-            state: { teamMember } 
+        navigate(`/team-members/profile/${teamMember.id}`, {
+            state: { teamMember }
         });
     };
 
     const handleEditClick = (e: React.MouseEvent, teamMember: TeamMember): void => {
         e.stopPropagation();
-        navigate(`/team-members/profile/${teamMember.id}`, { 
-            state: { teamMember, mode: 'edit' } 
+        navigate(`/team-members/profile/${teamMember.id}`, {
+            state: { teamMember, mode: 'edit' }
         });
     };
 
@@ -65,12 +85,12 @@ const TeamMembers = () => {
                 <div className="flex items-center gap-2 mb-4">
                     <h1 className="text-2xl font-semibold text-gray-900">Team Members</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        100 members
+                        {filteredTeamMembers.length} {filteredTeamMembers.length === 1 ? 'member' : 'members'}
+                        {searchText && ` (filtered from ${teamMembersData.length})`}
                     </span>
                 </div>
 
-                {/* Search Bar and Actions */}
-                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                     <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
                         <Input
                             type="text"
@@ -79,7 +99,16 @@ const TeamMembers = () => {
                             onChange={(e) => setSearchText(e.target.value)}
                             className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
                         />
-                        <Search className="h-4 w-4 text-gray-400 " />
+                        {searchText && (
+                            <button
+                                onClick={clearSearch}
+                                className="text-gray-400 hover:text-gray-600 ml-2 text-sm font-medium"
+                                aria-label="Clear search"
+                            >
+                                ✕
+                            </button>
+                        )}
+                        <Search className="h-4 w-4 text-gray-400 ml-2" />
                     </div>
 
                     {/* Filter Button */}
@@ -122,74 +151,86 @@ const TeamMembers = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {teamMembersData.map((teamMember) => (
-                            <TableRow 
-                                key={teamMember.id} 
-                                className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                                onClick={() => handleRowClick(teamMember)}
-                            >
-                                <TableCell className="px-6 py-4 font-medium text-gray-900 flex gap-1">
-                                    <Avatar>
-                                        <AvatarImage src={teamMember.imageUrl} alt="pfp" />
-                                        <AvatarFallback>{teamMember.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                    <div className='grid'>
-                                        <p>{teamMember.name}</p>
-                                        <p className='text-xs'>{teamMember.username}</p>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Badge className={`${getStatusColor(teamMember.status)} border-0`}>
-                                        • {teamMember.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-gray-600">
-                                    {teamMember.type}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-gray-600">
-                                    {teamMember.floor}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-gray-600">
-                                    {teamMember.occupancy}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 text-gray-600">
-                                    {teamMember.logs}
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <div className="flex items-center gap-2">
-                                        <DropdownMenu modal={false}>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button 
-                                                    className='bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15'
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <EllipsisVertical className="" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
-                                                <DropdownMenuItem 
-                                                    className="cursor-pointer"
-                                                    onClick={(e) => handleDeleteClick(e, teamMember.id)}
-                                                >
-                                                    <div className="w-full flex items-center gap-2">
-                                                        Delete
-                                                    </div>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem 
-                                                    className="cursor-pointer"
-                                                    onClick={(e) => handleEditClick(e, teamMember)}
-                                                >
-                                                    <div className="w-full flex items-center gap-2">
-                                                        Edit
-                                                    </div>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                        {filteredTeamMembers.length === 0 && searchText ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Search className="h-8 w-8 text-gray-300" />
+                                        <p>No team members found matching your search.</p>
+                                        <p className="text-sm">Try adjusting your search terms or <button onClick={clearSearch} className="text-blue-600 hover:text-blue-800 underline">clear the search</button>.</p>
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ) : (
+                            filteredTeamMembers.map((teamMember) => (
+                                <TableRow
+                                    key={teamMember.id}
+                                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => handleRowClick(teamMember)}
+                                >
+                                    <TableCell className="px-6 py-4 font-medium text-gray-900 flex gap-1">
+                                        <Avatar>
+                                            <AvatarImage src={teamMember.imageUrl} alt="pfp" />
+                                            <AvatarFallback>{teamMember.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                        </Avatar>
+                                        <div className='grid'>
+                                            <p>{teamMember.name}</p>
+                                            <p className='text-xs'>{teamMember.username}</p>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <Badge className={`${getStatusColor(teamMember.status)} border-0`}>
+                                            • {teamMember.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">
+                                        {teamMember.type}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">
+                                        {teamMember.floor}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">
+                                        {teamMember.occupancy}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">
+                                        {teamMember.logs}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        className='bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15'
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <EllipsisVertical className="" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={(e) => handleDeleteClick(e, teamMember.id)}
+                                                    >
+                                                        <div className="w-full flex items-center gap-2">
+                                                            Delete
+                                                        </div>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={(e) => handleEditClick(e, teamMember)}
+                                                    >
+                                                        <div className="w-full flex items-center gap-2">
+                                                            Edit
+                                                        </div>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
                     </TableBody>
                 </Table>
                 {/* Pagination */}

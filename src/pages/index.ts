@@ -6,3 +6,4 @@ export { default as NotFound } from "./NotFound";
 export { default as TeamMembers} from "./TeamMembers/TeamMembers";
 export { default as NewTeamMember} from "./TeamMembers/NewTeamMember";
 export { default as TeamMemberProfile} from "./TeamMembers/TeamMemberProfile";
+export { default as Roles} from "./RolesPermissions/Roles";
