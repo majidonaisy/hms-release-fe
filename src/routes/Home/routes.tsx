@@ -2,6 +2,7 @@ import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, Tea
 import { Calendar, ChartColumnBig, DoorOpen, Home, Plus, User, Users } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
+import GuestProfile from "@/pages/Guests/GuestProfile";
 
 const RoutesList = () => {
 
@@ -37,6 +38,13 @@ const RoutesList = () => {
             title: "Current Guests",
             icon: <Users className="size-5" />,
             component: CurrentGuestList,
+            isShown: true
+        },
+        {
+            path: '/guests-profile',
+            title: "Guests Profile",
+            icon: <Users className="size-5" />,
+            component: GuestProfile,
             isShown: true
         },
         {
