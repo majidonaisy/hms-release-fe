@@ -1,9 +1,9 @@
-import { getServiceInstance, ServiceName } from './microservices';
-import { MICROSERVICES_CONFIG } from '../config';
+import { getServiceInstance, ServiceName } from "./microservices";
+import { MICROSERVICES_CONFIG } from "../serviceConfig";
 
 interface ServiceHealth {
   name: ServiceName;
-  status: 'healthy' | 'unhealthy' | 'unknown';
+  status: "healthy" | "unhealthy" | "unknown";
   responseTime?: number;
   lastChecked: Date;
   error?: string;
@@ -15,39 +15,37 @@ class HealthMonitor {
 
   async checkServiceHealth(serviceName: ServiceName): Promise<ServiceHealth> {
     const startTime = Date.now();
-    
+
     try {
       const instance = getServiceInstance(serviceName);
-      await instance.get('/health'); // Assume all services have /health endpoint
-      
+      await instance.get("/health"); // Assume all services have /health endpoint
+
       const responseTime = Date.now() - startTime;
       const health: ServiceHealth = {
         name: serviceName,
-        status: 'healthy',
+        status: "healthy",
         responseTime,
-        lastChecked: new Date()
+        lastChecked: new Date(),
       };
-      
+
       this.healthStatus.set(serviceName, health);
       return health;
     } catch (error: any) {
       const health: ServiceHealth = {
         name: serviceName,
-        status: 'unhealthy',
+        status: "unhealthy",
         lastChecked: new Date(),
-        error: error.message
+        error: error.message,
       };
-      
+
       this.healthStatus.set(serviceName, health);
       return health;
     }
   }
 
   async checkAllServices(): Promise<Map<ServiceName, ServiceHealth>> {
-    const promises = Object.keys(MICROSERVICES_CONFIG).map(serviceName =>
-      this.checkServiceHealth(serviceName as ServiceName)
-    );
-    
+    const promises = Object.keys(MICROSERVICES_CONFIG).map((serviceName) => this.checkServiceHealth(serviceName as ServiceName));
+
     await Promise.allSettled(promises);
     return this.healthStatus;
   }
@@ -56,7 +54,7 @@ class HealthMonitor {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
     }
-    
+
     this.checkInterval = setInterval(() => {
       this.checkAllServices();
     }, intervalMs);
