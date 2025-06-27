@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import { teamMembersData } from '@/data/data';
+import posthog from 'posthog-js';
 
 export interface TeamMember {
     id: number;
@@ -61,6 +62,11 @@ const TeamMembers = () => {
     };
 
     const handleRowClick = (teamMember: TeamMember): void => {
+        posthog.capture('team_member_profile_viewed', {
+            member_id: teamMember.id,
+            member_name: teamMember.name,
+            member_type: teamMember.type
+        });
         navigate(`/team-members/profile/${teamMember.id}`, {
             state: { teamMember }
         });

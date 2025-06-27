@@ -8,7 +8,7 @@ function App() {
     <PostHogProvider
       apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
       options={{
-        api_host: "https://us.i.posthog.com"
+        api_host: "https://us.i.posthog.com"  
       }}
     >
     <RoleProvider>
