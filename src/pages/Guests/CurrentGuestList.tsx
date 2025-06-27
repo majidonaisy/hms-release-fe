@@ -1,11 +1,11 @@
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input";
-import { Badge } from "@/components/atoms/Badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/atoms/DropdownMenu";
-import { Filter, Plus, Search, ChevronDown, EllipsisVertical } from "lucide-react";
+import { Filter, Search, ChevronDown, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Pagination from "@/components/atoms/Pagination";
 
 // Sample guest data to match the Figma design
 const guestsData = [
@@ -114,6 +114,20 @@ const CurrentGuestList = () => {
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [showFilter, setShowFilter] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
+    const totalPages = Math.ceil(100 / itemsPerPage);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // Reset to first page when search changes
+    const handleSearchChange = (value: string) => {
+        setSearchText(value);
+        setCurrentPage(1);
+    };
 
     const filteredGuests = guestsData.filter(guest =>
         guest.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -320,28 +334,13 @@ const CurrentGuestList = () => {
 
                     {/* Pagination */}
                     </div>
-                    <div className="flex items-center justify-between px-6 py-4 ">
-                        <Button variant="outline" className="flex items-center gap-2">
-                            ← Previous
-                        </Button>
-
-                        <div className="flex items-center gap-2">
-                            {[1, 2, 3, '...', 8, 9, 10].map((page, index) => (
-                                <Button
-                                    key={index}
-                                    variant={page === 1 ? "foreground" : "primaryOutline"}
-                                    size="sm"
-                                    className={`h-8 w-8 `}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-                        </div>
-
-                        <Button variant="outline" className="flex items-center gap-2">
-                            Next →
-                        </Button>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    showPreviousNext={true}
+                    maxVisiblePages={7}
+                />
             </div>
         </>
     );
