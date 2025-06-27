@@ -1,6 +1,7 @@
 import {  AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
 import { apiClient } from '@/api/base';
 import { ENDPOINTS } from '@/api/endpoints';
+import { SERVICE_BASE_URLS } from '@/api/serviceConfig';
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -8,6 +9,8 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
       method: "POST",
       endpoint: ENDPOINTS.Auth.Login,
       data,
+      service: "AUTH", // Explicitly specify service
+      baseURL: SERVICE_BASE_URLS.AUTH, // Provide the baseURL
     });
     return response as LoginResponse;
   } catch (error: any) {

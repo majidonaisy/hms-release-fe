@@ -1,7 +1,7 @@
-import axios, { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { store } from '@/redux/store';
-import { logout, updateAccessToken } from '@/redux/slices/authSlice';
-import { MICROSERVICES_CONFIG, ServiceConfig, ServiceName } from '../config';
+import axios, { AxiosInstance, AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { store } from "@/redux/store";
+import { logout, updateAccessToken } from "@/redux/slices/authSlice";
+import { MICROSERVICES_CONFIG, ServiceConfig, ServiceName } from "../serviceConfig";
 
 // Service instances storage
 const serviceInstances = new Map<ServiceName, AxiosInstance>();
@@ -10,19 +10,16 @@ const serviceInstances = new Map<ServiceName, AxiosInstance>();
 class CircuitBreaker {
   private failures = 0;
   private nextAttempt = Date.now();
-  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+  private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
 
-  constructor(
-    private threshold: number = 5,
-    private timeout: number = 60000
-  ) {}
+  constructor(private threshold: number = 5, private timeout: number = 60000) {}
 
   async call<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === 'OPEN') {
+    if (this.state === "OPEN") {
       if (this.nextAttempt <= Date.now()) {
-        this.state = 'HALF_OPEN';
+        this.state = "HALF_OPEN";
       } else {
-        throw new Error('Circuit breaker is OPEN');
+        throw new Error("Circuit breaker is OPEN");
       }
     }
 
@@ -38,13 +35,13 @@ class CircuitBreaker {
 
   private onSuccess() {
     this.failures = 0;
-    this.state = 'CLOSED';
+    this.state = "CLOSED";
   }
 
   private onFailure() {
     this.failures++;
     if (this.failures >= this.threshold) {
-      this.state = 'OPEN';
+      this.state = "OPEN";
       this.nextAttempt = Date.now() + this.timeout;
     }
   }
@@ -58,10 +55,10 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
     baseURL: config.baseURL,
     timeout: config.timeout || 10000,
     headers: {
-      'Content-Type': 'application/json',
-      'X-Service-Source': 'hms-frontend',
-      'X-Service-Version': 'v1',
-      ...config.headers
+      "Content-Type": "application/json",
+      "X-Service-Source": "hms-frontend",
+      "X-Service-Version": "v1",
+      ...config.headers,
     },
   });
 
@@ -70,22 +67,22 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
     (config: InternalAxiosRequestConfig) => {
       const state = store.getState();
       const { accessToken } = state.auth;
-      
+
       // Add auth token for all services except auth service login
-      if (accessToken && !(serviceName === 'AUTH_SERVICE' && config.url?.includes('/login'))) {
+      if (accessToken && !(serviceName === "AUTH_SERVICE" && config.url?.includes("/login"))) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
 
       // Add correlation ID for request tracing
-      config.headers['X-Correlation-ID'] = `${serviceName.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      config.headers["X-Correlation-ID"] = `${serviceName.toLowerCase()}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       // Add service-specific headers
-      config.headers['X-Target-Service'] = serviceName;
-      config.headers['X-Request-ID'] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      config.headers["X-Target-Service"] = serviceName;
+      config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
       console.log(`🚀 [${serviceName}] ${config.method?.toUpperCase()} ${config.url}`, {
         headers: config.headers,
-        data: config.data
+        data: config.data,
       });
 
       return config;
@@ -101,24 +98,24 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
     (response: AxiosResponse) => {
       console.log(`✅ [${serviceName}] ${response.status} ${response.config.url}`, {
         data: response.data,
-        headers: response.headers
+        headers: response.headers,
       });
       return response;
     },
     async (error: AxiosError) => {
-      const originalRequest = error.config as InternalAxiosRequestConfig & { 
+      const originalRequest = error.config as InternalAxiosRequestConfig & {
         _retry?: boolean;
         _retryCount?: number;
       };
 
-      console.error(`❌ [${serviceName}] ${error.response?.status || 'Network'} Error:`, {
+      console.error(`❌ [${serviceName}] ${error.response?.status || "Network"} Error:`, {
         url: error.config?.url,
         message: error.message,
-        response: error.response?.data
+        response: error.response?.data,
       });
 
       // Handle token refresh for 401 errors (except auth service)
-      if (error.response?.status === 401 && serviceName !== 'AUTH_SERVICE' && !originalRequest._retry) {
+      if (error.response?.status === 401 && serviceName !== "AUTH_SERVICE" && !originalRequest._retry) {
         originalRequest._retry = true;
 
         try {
@@ -126,12 +123,12 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
           const { refreshToken } = state.auth;
 
           if (!refreshToken) {
-            throw new Error('No refresh token available');
+            throw new Error("No refresh token available");
           }
 
           // Use auth service to refresh token
-          const authInstance = getServiceInstance('AUTH_SERVICE');
-          const response = await authInstance.post('/auth/refresh', {
+          const authInstance = getServiceInstance("AUTH_SERVICE");
+          const response = await authInstance.post("/auth/refresh", {
             refreshToken,
           });
 
@@ -141,15 +138,14 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
           // Retry original request
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return instance(originalRequest);
-
         } catch (refreshError) {
           console.error(`❌ [${serviceName}] Token refresh failed:`, refreshError);
           store.dispatch(logout());
-          
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
+
+          if (typeof window !== "undefined") {
+            window.location.href = "/login";
           }
-          
+
           return Promise.reject(refreshError);
         }
       }
@@ -160,18 +156,15 @@ function createServiceInstance(serviceName: ServiceName, config: ServiceConfig):
       }
 
       const maxRetries = MICROSERVICES_CONFIG[serviceName].retries || 2;
-      
-      if (
-        originalRequest._retryCount < maxRetries &&
-        (!error.response || error.response.status >= 500)
-      ) {
+
+      if (originalRequest._retryCount < maxRetries && (!error.response || error.response.status >= 500)) {
         originalRequest._retryCount++;
-        
+
         // Exponential backoff
         const delay = Math.pow(2, originalRequest._retryCount) * 1000;
         console.log(`🔄 [${serviceName}] Retrying request (${originalRequest._retryCount}/${maxRetries}) after ${delay}ms`);
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return instance(originalRequest);
       }
 
@@ -199,10 +192,7 @@ export function getServiceInstance(serviceName: ServiceName): AxiosInstance {
 }
 
 // Make request with circuit breaker
-export async function makeServiceRequest<T>(
-  serviceName: ServiceName,
-  requestFn: (instance: AxiosInstance) => Promise<T>
-): Promise<T> {
+export async function makeServiceRequest<T>(serviceName: ServiceName, requestFn: (instance: AxiosInstance) => Promise<T>): Promise<T> {
   const circuitBreaker = circuitBreakers.get(serviceName);
   const instance = getServiceInstance(serviceName);
 

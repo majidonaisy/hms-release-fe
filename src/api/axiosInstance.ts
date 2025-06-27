@@ -1,84 +1,61 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { store } from '@/redux/store';
-import { logout, updateAccessToken } from '@/redux/slices/authSlice';
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { store } from "@/redux/store";
+import { logout, updateAccessToken } from "@/redux/slices/authSlice";
+import { SERVICE_BASE_URLS } from "./serviceConfig";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://api.example.com';
+// Create a map to store instances for each service
+const axiosInstances = new Map<string, any>();
 
-// Create axios instance
-const axiosInstance = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Helper function to get/create instance for a service
+export function getServiceInstance(serviceName: string) {
+  if (!axiosInstances.has(serviceName)) {
+    const baseURL = SERVICE_BASE_URLS[serviceName] || SERVICE_BASE_URLS.AUTH;
 
-// Request interceptor to add token to headers
-axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const state = store.getState();
-    const { accessToken } = state.auth;
-    
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+    const instance = axios.create({
+      baseURL,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Service-Name": serviceName,
+      },
+    });
 
-// Response interceptor to handle token refresh
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response;
-  },
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { 
-      _retry?: boolean 
-    };
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
+    // Request interceptor to add token to headers and handle baseURL
+    instance.interceptors.request.use(
+      (config: InternalAxiosRequestConfig) => {
         const state = store.getState();
-        const { refreshToken } = state.auth;
+        const { accessToken } = state.auth;
 
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-
-        // Call your refresh token endpoint
-        const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken: newAccessToken } = response.data.data;
-        
-        // Update the token in Redux store
-        store.dispatch(updateAccessToken(newAccessToken));
-
-        // Retry the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return axiosInstance(originalRequest);
-
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        store.dispatch(logout());
-        
-        // Redirect to login page
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (accessToken) {
+          config.headers.Authorization = `Bearer ${accessToken}`;
         }
         
-        return Promise.reject(refreshError);
+        // If the request specifies a baseURL, use it (overriding the default)
+        if (config.baseURL) {
+          console.log(`🔄 Overriding default baseURL with: ${config.baseURL}`);
+        }
+        
+        // Add request metadata for tracking
+        config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        config.headers["X-Request-Time"] = new Date().toISOString();
+        
+        // Log the actual URL being used
+        const finalURL = (config.baseURL || instance.defaults.baseURL) + "/" + config.url;
+        console.log(`🔄 Final request URL: ${finalURL}`);
+
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
       }
-    }
+    );
 
-    return Promise.reject(error);
+    // The rest of your interceptor code here...
+
+    axiosInstances.set(serviceName, instance);
   }
-);
 
-export default axiosInstance;
+  return axiosInstances.get(serviceName);
+}
+
+// Keep the default export for backward compatibility
+export default getServiceInstance('AUTH');

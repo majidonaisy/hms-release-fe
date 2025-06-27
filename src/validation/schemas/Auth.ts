@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 
 export const LoginRequestSchema = z.object({
-  email: z.email("Please enter a valid email address"),
+  username: z.string("Please enter a valid username"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
@@ -22,7 +22,7 @@ export const LoginResponseSchema = z.object({
 });
 
 export const AddUserRequestSchema = z.object({
-  email: z.email(),
+  username: z.string(),
   password: z.string().min(6),
   firstName: z.string(),
   lastName: z.string(),
@@ -34,7 +34,7 @@ export const AddUserResponseSchema = z.object({
   message: z.string().optional(),
   data: z.object({
     id: z.string(),
-    email: z.string(),
+    username: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     roleId: z.string(),
