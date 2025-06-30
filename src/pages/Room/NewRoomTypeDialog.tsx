@@ -4,17 +4,11 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
-import { X } from 'lucide-react';
-
-export interface RoomTypeFormData {
-  name: string;
-  pricePerNight: string;
-  description: string;
-}
+import { AddRoomTypeRequest } from '@/validation';
 
 interface NewRoomTypeDialogProps {
   isOpen: boolean;
-  onConfirm: (data: RoomTypeFormData) => void;
+  onConfirm: (data: AddRoomTypeRequest) => void;
   onCancel: () => void;
 }
 
@@ -23,46 +17,54 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
   onConfirm,
   onCancel
 }) => {
-  const [formData, setFormData] = useState<RoomTypeFormData>({
+  const [formData, setFormData] = useState<AddRoomTypeRequest>({
     name: '',
-    pricePerNight: '',
-    description: ''
+    baseRate: 100,
+    description: '',
+    capacity: 1
   });
 
-  const handleInputChange = (field: keyof RoomTypeFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleInputChange = (field: keyof AddRoomTypeRequest, value: string | number) => {
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      return newData;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+
+
     onConfirm(formData);
+
     // Reset form after submission
     setFormData({
       name: '',
-      pricePerNight: '',
-      description: ''
+      baseRate: 0,
+      description: '',
+      capacity: 1
     });
   };
 
   const handleCancel = () => {
-    // Reset form when canceling
     setFormData({
       name: '',
-      pricePerNight: '',
-      description: ''
+      baseRate: 0,
+      description: '',
+      capacity: 1
     });
     onCancel();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onCancel}>
+    <Dialog open={isOpen} onOpenChange={handleCancel}>
       <DialogContent className="max-w-md">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-semibold">New Room Type</DialogTitle>
-          
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -78,15 +80,31 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
             />
           </div>
 
+          {/* Capacity */}
+          <div className="space-y-2">
+            <Label htmlFor="capacity">Capacity (Number of Guests)</Label>
+            <Input
+              id="capacity"
+              type="number"
+              min="1"
+              placeholder="e.g. 2"
+              value={formData.capacity}
+              onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 1)}
+              required
+            />
+          </div>
+
           {/* Price Per Night */}
           <div className="space-y-2">
-            <Label htmlFor="pricePerNight">Price Per Night</Label>
+            <Label htmlFor="baseRate">Price Per Night</Label>
             <Input
-              id="pricePerNight"
+              id="baseRate"
               type="number"
+              min="0"
+              step="0.01"
               placeholder="e.g. 150"
-              value={formData.pricePerNight}
-              onChange={(e) => handleInputChange('pricePerNight', e.target.value)}
+              value={formData.baseRate}
+              onChange={(e) => handleInputChange('baseRate', parseFloat(e.target.value) || 0)}
               required
             />
           </div>
@@ -105,11 +123,11 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
           </div>
 
           {/* Submit Button */}
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full text-white mt-6"
           >
-            Create Room
+            Create Room Type
           </Button>
         </form>
       </DialogContent>

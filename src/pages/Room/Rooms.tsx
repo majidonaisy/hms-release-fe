@@ -5,9 +5,11 @@ import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
-import NewRoomTypeDialog, { RoomTypeFormData } from './NewRoomTypeDialog';
+import NewRoomTypeDialog from './NewRoomTypeDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import { getRooms } from '@/services/Rooms';
+import { addRoomType } from '@/services/RoomTypes';
+import { AddRoomTypeRequest } from '@/validation';
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -142,10 +144,15 @@ const Rooms = () => {
         setIsRoomTypeDialogOpen(true);
     };
 
-    const handleRoomTypeConfirm = (data: RoomTypeFormData) => {
+    const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         console.log('Room Type created:', data);
-        // Handle room type creation logic here
-        // Example: call API to create room type
+        try {
+            console.log('data', data)
+            const response = await addRoomType(data);
+            console.log('response', response)
+        } catch (error) {
+            console.error('Error creating room type:', error);
+        }
         setIsRoomTypeDialogOpen(false);
     };
 

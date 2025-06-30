@@ -6,6 +6,7 @@ const RoomTypeShape = z.object({
   name: z.string(),
   description: z.string().optional(),
   baseRate: z.number().positive(),
+  capacity: z.number().int().positive(),
 });
 
 // Add RoomType
@@ -13,6 +14,7 @@ export const AddRoomTypeRequestSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   baseRate: z.number().positive(),
+  capacity: z.number().int().positive(),
 });
 
 export const AddRoomTypeResponseSchema = z.object({
@@ -33,6 +35,7 @@ export const UpdateRoomTypeRequestSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   baseRate: z.number().positive().optional(),
+  capacity: z.number().int().positive().optional(),
 });
 
 export const UpdateRoomTypeResponseSchema = z.object({
@@ -41,6 +44,7 @@ export const UpdateRoomTypeResponseSchema = z.object({
   data: RoomTypeShape,
 });
 
+export type RoomType = z.infer<typeof RoomTypeShape>;
 export type AddRoomTypeRequest = z.infer<typeof AddRoomTypeRequestSchema>;
 export type AddRoomTypeResponse = z.infer<typeof AddRoomTypeResponseSchema>;
 export type GetRoomTypesResponse = z.infer<typeof GetRoomTypesResponseSchema>;
