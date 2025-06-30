@@ -9,8 +9,7 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
       method: "POST",
       endpoint: ENDPOINTS.Auth.Login,
       data,
-      service: "AUTH", // Explicitly specify service
-      baseURL: SERVICE_BASE_URLS.AUTH, // Provide the baseURL
+      baseURL: SERVICE_BASE_URLS.AUTH, 
     });
     return response as LoginResponse;
   } catch (error: any) {

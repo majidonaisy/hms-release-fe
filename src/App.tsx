@@ -2,20 +2,27 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { RoleProvider } from './context/CASLContext';
 import HomeRoutes from './routes/Home/homeRoutes';
 import { PostHogProvider } from 'posthog-js/react'
+import { Provider } from 'react-redux';
+import { store, persistor } from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
 
 function App() {
   return (
     <PostHogProvider
       apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
       options={{
-        api_host: "https://us.i.posthog.com"  
+        api_host: "https://us.i.posthog.com"
       }}
     >
-    <RoleProvider>
-      <Router>
-        <HomeRoutes />
-      </Router>
-    </RoleProvider>
+      <Provider store={store}>
+        <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
+          <RoleProvider>
+            <Router>
+              <HomeRoutes />
+            </Router>
+          </RoleProvider>
+        </PersistGate>
+      </Provider>
     </PostHogProvider>
   );
 }
