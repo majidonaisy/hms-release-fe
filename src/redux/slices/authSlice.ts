@@ -1,33 +1,52 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+// interface User {
+//   id?: string;
+//   firstName?: string;
+//   lastName?: string;
+//   email?: string;
+// }
 
 interface AuthState {
   accessToken: string | null;
-  refreshToken: string | null;
+  // refreshToken: string | null;
   isAuthenticated: boolean;
-  user: any | null; // Replace 'any' with your user type
+  // user: User | null;
 }
 
 const initialState: AuthState = {
   accessToken: null,
-  refreshToken: null,
+  // refreshToken: null,
   isAuthenticated: false,
-  user: null,
+  // user: null,
 };
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: any }>) => {
+    login: (
+      state,
+      action: PayloadAction<{
+        accessToken: string;
+        // refreshToken?: string;
+        // user?: User;
+      }>
+    ) => {
+      console.log("🔄 Redux login action called with:", action.payload);
       state.accessToken = action.payload.accessToken;
-      state.refreshToken = action.payload.refreshToken;
-      state.user = action.payload.user;
+      // state.refreshToken = action.payload.refreshToken || null;
+      // state.user = action.payload.user || null;
       state.isAuthenticated = true;
+      console.log("✅ Redux state updated:", {
+        accessToken: state.accessToken,
+        isAuthenticated: state.isAuthenticated,
+      });
     },
     logout: (state) => {
       state.accessToken = null;
-      state.refreshToken = null;
-      state.user = null;
+      // state.refreshToken = null;
+      // state.user = null;
       state.isAuthenticated = false;
     },
     updateAccessToken: (state, action: PayloadAction<string>) => {

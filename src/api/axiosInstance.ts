@@ -28,8 +28,6 @@ export function getServiceInstance(serviceName: string) {
         if (accessToken) {
           config.headers.Authorization = `Bearer ${accessToken}`;
         }
-        
-        // If the request specifies a baseURL, use it (overriding the default)
         if (config.baseURL) {
           console.log(`🔄 Overriding default baseURL with: ${config.baseURL}`);
         }

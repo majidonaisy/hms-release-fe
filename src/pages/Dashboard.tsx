@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Button } from '@/components/atoms/Button';
-import { login } from '@/services/Auth';
 import { LoginRequest } from '@/validation/schemas';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { SERVICE_BASE_URLS } from '@/api/serviceConfig';
+import { useDispatch } from 'react-redux';
+import { login } from '@/services/Auth';
+import { login as loginAction } from '@/redux/slices/authSlice';
 
 interface DashboardProps {
   modalContext?: any;
@@ -13,10 +15,11 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
+  const dispatch = useDispatch();
   // Form state
   const [credentials, setCredentials] = useState<LoginRequest>({
-    username: '',
-    password: ''
+    username: 'majid',
+    password: 'StrongPassword123!'
   });
 
   // UI state
@@ -41,13 +44,20 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
     setSuccess(null);
 
     try {
-      // Handle different login methods based on selection
-
-        console.log(`🔄 Using custom base URL: ${customBaseURL}`);
-        const response = await login(credentials);
+      console.log(`🔄 Using custom base URL: ${customBaseURL}`);
+      const response = await login(credentials);
 
       console.log('Service Response:', response);
-      setSuccess(`Login successful! Welcome ${response.data.user.firstName} ${response.data.user.lastName}`);
+
+      // Display success with hardcoded message since user data isn't available
+      setSuccess(`Login successful! Welcome back!`);
+
+      // Only dispatch accessToken since refreshToken and user aren't available
+      dispatch(loginAction({
+        accessToken: response.accessToken
+      }));
+
+      console.log('Redux dispatch completed');
     } catch (error: any) {
       console.error('Login Error:', error);
       setError(error.userMessage || 'Login failed. Please try again.');
@@ -55,7 +65,6 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6">{pageTitle || 'Dashboard'}</h2>

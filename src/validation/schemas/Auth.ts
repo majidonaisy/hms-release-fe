@@ -8,6 +8,7 @@ export const LoginRequestSchema = z.object({
 export const LoginResponseSchema = z.object({
   status: z.boolean(),
   message: z.string().optional(),
+  accessToken: z.string(),
   data: z.object({
     user: z.object({
       id: z.string(),
