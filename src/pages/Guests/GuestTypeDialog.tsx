@@ -44,7 +44,7 @@ const GuestTypeSelectionDialog: React.FC<GuestTypeSelectionDialogProps> = ({
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
     onConfirm({ type: type as 'individual' | 'corporate' | 'travel-agency' });
-    setSelectedType(null); // Reset selection
+    setSelectedType(null); 
   };
 
   const handleCancel = () => {

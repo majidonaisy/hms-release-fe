@@ -3,6 +3,7 @@ import { Calendar, ChartColumnBig, DoorOpen, Home, Plus, User, Users } from "luc
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
+import NewGuest from "@/pages/Guests/NewGuest";
 
 const RoutesList = () => {
 
@@ -45,7 +46,17 @@ const RoutesList = () => {
             title: "Guests Profile",
             icon: <Users className="size-5" />,
             component: GuestProfile,
-            isShown: true
+            isShown: true,
+            subRoutes: [
+                {
+                    path: "/guests-profile/new",
+                    title: "New Guest",
+                    icon: <Plus />,
+                    component: NewGuest,
+                    isAuthenticated: true,
+                    isShown: false,
+                }
+            ]
         },
         {
             path: '/calendar',
