@@ -23,6 +23,7 @@ export const apiClient = async ({ method, endpoint, data, params, baseURL }: Api
       params,
       ...(baseURL && { baseURL }),
     };
+    console.log('requestConfig', requestConfig)
     const response = await serviceInstance(requestConfig);
     return response.data;
   } catch (error: unknown) {
