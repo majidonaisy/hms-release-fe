@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Common RoomType shape
-const RoomTypeShape = z.object({
+export const RoomTypeShape = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),

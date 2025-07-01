@@ -1,18 +1,15 @@
 import { z } from "zod";
+import { RoomTypeShape } from "./RoomType";
 
 
 
 // Common Room shape
-const RoomShape = z.object({
+export const RoomShape = z.object({
   id: z.string(),
   roomNumber: z.string(),
   status: z.string(),
   roomTypeId: z.string(),
-  roomType: z.object({
-    id: z.string(),
-    name: z.string(),
-    baseRate: z.number(),
-  }),
+  roomType: RoomTypeShape,
 });
 
 // Add Room

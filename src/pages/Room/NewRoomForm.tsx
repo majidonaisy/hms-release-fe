@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
@@ -8,20 +8,20 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
+import { AddRoomRequest, RoomType } from '@/validation';
+import { getRoomTypes } from '@/services/RoomTypes';
 
-// Types for better TypeScript support
-export interface RoomFormData {
-  roomNumber: string;
-  roomType: string;
-  floor: string;
+export interface RoomFormData extends Omit<AddRoomRequest, 'roomTypeId'> {
+  roomTypeId: string;
+  floor: number;
   status: string;
-  adults: string;
-  children: string;
+  adultOccupancy: number;
+  childOccupancy: number;
   bedType: string;
-  singleBeds: string;
-  doubleBeds: string;
-  maxOccupancy: string;
-  baseRate: string;
+  singleBeds: number;
+  doubleBeds: number;
+  maxOccupancy: number;
+  baseRate: number;
   isConnecting: boolean;
   connectingRoom: string;
   description: string;
@@ -37,37 +37,29 @@ export interface RoomFormProps {
   submitButtonText?: string;
   draftButtonText?: string;
   className?: string;
+  roomTypes?: RoomType[];
 }
+
 
 // Default form data
 const defaultFormData: RoomFormData = {
   roomNumber: '',
-  roomType: '',
-  floor: '',
+  roomTypeId: '',
+  floor: 0,
   status: '',
-  adults: '',
-  children: '',
+  adultOccupancy: 0,
+  childOccupancy: 0,
   bedType: '',
-  singleBeds: '',
-  doubleBeds: '',
-  maxOccupancy: '',
-  baseRate: '',
+  singleBeds: 0,
+  doubleBeds: 0,
+  maxOccupancy: 0,
+  baseRate: 0,
   isConnecting: false,
   connectingRoom: '',
   description: '',
   facilities: [],
   photos: []
 };
-
-// Available options (customizable)
-const roomTypeOptions = [
-  { value: 'single', label: 'Single' },
-  { value: 'double', label: 'Double' },
-  { value: 'twin', label: 'Twin' },
-  { value: 'suite', label: 'Suite' },
-  { value: 'deluxe', label: 'Deluxe' },
-  { value: 'presidential', label: 'Presidential' }
-];
 
 const floorOptions = [
   { value: 'ground', label: 'Ground Floor' },
@@ -123,6 +115,23 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     ...initialData
   });
 
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      try {
+        const response = await getRoomTypes();
+        console.log('response', response)
+        setRoomTypes(response.data);
+      } catch (error) {
+        console.error('Failed to fetch room types:', error);
+        setRoomTypes([]);
+      }
+    };
+
+    fetchRoomTypes();
+  }, []);
+
   const handleInputChange = (field: keyof RoomFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -156,6 +165,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.roomNumber.trim()) {
+      alert('Room number is required');
+      return;
+    }
+
+    if (!formData.roomTypeId) {
+      alert('Room type is required');
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -176,6 +195,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="roomNumber">Room Number</Label>
               <Input
+                type='number'
                 id="roomNumber"
                 placeholder="e.g. 204"
                 value={formData.roomNumber}
@@ -187,18 +207,19 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
             {/* Room Type */}
             <div className="space-y-2">
-              <Label htmlFor="roomType">Room Type</Label>
+              <Label htmlFor="roomTypeId">Room Type</Label>
               <Select
-                value={formData.roomType}
-                onValueChange={(value) => handleInputChange('roomType', value)}
+                required
+                value={formData.roomTypeId}
+                onValueChange={(value) => handleInputChange('roomTypeId', value)}
               >
                 <SelectTrigger className='border border-slate-300 w-full'>
                   <SelectValue placeholder="Select Single, Double, Twin, Suite..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {roomTypeOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  {roomTypes.map(option => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,21 +229,14 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             {/* Floor */}
             <div className="space-y-2">
               <Label htmlFor="floor">Floor</Label>
-              <Select
+              <Input
+                id="floor"
+                type="number"
+                placeholder="e.g. 2"
                 value={formData.floor}
-                onValueChange={(value) => handleInputChange('floor', value)}
-              >
-                <SelectTrigger className='border border-slate-300 w-full'>
-                  <SelectValue placeholder="e.g. 2nd Floor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {floorOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(e) => handleInputChange('floor', Number(e.target.value))}
+                className={cn('border border-slate-300')}
+              />
             </div>
 
             {/* Status */}
@@ -255,8 +269,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="adults"
                     type="number"
                     placeholder="Max 5"
-                    value={formData.adults}
-                    onChange={(e) => handleInputChange('adults', e.target.value)}
+                    value={formData.adultOccupancy}
+                    onChange={(e) => handleInputChange('adultOccupancy', Number(e.target.value))}
                     className='border border-slate-300'
                   />
                 </div>
@@ -266,8 +280,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="children"
                     type="number"
                     placeholder="Max 2"
-                    value={formData.children}
-                    onChange={(e) => handleInputChange('children', e.target.value)}
+                    value={formData.childOccupancy}
+                    onChange={(e) => handleInputChange('childOccupancy', Number(e.target.value))}
                     className='border border-slate-300'
                   />
                 </div>
@@ -304,7 +318,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       type="number"
                       placeholder="1, 2, 3"
                       value={formData.singleBeds}
-                      onChange={(e) => handleInputChange('singleBeds', e.target.value)}
+                      onChange={(e) => handleInputChange('singleBeds', Number(e.target.value))}
                       className='border border-slate-300'
                     />
                   </div>
@@ -315,7 +329,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       type="number"
                       placeholder="1, 2, 3"
                       value={formData.doubleBeds}
-                      onChange={(e) => handleInputChange('doubleBeds', e.target.value)}
+                      onChange={(e) => handleInputChange('doubleBeds', Number(e.target.value))}
                       className='border border-slate-300'
                     />
                   </div>
@@ -331,7 +345,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 type="number"
                 placeholder="e.g. 4"
                 value={formData.maxOccupancy}
-                onChange={(e) => handleInputChange('maxOccupancy', e.target.value)}
+                onChange={(e) => handleInputChange('maxOccupancy', Number(e.target.value))}
                 className='border border-slate-300'
               />
             </div>
@@ -344,7 +358,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 type="number"
                 placeholder="e.g. 150"
                 value={formData.baseRate}
-                onChange={(e) => handleInputChange('baseRate', e.target.value)}
+                onChange={(e) => handleInputChange('baseRate', Number(e.target.value))}
                 className='border border-slate-300'
               />
             </div>

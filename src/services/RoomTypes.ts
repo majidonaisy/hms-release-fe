@@ -26,6 +26,7 @@ export const getRoomTypes = async (): Promise<GetRoomTypesResponse> => {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.RoomType.GetAll,
+      baseURL,
     });
     return response as GetRoomTypesResponse;
   } catch (error: any) {
@@ -43,6 +44,7 @@ export const updateRoomType = async (id: string, data: UpdateRoomTypeRequest): P
       method: "PUT",
       endpoint: `${ENDPOINTS.RoomType.Update}/${id}`,
       data,
+      baseURL,
     });
     return response as UpdateRoomTypeResponse;
   } catch (error: any) {
@@ -59,6 +61,7 @@ export const deleteRoomType = async (id: string): Promise<void> => {
     await apiClient({
       method: "DELETE",
       endpoint: `${ENDPOINTS.RoomType.Delete}/${id}`,
+      baseURL,
     });
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to delete room type";

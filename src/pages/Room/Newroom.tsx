@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import NewRoomForm, { RoomFormData } from './NewRoomForm';
+import { addRoom } from '@/services/Rooms';
 
 const Newroom = () => {
   const navigate = useNavigate();
@@ -10,17 +11,20 @@ const Newroom = () => {
     navigate(-1); // Go back to previous page
   };
 
-  const handleSubmit = (data: RoomFormData) => {
-    console.log('Room form submitted:', data);
-    // Handle room creation logic here
-    // Example: call API to create room
-    // navigate('/rooms'); // Navigate to rooms list after creation
+  const handleSubmit = async (data: RoomFormData) => {
+    try {
+      console.log('data', data)
+      const response = await addRoom(data as any);
+      console.log('response', response)
+    } catch (error) {
+      console.log('error', error)
+    }
+ 
   };
 
   const handleSaveDraft = (data: RoomFormData) => {
     console.log('Room draft saved:', data);
-    // Handle draft saving logic here
-    // Example: save to localStorage or call API
+
   };
 
   return (
