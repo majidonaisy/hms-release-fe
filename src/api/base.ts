@@ -1,6 +1,5 @@
 import { AxiosError } from "axios";
-import { getServiceInstance } from "./axiosInstance";
-import { getServiceForEndpoint } from "./serviceConfig";
+import { createAxiosInstance } from "./axiosInstance";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -9,24 +8,20 @@ interface ApiOptions {
   endpoint: string;
   data?: unknown;
   params?: unknown;
-  baseURL?: string; 
+  baseURL: string; // Make baseURL required
 }
 
 export const apiClient = async ({ method, endpoint, data, params, baseURL }: ApiOptions): Promise<unknown> => {
   try {
-    const serviceName = getServiceForEndpoint(endpoint);
-    const serviceInstance = getServiceInstance(serviceName);
-    const requestConfig = {
+    const instance = createAxiosInstance(baseURL);
+    const response = await instance({
       method,
       url: endpoint,
       data,
-      params,
-      ...(baseURL && { baseURL }),
-    };
-    console.log('requestConfig', requestConfig)
-    const response = await serviceInstance(requestConfig);
+      params
+    });
     return response.data;
-  } catch (error: unknown) {
+  } catch (error) {
     const axiosError = error as AxiosError;
     throw error;
   }

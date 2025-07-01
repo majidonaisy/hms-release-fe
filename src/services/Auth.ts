@@ -1,7 +1,8 @@
 import {  AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
 import { apiClient } from '@/api/base';
 import { ENDPOINTS } from '@/api/endpoints';
-import { SERVICE_BASE_URLS } from '@/api/serviceConfig';
+
+const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -9,7 +10,7 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
       method: "POST",
       endpoint: ENDPOINTS.Auth.Login,
       data,
-      baseURL: SERVICE_BASE_URLS.AUTH, 
+      baseURL, 
     });
     return response as LoginResponse;
   } catch (error: any) {
@@ -29,6 +30,7 @@ export const addUser = async (
       method: "POST",
       endpoint: "/auth/add-user",
       data,
+      baseURL
     });
     return response as AddUserResponse;
   } catch (error: any) {
