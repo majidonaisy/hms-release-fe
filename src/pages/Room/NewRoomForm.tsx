@@ -120,21 +120,17 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   });
 
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [isLoadingRoomTypes, setIsLoadingRoomTypes] = useState(true);
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
       try {
-        setIsLoadingRoomTypes(true);
         const response = await getRoomTypes();
         console.log('response', response)
-        setRoomTypes(response.data); // Set room types in separate state
+        setRoomTypes(response.data); 
       } catch (error) {
         console.error('Failed to fetch room types:', error);
-        setRoomTypes([]); // Set empty array on error
-      } finally {
-        setIsLoadingRoomTypes(false);
-      }
+        setRoomTypes([]); 
+      } 
     };
 
     fetchRoomTypes();
