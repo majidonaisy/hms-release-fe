@@ -2,12 +2,15 @@ import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddRoomRequest, AddRoomResponse, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
 
+const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+
 export const addRoom = async (data: AddRoomRequest): Promise<AddRoomResponse> => {
   try {
     const response = await apiClient({
       method: "POST",
       endpoint: ENDPOINTS.Room.Add,
       data,
+      baseURL
     });
     return response as AddRoomResponse;
   } catch (error: any) {
@@ -24,7 +27,7 @@ export const getRooms = async (): Promise<GetRoomsResponse> => {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Room.GetAll,
-      baseURL: import.meta.env.VITE_FRONTDESK_SERVICE_URL,
+      baseURL,
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
@@ -58,6 +61,7 @@ export const updateRoom = async (id: string, data: UpdateRoomRequest): Promise<U
       method: "PUT",
       endpoint: `${ENDPOINTS.Room.Update}/${id}`,
       data,
+      baseURL
     });
     return response as UpdateRoomResponse;
   } catch (error: any) {
@@ -74,6 +78,7 @@ export const deleteRoom = async (id: string): Promise<void> => {
     await apiClient({
       method: "DELETE",
       endpoint: `${ENDPOINTS.Room.Delete}/${id}`,
+      baseURL
     });
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to delete room";
@@ -89,6 +94,7 @@ export const getRoomsByStatus = async (status: string): Promise<GetRoomsResponse
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetByStatus}/${status}`,
+      baseURL
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
