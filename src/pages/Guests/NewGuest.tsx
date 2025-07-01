@@ -12,6 +12,7 @@ import { AddGuestRequest, GetRoomTypesResponse } from '@/validation';
 import { addGuest, getGuestById, updateGuest } from '@/services/Guests';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { Switch } from '@/components/atoms/Switch';
+import { toast } from 'sonner';
 
 const NewGuest = () => {
     const navigate = useNavigate();
@@ -25,8 +26,8 @@ const NewGuest = () => {
         email: '',
         phoneNumber: '',
         identification: {
-            type: '',
-            number: ''
+            type: 'passport',
+            number: '1234'
         },
         preferences: {
             smoking: false,
@@ -93,14 +94,24 @@ const NewGuest = () => {
             if (isEditMode) {
                 if (id) {
                     await updateGuest(id, formData);
-                    
+                    toast("Success!", {
+                        description: "Guest was updated successfully.",
+                    })
+
                 } else {
                     console.error("Guest ID is undefined.");
                 }
             } else {
                 await addGuest(formData);
+                toast("Success!", {
+                    description: "Guest was created successfully.",
+                })
             }
+            navigate('/guests-profile');
         } catch (error) {
+            toast("Error!", {
+                description: "Failed to submit form.",
+            })
             console.error("Failed to submit form:", error);
         } finally {
             setLoading(false);

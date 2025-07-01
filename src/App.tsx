@@ -5,6 +5,7 @@ import { PostHogProvider } from 'posthog-js/react'
 import { Provider } from 'react-redux';
 import { store, persistor } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
+import { Toaster } from './components/molecules/Sonner';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <RoleProvider>
             <Router>
               <HomeRoutes />
+              <Toaster/>
             </Router>
           </RoleProvider>
         </PersistGate>
