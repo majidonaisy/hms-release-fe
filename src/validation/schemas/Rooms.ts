@@ -10,6 +10,9 @@ export const RoomShape = z.object({
   status: z.string(),
   roomTypeId: z.string(),
   roomType: RoomTypeShape,
+  floor: z.number().optional(),
+  adultOccupancy: z.number().int().optional(),
+  childOccupancy: z.number().int().optional(),
 });
 
 // Add Room
@@ -44,6 +47,7 @@ export const UpdateRoomResponseSchema = z.object({
   data: RoomShape,
 });
 
+export type Room = z.infer<typeof RoomShape>;
 export type AddRoomRequest = z.infer<typeof AddRoomRequestSchema>;
 export type AddRoomResponse = z.infer<typeof AddRoomResponseSchema>;
 export type GetRoomsResponse = z.infer<typeof GetRoomsResponseSchema>;
