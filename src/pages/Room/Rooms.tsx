@@ -145,11 +145,8 @@ const Rooms = () => {
     };
 
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
-        console.log('Room Type created:', data);
         try {
-            console.log('data', data)
             const response = await addRoomType(data);
-            console.log('response', response)
         } catch (error) {
             console.error('Error creating room type:', error);
         }

@@ -12,15 +12,12 @@ const Newroom = () => {
 
   const handleSubmit = (data: RoomFormData) => {
     console.log('Room form submitted:', data);
-    // Handle room creation logic here
-    // Example: call API to create room
-    // navigate('/rooms'); // Navigate to rooms list after creation
+ 
   };
 
   const handleSaveDraft = (data: RoomFormData) => {
     console.log('Room draft saved:', data);
-    // Handle draft saving logic here
-    // Example: save to localStorage or call API
+
   };
 
   return (

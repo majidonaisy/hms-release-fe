@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
@@ -8,11 +8,12 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
+import { AddRoomRequest, RoomType } from '@/validation';
+import { getRoomTypes } from '@/services/RoomTypes';
 
 // Types for better TypeScript support
-export interface RoomFormData {
-  roomNumber: string;
-  roomType: string;
+export interface RoomFormData extends Omit<AddRoomRequest, 'roomTypeId'> {
+  roomType: string; // UI uses string, maps to roomTypeId
   floor: string;
   status: string;
   adults: string;
@@ -37,12 +38,14 @@ export interface RoomFormProps {
   submitButtonText?: string;
   draftButtonText?: string;
   className?: string;
+  roomTypes?: RoomType[]; // Use your Zod type for room types
 }
+
 
 // Default form data
 const defaultFormData: RoomFormData = {
-  roomNumber: '',
-  roomType: '',
+  roomNumber: '', 
+  roomType: '',   
   floor: '',
   status: '',
   adults: '',
@@ -59,15 +62,8 @@ const defaultFormData: RoomFormData = {
   photos: []
 };
 
-// Available options (customizable)
-const roomTypeOptions = [
-  { value: 'single', label: 'Single' },
-  { value: 'double', label: 'Double' },
-  { value: 'twin', label: 'Twin' },
-  { value: 'suite', label: 'Suite' },
-  { value: 'deluxe', label: 'Deluxe' },
-  { value: 'presidential', label: 'Presidential' }
-];
+
+
 
 const floorOptions = [
   { value: 'ground', label: 'Ground Floor' },
@@ -122,6 +118,27 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     ...defaultFormData,
     ...initialData
   });
+
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [isLoadingRoomTypes, setIsLoadingRoomTypes] = useState(true);
+
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      try {
+        setIsLoadingRoomTypes(true);
+        const response = await getRoomTypes();
+        console.log('response', response)
+        setRoomTypes(response.data); // Set room types in separate state
+      } catch (error) {
+        console.error('Failed to fetch room types:', error);
+        setRoomTypes([]); // Set empty array on error
+      } finally {
+        setIsLoadingRoomTypes(false);
+      }
+    };
+
+    fetchRoomTypes();
+  }, []);
 
   const handleInputChange = (field: keyof RoomFormData, value: any) => {
     setFormData(prev => ({
@@ -196,9 +213,9 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   <SelectValue placeholder="Select Single, Double, Twin, Suite..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {roomTypeOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  {roomTypes.map(option => (
+                    <SelectItem key={option.id} value={option.name}>
+                      {option.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
