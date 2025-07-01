@@ -4,7 +4,6 @@ import { Label } from '@/components/atoms/Label';
 import { Button } from '@/components/atoms/Button';
 import { LoginRequest } from '@/validation/schemas';
 import { Mail, Lock, Loader2 } from 'lucide-react';
-import { SERVICE_BASE_URLS } from '@/api/serviceConfig';
 import { useDispatch } from 'react-redux';
 import { login } from '@/services/Auth';
 import { login as loginAction } from '@/redux/slices/authSlice';
@@ -44,20 +43,11 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
     setSuccess(null);
 
     try {
-      console.log(`🔄 Using custom base URL: ${customBaseURL}`);
       const response = await login(credentials);
-
-      console.log('Service Response:', response);
-
-      // Display success with hardcoded message since user data isn't available
       setSuccess(`Login successful! Welcome back!`);
-
-      // Only dispatch accessToken since refreshToken and user aren't available
       dispatch(loginAction({
-        accessToken: response.accessToken
+        accessToken: response.accessToken.token
       }));
-
-      console.log('Redux dispatch completed');
     } catch (error: any) {
       console.error('Login Error:', error);
       setError(error.userMessage || 'Login failed. Please try again.');
@@ -146,7 +136,6 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
           {/* Service Info */}
           <div className="text-xs text-gray-500 mt-4">
             <p>This form uses the Auth Service to test your microservices setup.</p>
-            <p>Selected Configuration: {selectedService === "Custom" ? customBaseURL || "Not specified" : SERVICE_BASE_URLS.AUTH}</p>
             <p>Check the console for detailed API responses.</p>
           </div>
         </form>

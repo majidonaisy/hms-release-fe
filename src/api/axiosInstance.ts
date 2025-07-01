@@ -1,57 +1,48 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
 import { store } from "@/redux/store";
-import { logout, updateAccessToken } from "@/redux/slices/authSlice";
-import { SERVICE_BASE_URLS } from "./serviceConfig";
+import { logout } from "@/redux/slices/authSlice";
 
-// Create a map to store instances for each service
-const axiosInstances = new Map<string, any>();
+export const createAxiosInstance = (baseURL: string) => {
+  const instance = axios.create({
+    baseURL,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-// Helper function to get/create instance for a service
-export function getServiceInstance(serviceName: string) {
-  if (!axiosInstances.has(serviceName)) {
-    const baseURL = SERVICE_BASE_URLS[serviceName] || SERVICE_BASE_URLS.AUTH;
+  // Request interceptor
+  instance.interceptors.request.use(
+    (config) => {
+      const state = store.getState();
+      const { accessToken } = state.auth;
 
-    const instance = axios.create({
-      baseURL,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Service-Name": serviceName,
-      },
-    });
-
-    // Request interceptor to add token to headers and handle baseURL
-    instance.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const state = store.getState();
-        const { accessToken } = state.auth;
-
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        console.log('accessToken', accessToken)
-        
-        // Add request metadata for tracking
-        config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        config.headers["X-Request-Time"] = new Date().toISOString();
-        
-        // Log the actual URL being used
-        const finalURL = (config.baseURL || instance.defaults.baseURL) + "" + config.url;
-        console.log(`🔄 Final request URL: ${finalURL}`);
-
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
       }
-    );
 
-    // The rest of your interceptor code here...
+      // Add request metadata for tracking
+      config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      config.headers["X-Request-Time"] = new Date().toISOString();
 
-    axiosInstances.set(serviceName, instance);
-  }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
 
-  return axiosInstances.get(serviceName);
-}
+  // Response interceptor
+  instance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        // Handle unauthorized access
+        store.dispatch(logout());
+      }
+      return Promise.reject(error);
+    }
+  );
 
-// Keep the default export for backward compatibility
-export default getServiceInstance('AUTH');
+  return instance;
+};
