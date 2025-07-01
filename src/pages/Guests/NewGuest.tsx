@@ -1,9 +1,329 @@
+import { Button } from '@/components/atoms/Button';
+import { Input } from '@/components/atoms/Input';
+import { Label } from '@/components/atoms/Label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
+import { Calendar as CalendarIcon, ChevronLeft, CloudUpload, Plus } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/molecules/Popover';
+import { Calendar } from '@/components/molecules/Calendar';
+import { format } from 'date-fns';
+import { AddGuestRequest, GetRoomTypesResponse } from '@/validation';
+import { addGuest, getGuestById, updateGuest } from '@/services/Guests';
+import { getRoomTypes } from '@/services/RoomTypes';
+import { Switch } from '@/components/atoms/Switch';
+import { toast } from 'sonner';
+
 const NewGuest = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [_guestLoading, setGuestLoading] = useState(false);
+    const [formData, setFormData] = useState<AddGuestRequest>({
+        firstName: '',
+        lastName: '',
+        dob: new Date(),
+        nationality: '',
+        email: '',
+        phoneNumber: '',
+        identification: {
+            type: 'passport',
+            number: '1234'
+        },
+        preferences: {
+            smoking: false,
+            roomType: '',
+        }
+    });
+    const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
+    const { id } = useParams();
+    const [isEditMode, setIsEditMode] = useState(false);
+
+    useEffect(() => {
+        if (id) {
+            setIsEditMode(true);
+            const fetchGuest = async () => {
+                setGuestLoading(true);
+                try {
+                    const guest = await getGuestById(id);
+                    setFormData(guest.data);
+                } catch (error) {
+                    console.error("Failed to fetch guest:", error);
+                } finally {
+                    setGuestLoading(false);
+                }
+            };
+            fetchGuest();
+        }
+    }, [id]);
+
+    const handleInputChange = (field: keyof AddGuestRequest | 'preferences.roomType', value: string) => {
+        if (field === 'preferences.roomType') {
+            setFormData(prev => {
+                const updatedFormData = {
+                    ...prev,
+                    preferences: {
+                        ...prev.preferences,
+                        roomType: value
+                    }
+                };
+                return updatedFormData;
+            });
+        } else {
+            setFormData(prev => {
+                const updatedFormData = {
+                    ...prev,
+                    [field]: value
+                };
+                return updatedFormData;
+            });
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setFormData(prev => ({
+            ...prev,
+            photo: file
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            if (isEditMode) {
+                if (id) {
+                    await updateGuest(id, formData);
+                    toast("Success!", {
+                        description: "Guest was updated successfully.",
+                    })
+
+                } else {
+                    console.error("Guest ID is undefined.");
+                }
+            } else {
+                await addGuest(formData);
+                toast("Success!", {
+                    description: "Guest was created successfully.",
+                })
+            }
+            navigate('/guests-profile');
+        } catch (error) {
+            toast("Error!", {
+                description: "Failed to submit form.",
+            })
+            console.error("Failed to submit form:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const handleGetRoomTypes = async () => {
+            try {
+                const roomTypes = await getRoomTypes();
+                setRoomTypes(roomTypes.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        handleGetRoomTypes();
+    }, []);
+
+    const handleBack = () => {
+        navigate(-1);
+    };
+
     return (
-        <div>
-            hdjskdj
+        <div className="p-5">
+            <div className="flex items-center gap-3 mb-5">
+                <Button
+                    variant="ghost"
+                    onClick={handleBack}
+                    className="p-0"
+                >
+                    <ChevronLeft className="" />
+                </Button>
+                <h1 className="text-xl font-bold">{isEditMode ? 'Edit Guest' : 'New Guest'}</h1>
+            </div>
+            <form
+                onSubmit={(e) => {
+                    handleSubmit(e);
+                }}
+                className='px-7 grid grid-cols-2'
+            >
+                <div className='space-y-5'>
+                    <h2 className='text-lg font-bold'>Personal Info</h2>
+
+                    <div className='space-y-1'>
+                        <Label>First Name</Label>
+                        <Input
+                            value={formData.firstName}
+                            onChange={(e) => handleInputChange('firstName', e.target.value)}
+                            className='border border-slate-300'
+                            placeholder='John'
+                        />
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Last Name</Label>
+                        <Input
+                            value={formData.lastName}
+                            onChange={(e) => handleInputChange('lastName', e.target.value)}
+                            className='border border-slate-300'
+                            placeholder='Doe'
+                        />
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Date od Birth</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    data-empty={!formData.dob}
+                                    className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                >
+                                    <CalendarIcon />
+                                    {formData.dob ? format(formData.dob, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                    mode="single"
+                                    selected={formData.dob}
+                                    onSelect={(date) => date && setFormData({ ...formData, dob: date })}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Nationality</Label>
+                        <Input
+                            value={formData.nationality}
+                            onChange={(e) => handleInputChange('nationality', e.target.value)}
+                            className='border border-slate-300'
+                            placeholder='US'
+                        />
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Email</Label>
+                        <Input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            className='border border-slate-300'
+                            placeholder='john.doe@example.com'
+                        />
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Phone Number</Label>
+                        <Input
+                            type='number'
+                            value={formData.phoneNumber}
+                            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                            className='border border-slate-300'
+                            placeholder='1234567890'
+                        />
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Preferred Room Type</Label>
+                        <Select
+                            value={formData.preferences.roomType}
+                            onValueChange={(value) => handleInputChange('preferences.roomType', value)}
+                        >
+                            <SelectTrigger className='w-full border border-slate-300'>
+                                <SelectValue placeholder="Select Room" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {roomTypes.map((type) => (
+                                    <SelectItem key={type.id} value={type.id}>
+                                        {type.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                <div className='px-5 space-y-3'>
+                    <div className='space-y-5'>
+                        <div className='space-y-1'>
+                            <Label className=''>Upload ID, Passport, or Other Legal Documents</Label>
+                            <div className="border border-slate-300 rounded-lg p-5 text-center">
+                                <div className='flex justify-center'>
+                                    <CloudUpload className="" />
+                                </div>
+                                <p className="text-muted-foreground text-sm">Drag & drop or click to choose file</p>
+                                <Label htmlFor="photo-upload" className="cursor-pointer justify-center">
+                                    <Button type="button" variant="foreground" className='px-3'>
+                                        <Plus />
+                                    </Button>
+                                    <input
+                                        id="photo-upload"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                </Label>
+                            </div>
+                        </div>
+
+                        <div className='space-y-1'>
+                            <Label>Special Requests</Label>
+
+                            <div className='px-7 py-3 flex justify-between'>
+                                <Label>Smoking?</Label>
+                                <Switch
+                                    checked={formData.preferences.smoking}
+                                    onCheckedChange={(checked) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            preferences: {
+                                                ...prev.preferences,
+                                                smoking: checked,
+                                            },
+                                        }))
+                                    }
+                                    className='border border-slate-300 data-[state=checked]:bg-hms-primary'
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-center gap-3 pt-6 col-span-2">
+                    <Button
+                        type="button"
+                        variant='background'
+                        className='text-white px-8'
+                    >
+                        Save Draft
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="foreground"
+                        className="px-8"
+                        disabled={loading}
+                    >
+                        {loading
+                            ? isEditMode
+                                ? "Updating..."
+                                : "Creating..."
+                            : isEditMode
+                                ? "Update Guest"
+                                : "Create Guest"}
+                    </Button>
+                </div>
+            </form>
         </div>
     );
-}
+};
 
 export default NewGuest;

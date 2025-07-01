@@ -13,11 +13,15 @@ const ReservationTooltip: React.FC<ReservationTooltipProps> = ({
     room,
     position
 }) => {
-    const statusColors = {
-        confirmed: 'bg-blue-100 text-blue-800',
+
+
+    const statusColors: Record<string, string> = {
+        reserved: 'bg-blue-100 text-blue-800',
         'checked-in': 'bg-green-100 text-green-800',
         'checked-out': 'bg-gray-100 text-gray-800',
-        cancelled: 'bg-red-100 text-red-800'
+
+        blocked: 'bg-red-100 text-red-800',
+        occupied: 'bg-yellow-100 text-yellow-800'
     };
 
     const formatDate = (date: Date) => {

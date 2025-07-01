@@ -21,8 +21,8 @@ export const ENDPOINTS = {
   Guest: {
     Add: "guest/add",
     GetAll: "guest/get",
-    GetById: "guest/get/{id}",
-    Update: "guest/update/{id}",
-    Delete: "guest/delete/{id}",
+    GetById: "guest/get",
+    Update: "guest/update",
+    Delete: "guest/delete",
   },
 };

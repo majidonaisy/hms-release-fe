@@ -1,9 +1,10 @@
 import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Home, Plus, User, Users } from "lucide-react";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
+import GuestProfileView from "@/pages/Guests/GuestExpanded";
 
 const RoutesList = () => {
 
@@ -55,7 +56,24 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
+                },
+                {
+                    path: "/guests-profile/:id",
+                    title: "Edit Guest",
+                    icon: <User />,
+                    component: NewGuest,
+                    isAuthenticated: true,
+                    isShown: false,
+                },
+                {
+                    path: "/guests-profile/:id/view",
+                    title: "View Guest Profile",
+                    icon: <Eye />,
+                    component: GuestProfileView,
+                    isAuthenticated: true,
+                    isShown: false,
                 }
+
             ]
         },
         {
