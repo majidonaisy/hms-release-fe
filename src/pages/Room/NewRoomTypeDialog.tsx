@@ -20,7 +20,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
   const [formData, setFormData] = useState<AddRoomTypeRequest>({
     name: '',
     baseRate: 100,
-    description: '',
+    description: 'this is a room type description',
     capacity: 1
   });
 
