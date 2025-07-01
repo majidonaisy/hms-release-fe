@@ -44,6 +44,7 @@ export const getRoomById = async (id: string): Promise<AddRoomResponse> => {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetById}/${id}`,
+      baseURL
     });
     return response as AddRoomResponse;
   } catch (error: any) {

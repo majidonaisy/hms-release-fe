@@ -7,14 +7,14 @@ import {
   UpdateGuestRequest,
   UpdateGuestResponse,
 } from "@/validation/schemas/Guests";
+const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
-export const addGuest = async (
-  data: AddGuestRequest
-): Promise<AddGuestResponse> => {
+export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
   try {
     const response = await apiClient({
       method: "POST",
       endpoint: ENDPOINTS.Guest.Add,
+      baseURL,
       data,
     });
     return response as AddGuestResponse;
@@ -32,6 +32,7 @@ export const getGuests = async (): Promise<GetGuestsResponse> => {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Guest.GetAll,
+      baseURL
     });
     return response as GetGuestsResponse;
   } catch (error: any) {
@@ -49,6 +50,7 @@ export const getGuestById = async (id: string): Promise<AddGuestResponse> => {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Guest.GetById}/${id}`,
+      baseURL
     });
     return response as AddGuestResponse;
   } catch (error: any) {
@@ -69,6 +71,7 @@ export const updateGuest = async (
       method: "PUT",
       endpoint: `${ENDPOINTS.Guest.Update}/${id}`,
       data,
+      baseURL
     });
     return response as UpdateGuestResponse;
   } catch (error: any) {
@@ -86,6 +89,7 @@ export const deleteGuest = async (id: string): Promise<void> => {
     await apiClient({
       method: "DELETE",
       endpoint: `${ENDPOINTS.Guest.Delete}/${id}`,
+      baseURL
     });
   } catch (error: any) {
     const errorMessage =

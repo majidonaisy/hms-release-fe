@@ -2,13 +2,16 @@ import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/atoms/DropdownMenu";
-import { Filter, Search, ChevronDown, EllipsisVertical, Plus } from "lucide-react";
-import { useState } from "react";
+import { Filter, Search, EllipsisVertical, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "@/components/atoms/Pagination";
 import GuestTypeSelectionDialog, { GuestTypeSelectionData } from "./GuestTypeDialog";
-import { guestsData } from "@/data/data";
+import { deleteGuest, getGuests } from "@/services/Guests";
+import { GetGuestsResponse, RoomType } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
+import { getRoomTypes } from "@/services/RoomTypes";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/Organisms/Dialog";
 
 const GuestProfile = () => {
     const navigate = useNavigate();
@@ -17,6 +20,45 @@ const GuestProfile = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [isGuestTypeDialogOpen, setIsGuestTypeDialogOpen] = useState(false);
+    const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
+    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [guestToDelete, setGuestToDelete] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const handleGetGuests = async () => {
+            setLoading(true);
+            try {
+                const response = await getGuests();
+                setGuests(response.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handleGetRoomTypes = async () => {
+            setLoading(true);
+            try {
+                const response = await getRoomTypes();
+                setRoomTypes(response.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        handleGetGuests();
+        handleGetRoomTypes();
+    }, []);
+
+    const roomTypeMap = roomTypes.reduce((map, roomType) => {
+        map[roomType.id] = roomType.name;
+        return map;
+    }, {} as Record<string, string>);
 
     const totalPages = Math.ceil(300 / itemsPerPage);
 
@@ -24,20 +66,36 @@ const GuestProfile = () => {
         setCurrentPage(page);
     };
 
-    const filteredGuests = guestsData.filter(guest =>
-        guest.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        guest.username.toLowerCase().includes(searchText.toLowerCase()) ||
-        guest.roomNumber.includes(searchText)
+    const filteredGuests = guests.filter(guest =>
+        guest.firstName.toLowerCase().includes(searchText.toLowerCase()) ||
+        guest.lastName.toLowerCase().includes(searchText.toLowerCase()) ||
+        guest.email.toLowerCase().includes(searchText.toLowerCase())
     );
 
-    const handleEditClick = (e: React.MouseEvent, guestId: number): void => {
+    const handleEditClick = (e: React.MouseEvent, guestId: string): void => {
         e.stopPropagation();
-        console.log('Edit guest:', guestId);
+        navigate(`/guests-profile/${guestId}`);
     };
 
-    const handleDeleteClick = (e: React.MouseEvent, guestId: number): void => {
-        e.stopPropagation();
-        console.log('Delete guest:', guestId);
+    const handleDelete = async () => {
+        setLoading(true);
+        if (guestToDelete) {
+            try {
+                await deleteGuest(guestToDelete);
+                setDeleteDialogOpen(false);
+                setGuestToDelete(null);
+                const response = await getGuests();
+                setGuests(response.data);
+            } catch (error) {
+                if (error instanceof Error && 'userMessage' in error) {
+                    console.error("Failed to delete guest:", (error as any).userMessage);
+                } else {
+                    console.error("Failed to delete guest:", error);
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
     };
 
     const clearSearch = () => {
@@ -45,7 +103,7 @@ const GuestProfile = () => {
     };
 
     const handleNewGuestProfile = () => {
-        setIsGuestTypeDialogOpen(true);
+        navigate('/guests-profile/new');
     };
 
     const handleGuestTypeConfirm = (data: GuestTypeSelectionData) => {
@@ -133,86 +191,62 @@ const GuestProfile = () => {
                     <Table>
                         <TableHeader className='bg-hms-accent/15'>
                             <TableRow className="border-b border-gray-200">
-                                <TableHead className="text-left font-medium text-gray-700 px-4 py-3 w-[120px] text-sm bg-slate-50">
-
-                                </TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
-                                    <div className="flex items-center gap-1">
-                                        Name
-                                        <ChevronDown className="h-4 w-4" />
-                                    </div>
-                                </TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Room Number</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
-                                    <div className="flex items-center gap-1">
-                                        Stay Dates
-                                        <ChevronDown className="h-4 w-4" />
-                                    </div>
-                                </TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Guest Count</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Booking Source</TableHead>
+                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2"> Name</TableHead>
+                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Email</TableHead>
+                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
+                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
                                 <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Contact Info</TableHead>
                                 <TableHead className="w-[100px]"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {['individual', 'corporate', 'travel agency'].map((groupType) => {
-                                const guestsOfType = filteredGuests.filter((guest) => guest.type === groupType);
-                                if (guestsOfType.length === 0) return null;
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="py-10 text-center text-gray-600">
+                                        Loading...
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredGuests.map((guest) => (
+                                <TableRow key={guest.id} className="border-b-2 col-span-7 hover:bg-accent/15">
+                                    <TableCell className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage />
+                                                <AvatarFallback>{guest.firstName.charAt(0).toUpperCase()}{guest.lastName.charAt(0).toUpperCase()}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="font-medium text-gray-900">{guest.firstName} {guest.lastName}</div>
+                                        </div>
+                                    </TableCell>
 
-                                return guestsOfType.map((guest, index) => (
-                                    <TableRow key={guest.id} className="border-b-2 hover:bg-accent/15">
-                                        {index === 0 && (
-                                            <TableCell
-                                                rowSpan={guestsOfType.length}
-                                                className="px-6 py-4 bg-hms-accent/15 align-top text-gray-600 font-medium w-[100px]"
-                                            >
-                                                {groupType.charAt(0).toUpperCase() + groupType.slice(1)}
-                                            </TableCell>
-                                        )}
-
-                                        <TableCell className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage src={guest.imageUrl} alt="pfp" />
-                                                    <AvatarFallback>{guest.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-medium text-gray-900">{guest.name}</div>
-                                                    <div className="text-sm text-gray-500">{guest.username}</div>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.roomNumber}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">
-                                            {guest.stayDates}
-                                        </TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.guestCount}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.bookingSource}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.contactInfo}</TableCell>
-                                        <TableCell className="px-6 py-4">
-                                            <DropdownMenu modal={false}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <EllipsisVertical />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                                    <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={(e) => handleDeleteClick(e, guest.id)}>Delete</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ));
-                            })}
+                                    <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.email}</TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.roomType && roomTypeMap[guest.preferences.roomType] || "Unknown"}</TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
+                                    <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        <DropdownMenu modal={false}>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <EllipsisVertical />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                                <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => {
+                                                    setGuestToDelete(guest.id);
+                                                    setDeleteDialogOpen(true);
+                                                }}>Delete</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                            }
                         </TableBody>
                     </Table>
 
@@ -231,6 +265,19 @@ const GuestProfile = () => {
                 onConfirm={handleGuestTypeConfirm}
                 onCancel={handleGuestTypeCancel}
             />
+
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this guest?
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleDelete} disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

@@ -55,6 +55,14 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
+                },
+                {
+                    path: "/guests-profile/:id",
+                    title: "Edit Guest",
+                    icon: <User />,
+                    component: NewGuest,
+                    isAuthenticated: true,
+                    isShown: false,
                 }
             ]
         },

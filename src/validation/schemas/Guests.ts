@@ -3,10 +3,24 @@ import { z } from "zod/v4";
 // Common Guest shape
 const GuestShape = z.object({
   id: z.string(),
+  gid: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   email: z.string().email(),
   phoneNumber: z.string(),
+  identification: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+  nationality: z.string(),
+  preferences: z.object({
+    roomType: z.string(),
+    smoking: z.boolean(),
+  }),
+  dob: z.date(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  hotelId: z.string(),
 });
 
 // Add Guest
@@ -15,6 +29,16 @@ export const AddGuestRequestSchema = z.object({
   lastName: z.string(),
   email: z.string().email(),
   phoneNumber: z.string(),
+  identification: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+  nationality: z.string(),
+  preferences: z.object({
+    roomType: z.string(),
+    smoking: z.boolean(),
+  }),
+  dob: z.date(),
 });
 
 export const AddGuestResponseSchema = z.object({
