@@ -9,7 +9,8 @@ import NewRoomTypeDialog from './NewRoomTypeDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import { getRooms } from '@/services/Rooms';
 import { addRoomType } from '@/services/RoomTypes';
-import { AddRoomTypeRequest } from '@/validation';
+import { AddRoomTypeRequest, Room } from '@/validation';
+import Pagination from '@/components/atoms/Pagination';
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -18,7 +19,13 @@ const Rooms = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
+    const [rooms,setRooms] = useState<Room[]>([]);
+    const [itemsPerPage] = useState(10);
+    const totalPages = Math.ceil(100 / itemsPerPage);
 
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
 
     const roomsData = [
         {
@@ -116,9 +123,9 @@ const Rooms = () => {
     useEffect(() => {
         const fetchRooms = async () => {
             try {
-                // Fetch data or perform actions based on dependencies
                 const response = await getRooms();
                 console.log('response', response)
+                setRooms(response.data);
             } catch (error) {
                 console.error('Error occurred:', error);
             }
@@ -162,6 +169,8 @@ const Rooms = () => {
 
     const handleDeleteClick = (e: React.MouseEvent): void => {
     }
+
+    
 
 
     return (
@@ -240,10 +249,10 @@ const Rooms = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {roomsData.map((room) => (
+                            {rooms.map((room) => (
                                 <TableRow key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4 font-medium text-gray-900">
-                                        {room.name}
+                                        {room.roomNumber}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <Badge className={`${getStatusColor(room.status)} border-0`}>
@@ -251,16 +260,16 @@ const Rooms = () => {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.type}
+                                        {room.roomType.name}
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
                                         {room.floor}
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.occupancy}
+                                        {room.adultOccupancy} Adult, {room.childOccupancy} Child
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.logs}
+                                        {/* {room.logs} */}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-2">
@@ -300,28 +309,13 @@ const Rooms = () => {
                         </TableBody>
                     </Table>
                     {/* Pagination */}
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-                        <Button variant="outline" className="flex items-center gap-2">
-                            ← Previous
-                        </Button>
-
-                        <div className="flex items-center gap-2">
-                            {[1, 2, 3, '...', 8, 9, 10].map((page, index) => (
-                                <Button
-                                    key={index}
-                                    variant={page === 1 ? "foreground" : "primaryOutline"}
-                                    size="sm"
-                                    className={`h-8 w-8 `}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-                        </div>
-
-                        <Button variant="outline" className="flex items-center gap-2">
-                            Next →
-                        </Button>
-                    </div>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        showPreviousNext={true}
+                        maxVisiblePages={7}
+                    />
                 </div>
 
             </div>
