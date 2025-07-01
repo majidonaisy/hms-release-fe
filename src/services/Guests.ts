@@ -3,6 +3,7 @@ import { ENDPOINTS } from "@/api/endpoints";
 import {
   AddGuestRequest,
   AddGuestResponse,
+  GetGuestByIdResponse,
   GetGuestsResponse,
   UpdateGuestRequest,
   UpdateGuestResponse,
@@ -45,14 +46,14 @@ export const getGuests = async (): Promise<GetGuestsResponse> => {
   }
 };
 
-export const getGuestById = async (id: string): Promise<AddGuestResponse> => {
+export const getGuestById = async (id: string): Promise<GetGuestByIdResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Guest.GetById}/${id}`,
       baseURL
     });
-    return response as AddGuestResponse;
+    return response as GetGuestByIdResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get guest";
     throw {

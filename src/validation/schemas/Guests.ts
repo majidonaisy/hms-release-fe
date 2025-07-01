@@ -54,6 +54,12 @@ export const GetGuestsResponseSchema = z.object({
   data: z.array(GuestShape),
 });
 
+export const GetGuestByIdResponseSchema = z.object({
+  status: z.boolean(),
+  message: z.string().optional(),
+  data: GuestShape,
+});
+
 // Update Guest
 export const UpdateGuestRequestSchema = z.object({
   firstName: z.string().optional(),
@@ -71,5 +77,6 @@ export const UpdateGuestResponseSchema = z.object({
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
 export type GetGuestsResponse = z.infer<typeof GetGuestsResponseSchema>;
+export type GetGuestByIdResponse = z.infer<typeof GetGuestByIdResponseSchema>;
 export type UpdateGuestRequest = z.infer<typeof UpdateGuestRequestSchema>;
 export type UpdateGuestResponse = z.infer<typeof UpdateGuestResponseSchema>;

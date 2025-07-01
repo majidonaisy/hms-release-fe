@@ -77,6 +77,11 @@ const GuestProfile = () => {
         navigate(`/guests-profile/${guestId}`);
     };
 
+    const handleViewClick = (e: React.MouseEvent, guestId: string): void => {
+        e.stopPropagation();
+        navigate(`/guests-profile/${guestId}/view`);
+    };
+
     const handleDelete = async () => {
         setLoading(true);
         if (guestToDelete) {
@@ -207,7 +212,7 @@ const GuestProfile = () => {
                                     </TableCell>
                                 </TableRow>
                             ) : filteredGuests.map((guest) => (
-                                <TableRow key={guest.id} className="border-b-2 col-span-7 hover:bg-accent/15">
+                                <TableRow key={guest.id} onClick={(e) => handleViewClick(e, guest.id)} className="border-b-2 col-span-7 hover:bg-accent cursor-pointer">
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <Avatar>
