@@ -115,19 +115,20 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
   // Update form data when initialData changes (for edit mode)
   useEffect(() => {
+
     if (initialData && Object.keys(initialData).length > 0) {
-      setFormData({
+      const newData = {
         ...defaultFormData,
         ...initialData
-      });
-    }
+      };
+      setFormData(newData);
+    } 
   }, [initialData]);
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
       try {
         const response = await getRoomTypes();
-        console.log('response', response)
         setRoomTypes(response.data);
       } catch (error) {
         console.error('Failed to fetch room types:', error);
@@ -188,10 +189,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         status: formData.status || 'AVAILABLE'
       };
 
-      console.log('Form data before validation:', transformedData);
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
-      console.log('Validated data:', validatedData);
 
       await onSubmit(validatedData as RoomFormData);
       if (submitButtonText.includes('Create')) {

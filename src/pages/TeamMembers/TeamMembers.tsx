@@ -82,7 +82,6 @@ const TeamMembers = () => {
     const handleDeleteClick = (e: React.MouseEvent, teamMemberId: number): void => {
         e.stopPropagation();
         // Handle delete logic here
-        console.log('Delete team member:', teamMemberId);
     };
 
     return (
