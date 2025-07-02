@@ -1,4 +1,4 @@
-import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles } from "@/pages";
+import { Dashboard, HotelReservationCalendar, Newroom, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, EditRoom } from "@/pages";
 import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
@@ -26,7 +26,7 @@ const RoutesList = () => {
             isShown: true,
             subRoutes: [
                 {
-                    path: "/rooms/new", // Full path instead of relative
+                    path: "/rooms/new",
                     title: "New Room",
                     icon: <Plus />,
                     component: Newroom,
@@ -34,10 +34,10 @@ const RoutesList = () => {
                     isShown: false,
                 },
                 {
-                    path: "/rooms/:id", // This handles both /rooms/new and /rooms/123
-                    title: "Room Form",
+                    path: "/rooms/edit/:id",
+                    title: "Edit Room",
                     icon: <Plus />,
-                    component: Newroom, // Use the unified component
+                    component: EditRoom,
                     isAuthenticated: true,
                     isShown: false,
                 }

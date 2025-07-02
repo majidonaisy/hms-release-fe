@@ -26,7 +26,7 @@ export const AddRoomRequestSchema = z.object({
   adultOccupancy: z.number().min(0, "Adult occupancy is required"),
   childOccupancy: z.number().min(0, "Child occupancy is required"),
   maxOccupancy: z.number().min(1, "Max occupancy is required"),
-  baseRate: z.number().min(0, "Base rate must be positive"),
+  baseRate: z.number().min(0, "Base rate must be positive").optional(),
   bedType: z.string().optional(),
   singleBeds: z.number().min(0).optional(),
   doubleBeds: z.number().min(0).optional(),

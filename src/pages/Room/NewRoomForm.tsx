@@ -8,11 +8,11 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
-import {  AddRoomRequestSchema, RoomType } from '@/validation';
+import { AddRoomRequestSchema, RoomType } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 
-export interface RoomFormData  {
+export interface RoomFormData {
   roomNumber: string;
   roomTypeId: string;
   floor: number | string;
@@ -33,7 +33,7 @@ export interface RoomFormData  {
 
 export interface RoomFormProps {
   initialData?: Partial<RoomFormData>;
-  onSubmit: (data: RoomFormData) => void;
+  onSubmit: (data: RoomFormData) => Promise<void>;
   onSaveDraft?: (data: RoomFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
@@ -65,10 +65,11 @@ const defaultFormData: RoomFormData = {
 
 
 const statusOptions = [
-  { value: 'Active', label: 'Active' },
-  { value: 'maintenance', label: 'Under Maintenance' },
-  { value: 'out-of-service', label: 'Out of Service' },
-  { value: 'cleaning', label: 'Cleaning' }
+  { value: 'AVAILABLE', label: 'Available' },
+  { value: 'OCCUPIED', label: 'Occupied' },
+  { value: 'MAINTENANCE', label: 'Under Maintenance' },
+  { value: 'OUT_OF_SERVICE', label: 'Out of Service' },
+  { value: 'CLEANING', label: 'Cleaning' }
 ];
 
 const bedTypeOptions = [
@@ -111,6 +112,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+
+  // Update form data when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData({
+        ...defaultFormData,
+        ...initialData
+      });
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const fetchRoomTypes = async () => {
@@ -164,12 +175,30 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      const validatedData = AddRoomRequestSchema.parse(formData);
-      onSubmit(validatedData as RoomFormData);
+      // Transform form data to proper types for validation
+      const transformedData = {
+        ...formData,
+        floor: typeof formData.floor === 'string' && formData.floor === '' ? 0 : Number(formData.floor),
+        adultOccupancy: typeof formData.adultOccupancy === 'string' && formData.adultOccupancy === '' ? 0 : Number(formData.adultOccupancy),
+        childOccupancy: typeof formData.childOccupancy === 'string' && formData.childOccupancy === '' ? 0 : Number(formData.childOccupancy),
+        maxOccupancy: typeof formData.maxOccupancy === 'string' && formData.maxOccupancy === '' ? 0 : Number(formData.maxOccupancy),
+        baseRate: typeof formData.baseRate === 'string' && formData.baseRate === '' ? 0 : Number(formData.baseRate),
+        singleBeds: typeof formData.singleBeds === 'string' && formData.singleBeds === '' ? 0 : Number(formData.singleBeds),
+        doubleBeds: typeof formData.doubleBeds === 'string' && formData.doubleBeds === '' ? 0 : Number(formData.doubleBeds),
+        status: formData.status || 'AVAILABLE'
+      };
 
-      // Reset form after successful submission
-      setFormData(defaultFormData);
+      console.log('Form data before validation:', transformedData);
+
+      const validatedData = AddRoomRequestSchema.parse(transformedData);
+      console.log('Validated data:', validatedData);
+
+      await onSubmit(validatedData as RoomFormData);
+      if (submitButtonText.includes('Create')) {
+        setFormData(defaultFormData);
+      }
     } catch (error: any) {
+      console.error('Form submission error:', error);
       if (error.errors) {
         const fieldErrors: Record<string, string> = {};
         error.errors.forEach((err: any) => {
@@ -180,7 +209,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         setErrors(fieldErrors);
         toast.error('Please fix the validation errors');
       } else {
-        toast.error('Failed to create room');
+        // Don't show error toast here since parent component will handle it
+        console.error('API error:', error);
       }
     } finally {
       setIsSubmitting(false);
@@ -240,8 +270,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="floor"
                 type="number"
                 placeholder="e.g. 2"
-                value={formData.floor || ''}
-                onChange={(e) => handleInputChange('floor', Number(e.target.value) || 0)}
+                value={formData.floor === 0 ? '' : formData.floor}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleInputChange('floor', value === '' ? '' : Number(value));
+                }}
                 className={`border border-slate-300 ${errors.floor ? 'border-red-500' : ''}`}
               />
               {errors.floor && <p className="text-red-500 text-sm">{errors.floor}</p>}
@@ -253,7 +286,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 value={formData.status}
                 onValueChange={(value) => handleInputChange('status', value)}
               >
-                <SelectTrigger className='border border-slate-300 w-full'>
+                <SelectTrigger className={`border border-slate-300 w-full ${errors.status ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Select Active, Under Maintenance, Out of Service..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,6 +297,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
             </div>
 
             {/* Occupancy */}
@@ -276,8 +310,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="adults"
                     type="number"
                     placeholder="Max 5"
-                    value={formData.adultOccupancy || ''}
-                    onChange={(e) => handleInputChange('adultOccupancy', Number(e.target.value) || 0)}
+                    value={formData.adultOccupancy === 0 || formData.adultOccupancy === '' ? '' : formData.adultOccupancy}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleInputChange('adultOccupancy', value === '' ? '' : Number(value));
+                    }}
                     className={`border border-slate-300 ${errors.adultOccupancy ? 'border-red-500' : ''}`}
                   />
                   {errors.adultOccupancy && <p className="text-red-500 text-sm">{errors.adultOccupancy}</p>}
@@ -288,8 +325,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="children"
                     type="number"
                     placeholder="Max 2"
-                    value={formData.childOccupancy || ''}
-                    onChange={(e) => handleInputChange('childOccupancy', Number(e.target.value) || 0)}
+                    value={formData.childOccupancy === 0 || formData.childOccupancy === '' ? '' : formData.childOccupancy}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      handleInputChange('childOccupancy', value === '' ? '' : Number(value));
+                    }}
                     className={`border border-slate-300 ${errors.childOccupancy ? 'border-red-500' : ''}`}
                   />
                   {errors.childOccupancy && <p className="text-red-500 text-sm">{errors.childOccupancy}</p>}
@@ -326,8 +366,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       id="singleBeds"
                       type="number"
                       placeholder="1, 2, 3"
-                      value={formData.singleBeds}
-                      onChange={(e) => handleInputChange('singleBeds', Number(e.target.value))}
+                      value={formData.singleBeds === 0 || formData.singleBeds === '' ? '' : formData.singleBeds}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange('singleBeds', value === '' ? 0 : Number(value));
+                      }}
                       className='border border-slate-300'
                     />
                   </div>
@@ -337,8 +380,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       id="doubleBeds"
                       type="number"
                       placeholder="1, 2, 3"
-                      value={formData.doubleBeds}
-                      onChange={(e) => handleInputChange('doubleBeds', Number(e.target.value))}
+                      value={formData.doubleBeds === 0 || formData.doubleBeds === '' ? '' : formData.doubleBeds}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        handleInputChange('doubleBeds', value === '' ? 0 : Number(value));
+                      }}
                       className='border border-slate-300'
                     />
                   </div>
@@ -353,8 +399,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="maxOccupancy"
                 type="number"
                 placeholder="e.g. 4"
-                value={formData.maxOccupancy || ''}
-                onChange={(e) => handleInputChange('maxOccupancy', Number(e.target.value) || 0)}
+                value={formData.maxOccupancy === 0 || formData.maxOccupancy === '' ? '' : formData.maxOccupancy}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleInputChange('maxOccupancy', value === '' ? '' : Number(value));
+                }}
                 className={`border border-slate-300 ${errors.maxOccupancy ? 'border-red-500' : ''}`}
               />
               {errors.maxOccupancy && <p className="text-red-500 text-sm">{errors.maxOccupancy}</p>}
@@ -367,8 +416,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="baseRate"
                 type="number"
                 placeholder="e.g. 150"
-                value={formData.baseRate}
-                onChange={(e) => handleInputChange('baseRate', Number(e.target.value))}
+                value={formData.baseRate === 0 ? '' : formData.baseRate}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleInputChange('baseRate', value === '' ? 0 : Number(value));
+                }}
                 className='border border-slate-300'
               />
             </div>
@@ -500,7 +552,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
           variant="foreground"
           disabled={isSubmitting || isLoading}
         >
-          {isSubmitting || isLoading ? 'Creating...' : submitButtonText}
+          {isSubmitting
+            ? (submitButtonText.includes('Update') ? 'Updating...' : 'Creating...')
+            : submitButtonText
+          }
         </Button>
       </div>
     </form>
