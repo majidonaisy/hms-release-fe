@@ -11,15 +11,19 @@ import { getRooms } from '@/services/Rooms';
 import { addRoomType } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
+import RoomSkeleton from './RoomSkeleton';
+import { toast } from 'sonner';
 
 const Rooms = () => {
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [showFilter, setShowFilter] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    // Sorting state
     const [sortBy, setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
-    const [rooms,setRooms] = useState<Room[]>([]);
+    const [rooms, setRooms] = useState<Room[]>([]);
     const [itemsPerPage] = useState(10);
     const totalPages = Math.ceil(100 / itemsPerPage);
 
@@ -27,107 +31,19 @@ const Rooms = () => {
         setCurrentPage(page);
     };
 
-    const roomsData = [
-        {
-            id: 1,
-            name: "Room 100",
-            status: "Active",
-            type: "Front Desk",
-            floor: "Receptionist",
-            occupancy: "Product Designer",
-            logs: "olivia@untitledui.com"
-        },
-        {
-            id: 2,
-            name: "Room 101",
-            status: "Inactive",
-            type: "Housekeeping",
-            floor: "Supervisor",
-            occupancy: "Product Manager",
-            logs: "phoenix@untitledui.com"
-        },
-        {
-            id: 3,
-            name: "Room 102",
-            status: "Active",
-            type: "IT",
-            floor: "Frontend Developer",
-            occupancy: "Frontend Developer",
-            logs: "lana@untitledui.com"
-        },
-        {
-            id: 4,
-            name: "Room 103",
-            status: "Active",
-            type: "Management",
-            floor: "Backend Developer",
-            occupancy: "Backend Developer",
-            logs: "demi@untitledui.com"
-        },
-        {
-            id: 5,
-            name: "Room 104",
-            status: "Pending",
-            type: "Security",
-            floor: "Fullstack Developer",
-            occupancy: "Fullstack Developer",
-            logs: "candice@untitledui.com"
-        },
-        {
-            id: 6,
-            name: "Room 105",
-            status: "Active",
-            type: "UX Designer",
-            floor: "UX Designer",
-            occupancy: "UX Designer",
-            logs: "natali@untitledui.com"
-        },
-        {
-            id: 7,
-            name: "Room 106",
-            status: "Inactive",
-            type: "UX Copywriter",
-            floor: "UX Copywriter",
-            occupancy: "UX Copywriter",
-            logs: "drew@untitledui.com"
-        },
-        {
-            id: 8,
-            name: "Room 107",
-            status: "Pending",
-            type: "UI Designer",
-            floor: "UI Designer",
-            occupancy: "UI Designer",
-            logs: "orlando@untitledui.com"
-        },
-        {
-            id: 9,
-            name: "Room 108",
-            status: "Active",
-            type: "Product Manager",
-            floor: "Product Manager",
-            occupancy: "Product Manager",
-            logs: "andi@untitledui.com"
-        },
-        {
-            id: 10,
-            name: "Room 109",
-            status: "Pending",
-            type: "QA Engineer",
-            floor: "QA Engineer",
-            occupancy: "QA Engineer",
-            logs: "kate@untitledui.com"
-        }
-    ];
+
 
     useEffect(() => {
         const fetchRooms = async () => {
             try {
+                setLoading(true);
                 const response = await getRooms();
                 console.log('response', response)
                 setRooms(response.data);
             } catch (error) {
                 console.error('Error occurred:', error);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -154,8 +70,9 @@ const Rooms = () => {
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         try {
             const response = await addRoomType(data);
+            toast.success('Room type created successfully');
         } catch (error) {
-            console.error('Error creating room type:', error);
+            toast.error('Error creating room type');
         }
         setIsRoomTypeDialogOpen(false);
     };
@@ -170,160 +87,159 @@ const Rooms = () => {
     const handleDeleteClick = (e: React.MouseEvent): void => {
     }
 
-    
-
-
     return (
         <>
-            <div className="p-6 bg-gray-50 min-h-screen">
-                {/* Header Section */}
-                <div className="mb-6">
-                    {/* Rooms Title with Count */}
-                    <div className="flex items-center gap-2 mb-4">
-                        <h1 className="text-2xl font-semibold text-gray-900">Rooms</h1>
-                        <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                            100 Room
-                        </span>
-                    </div>
+            {loading ? (
+                <RoomSkeleton />
+            ) : (
+                <>
+                    <div className="p-6 bg-gray-50 min-h-screen">
+                        {/* Header Section */}
+                        <div className="mb-6">
+                            {/* Rooms Title with Count */}
+                            <div className="flex items-center gap-2 mb-4">
+                                <h1 className="text-2xl font-semibold text-gray-900">Rooms</h1>
+                                <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                                    100 Room
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                    <Input
+                                        type="text"
+                                        placeholder="Search text"
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                        className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                    />
+                                    <Search className="h-4 w-4 text-gray-400 " />
 
-                    {/* Search Bar and Actions */}
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
-                            <Input
-                                type="text"
-                                placeholder="Search text"
-                                value={searchText}
-                                onChange={(e) => setSearchText(e.target.value)}
-                                className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowFilter(!showFilter)}
+                                    className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
+                                >
+                                    <Filter className="h-4 w-4" />
+                                    Filter
+                                </Button>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 ml-auto">
+                                    <Button
+                                        onClick={handleNewRoomType}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        New Room Type
+                                    </Button>
+                                    <Button
+                                        onClick={() => navigate('/rooms/new')}
+
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        New Room
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Table Section */}
+                        <div className="bg-white rounded-lg shadow">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="border-b border-gray-200">
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
+                                            <div className="flex items-center gap-1">
+                                                Name
+                                                <ChevronDown className="h-4 w-4" />
+                                            </div>
+                                        </TableHead>
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Type</TableHead>
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Floor</TableHead>
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Occupancy</TableHead>
+                                        <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Max Occupancy</TableHead>
+                                        <TableHead className="w-[100px]"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {rooms.map((room) => (
+                                        <TableRow key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <TableCell className="px-6 py-4 font-medium text-gray-900">
+                                                {room.roomNumber}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <Badge className={`${getStatusColor(room.status)} border-0`}>
+                                                    • {room.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">
+                                                {room.roomType.name}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">
+                                                {room.floor}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">
+                                                {room.adultOccupancy} Adult, {room.childOccupancy} Child
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">
+                                                {room.maxOccupancy}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <DropdownMenu modal={false}>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                className='bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15'
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <EllipsisVertical className="" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer"
+                                                                onClick={(e) => handleDeleteClick(e)}
+                                                            >
+                                                                <div className="w-full flex items-center gap-2">
+                                                                    Delete
+                                                                </div>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer"
+                                                                onClick={(e) => handleEditClick(e)}
+                                                            >
+                                                                <div className="w-full flex items-center gap-2">
+                                                                    Edit
+                                                                </div>
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {/* Pagination */}
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={handlePageChange}
+                                showPreviousNext={true}
+                                maxVisiblePages={7}
                             />
-                            <Search className="h-4 w-4 text-gray-400 " />
-
                         </div>
 
-                        {/* Filter Button */}
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowFilter(!showFilter)}
-                            className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
-                        >
-                            <Filter className="h-4 w-4" />
-                            Filter
-                        </Button>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 ml-auto">
-                            <Button
-                                onClick={handleNewRoomType}
-                            >
-                                <Plus className="h-4 w-4" />
-                                New Room Type
-                            </Button>
-                            <Button
-                                onClick={() => navigate('/rooms/new')}
-
-                            >
-                                <Plus className="h-4 w-4" />
-                                New Room
-                            </Button>
-                        </div>
                     </div>
-                </div>
-
-                {/* Table Section */}
-                <div className="bg-white rounded-lg shadow">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-b border-gray-200">
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                    <div className="flex items-center gap-1">
-                                        Name
-                                        <ChevronDown className="h-4 w-4" />
-                                    </div>
-                                </TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Type</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Floor</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Occupancy</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Logs</TableHead>
-                                <TableHead className="w-[100px]"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rooms.map((room) => (
-                                <TableRow key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <TableCell className="px-6 py-4 font-medium text-gray-900">
-                                        {room.roomNumber}
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <Badge className={`${getStatusColor(room.status)} border-0`}>
-                                            • {room.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.roomType.name}
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.floor}
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
-                                        {room.adultOccupancy} Adult, {room.childOccupancy} Child
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
-                                        {/* {room.logs} */}
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <DropdownMenu modal={false}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        className='bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15'
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <EllipsisVertical className="" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={(e) => handleDeleteClick(e)}
-                                                    >
-                                                        <div className="w-full flex items-center gap-2">
-                                                            Delete
-                                                        </div>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={(e) => handleEditClick(e)}
-                                                    >
-                                                        <div className="w-full flex items-center gap-2">
-                                                            Edit
-                                                        </div>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    {/* Pagination */}
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        showPreviousNext={true}
-                        maxVisiblePages={7}
+                    <NewRoomTypeDialog
+                        isOpen={isRoomTypeDialogOpen}
+                        onConfirm={handleRoomTypeConfirm}
+                        onCancel={handleRoomTypeCancel}
                     />
-                </div>
-
-            </div>
-            <NewRoomTypeDialog
-                isOpen={isRoomTypeDialogOpen}
-                onConfirm={handleRoomTypeConfirm}
-                onCancel={handleRoomTypeCancel}
-            />
+                </>
+            )}
         </>
     );
 };

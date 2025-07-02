@@ -8,20 +8,22 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
-import { AddRoomRequest, RoomType } from '@/validation';
+import { AddRoomRequest, AddRoomRequestSchema, RoomType } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
+import { toast } from 'sonner';
 
-export interface RoomFormData extends Omit<AddRoomRequest, 'roomTypeId'> {
+export interface RoomFormData  {
+  roomNumber: string;
   roomTypeId: string;
-  floor: number;
+  floor: number | string;
   status: string;
-  adultOccupancy: number;
-  childOccupancy: number;
+  adultOccupancy: number | string;
+  childOccupancy: number | string;
   bedType: string;
-  singleBeds: number;
-  doubleBeds: number;
-  maxOccupancy: number;
-  baseRate: number;
+  singleBeds: number | string;
+  doubleBeds: number | string;
+  maxOccupancy: number | string;
+  baseRate: number | string;
   isConnecting: boolean;
   connectingRoom: string;
   description: string;
@@ -45,14 +47,14 @@ export interface RoomFormProps {
 const defaultFormData: RoomFormData = {
   roomNumber: '',
   roomTypeId: '',
-  floor: 0,
+  floor: '',
   status: '',
-  adultOccupancy: 0,
-  childOccupancy: 0,
+  adultOccupancy: '',
+  childOccupancy: '',
   bedType: '',
-  singleBeds: 0,
-  doubleBeds: 0,
-  maxOccupancy: 0,
+  singleBeds: '',
+  doubleBeds: '',
+  maxOccupancy: '',
   baseRate: 0,
   isConnecting: false,
   connectingRoom: '',
@@ -114,7 +116,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     ...defaultFormData,
     ...initialData
   });
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
 
   useEffect(() => {
@@ -163,19 +166,33 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
 
-    if (!formData.roomNumber.trim()) {
-      alert('Room number is required');
-      return;
-    }
+    try {
+      const validatedData = AddRoomRequestSchema.parse(formData);
+      onSubmit(validatedData as RoomFormData);
 
-    if (!formData.roomTypeId) {
-      alert('Room type is required');
-      return;
+      // Reset form after successful submission
+      setFormData(defaultFormData);
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast.error('Please fix the validation errors');
+      } else {
+        toast.error('Failed to create room');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-    onSubmit(formData);
   };
 
   const handleSaveDraft = () => {
@@ -195,25 +212,24 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             <div className="space-y-2">
               <Label htmlFor="roomNumber">Room Number</Label>
               <Input
-                type='number'
+                type='text'
                 id="roomNumber"
                 placeholder="e.g. 204"
                 value={formData.roomNumber}
                 onChange={(e) => handleInputChange('roomNumber', e.target.value)}
-                required
-                className='border border-slate-300'
+                className={`border border-slate-300 ${errors.roomNumber ? 'border-red-500' : ''}`}
               />
+              {errors.roomNumber && <p className="text-red-500 text-sm">{errors.roomNumber}</p>}
             </div>
 
             {/* Room Type */}
             <div className="space-y-2">
               <Label htmlFor="roomTypeId">Room Type</Label>
               <Select
-                required
                 value={formData.roomTypeId}
                 onValueChange={(value) => handleInputChange('roomTypeId', value)}
               >
-                <SelectTrigger className='border border-slate-300 w-full'>
+                <SelectTrigger className={`border border-slate-300 w-full ${errors.roomTypeId ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Select Single, Double, Twin, Suite..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -224,6 +240,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.roomTypeId && <p className="text-red-500 text-sm">{errors.roomTypeId}</p>}
             </div>
 
             {/* Floor */}
@@ -233,12 +250,12 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="floor"
                 type="number"
                 placeholder="e.g. 2"
-                value={formData.floor}
-                onChange={(e) => handleInputChange('floor', Number(e.target.value))}
-                className={cn('border border-slate-300')}
+                value={formData.floor || ''}
+                onChange={(e) => handleInputChange('floor', Number(e.target.value) || 0)}
+                className={`border border-slate-300 ${errors.floor ? 'border-red-500' : ''}`}
               />
+              {errors.floor && <p className="text-red-500 text-sm">{errors.floor}</p>}
             </div>
-
             {/* Status */}
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
@@ -269,10 +286,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="adults"
                     type="number"
                     placeholder="Max 5"
-                    value={formData.adultOccupancy}
-                    onChange={(e) => handleInputChange('adultOccupancy', Number(e.target.value))}
-                    className='border border-slate-300'
+                    value={formData.adultOccupancy || ''}
+                    onChange={(e) => handleInputChange('adultOccupancy', Number(e.target.value) || 0)}
+                    className={`border border-slate-300 ${errors.adultOccupancy ? 'border-red-500' : ''}`}
                   />
+                  {errors.adultOccupancy && <p className="text-red-500 text-sm">{errors.adultOccupancy}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="children" className="text-sm text-slate-600">Children</Label>
@@ -280,10 +298,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="children"
                     type="number"
                     placeholder="Max 2"
-                    value={formData.childOccupancy}
-                    onChange={(e) => handleInputChange('childOccupancy', Number(e.target.value))}
-                    className='border border-slate-300'
+                    value={formData.childOccupancy || ''}
+                    onChange={(e) => handleInputChange('childOccupancy', Number(e.target.value) || 0)}
+                    className={`border border-slate-300 ${errors.childOccupancy ? 'border-red-500' : ''}`}
                   />
+                  {errors.childOccupancy && <p className="text-red-500 text-sm">{errors.childOccupancy}</p>}
                 </div>
               </div>
             </div>
@@ -344,10 +363,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="maxOccupancy"
                 type="number"
                 placeholder="e.g. 4"
-                value={formData.maxOccupancy}
-                onChange={(e) => handleInputChange('maxOccupancy', Number(e.target.value))}
-                className='border border-slate-300'
+                value={formData.maxOccupancy || ''}
+                onChange={(e) => handleInputChange('maxOccupancy', Number(e.target.value) || 0)}
+                className={`border border-slate-300 ${errors.maxOccupancy ? 'border-red-500' : ''}`}
               />
+              {errors.maxOccupancy && <p className="text-red-500 text-sm">{errors.maxOccupancy}</p>}
             </div>
 
             {/* Base Rate per Night */}
@@ -480,7 +500,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             variant='background'
             className='text-white'
             onClick={handleSaveDraft}
-            disabled={isLoading}
+            disabled={isSubmitting || isLoading}
           >
             {draftButtonText}
           </Button>
@@ -488,9 +508,9 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         <Button
           type="submit"
           variant="foreground"
-          disabled={isLoading}
+          disabled={isSubmitting || isLoading}
         >
-          {isLoading ? 'Creating...' : submitButtonText}
+          {isSubmitting || isLoading ? 'Creating...' : submitButtonText}
         </Button>
       </div>
     </form>
