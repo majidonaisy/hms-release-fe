@@ -2,6 +2,7 @@ import { z } from "zod";
 import { RoomTypeShape } from "./RoomType";
 
 // Common Room shape
+// Update the Room shape to match the actual API response
 export const RoomShape = z.object({
   id: z.string(),
   roomNumber: z.string(),
@@ -16,7 +17,6 @@ export const RoomShape = z.object({
   hotelId: z.string(),
   photos: z.array(z.any()).optional(),
 });
-
 // Add Room - Updated with required fields and proper error messages
 export const AddRoomRequestSchema = z.object({
   roomNumber: z.string().min(1, "Room number is required"),

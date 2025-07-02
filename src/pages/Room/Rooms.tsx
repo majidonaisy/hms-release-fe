@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Filter, Plus, ChevronDown, Trash2, Edit, EllipsisVertical } from 'lucide-react';
+import { Search, Filter, Plus, ChevronDown, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
@@ -24,14 +24,12 @@ const Rooms = () => {
     const [sortBy, setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [itemsPerPage] = useState(10);
-    const totalPages = Math.ceil(100 / itemsPerPage);
+    const [items, setItems] = useState(0);
+    const totalPages = Math.ceil(items / 10);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
-
-
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -40,6 +38,7 @@ const Rooms = () => {
                 const response = await getRooms();
                 console.log('response', response)
                 setRooms(response.data);
+                setItems(response.data.length);
             } catch (error) {
                 console.error('Error occurred:', error);
             } finally {
@@ -69,7 +68,7 @@ const Rooms = () => {
 
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         try {
-            const response = await addRoomType(data);
+            await addRoomType(data);
             toast.success('Room type created successfully');
         } catch (error) {
             toast.error('Error creating room type');
@@ -80,11 +79,16 @@ const Rooms = () => {
     const handleRoomTypeCancel = () => {
         setIsRoomTypeDialogOpen(false);
     };
-    const handleEditClick = (e: React.MouseEvent): void => {
 
+    const handleEditClick = (e: React.MouseEvent, roomId: string): void => {
+        e.stopPropagation();
+        navigate(`/rooms/${roomId}`);
     };
 
-    const handleDeleteClick = (e: React.MouseEvent): void => {
+
+    const handleDeleteClick = (e: React.MouseEvent, roomId: string): void => {
+        e.stopPropagation();
+        // Implement delete functionality here
     }
 
     return (
@@ -100,7 +104,7 @@ const Rooms = () => {
                             <div className="flex items-center gap-2 mb-4">
                                 <h1 className="text-2xl font-semibold text-gray-900">Rooms</h1>
                                 <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                                    100 Room
+                                    {items} Room
                                 </span>
                             </div>
                             <div className="flex items-center gap-4">
@@ -199,7 +203,7 @@ const Rooms = () => {
                                                         <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
                                                             <DropdownMenuItem
                                                                 className="cursor-pointer"
-                                                                onClick={(e) => handleDeleteClick(e)}
+                                                                onClick={(e) => handleDeleteClick(e, room.id)}
                                                             >
                                                                 <div className="w-full flex items-center gap-2">
                                                                     Delete
@@ -208,7 +212,7 @@ const Rooms = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem
                                                                 className="cursor-pointer"
-                                                                onClick={(e) => handleEditClick(e)}
+                                                                onClick={(e) => handleEditClick(e, room.id)}
                                                             >
                                                                 <div className="w-full flex items-center gap-2">
                                                                     Edit

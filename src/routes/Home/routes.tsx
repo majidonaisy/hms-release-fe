@@ -33,6 +33,14 @@ const RoutesList = () => {
                     isAuthenticated: true,
                     isShown: false,
                 },
+                {
+                    path: "/rooms/:id", // This handles both /rooms/new and /rooms/123
+                    title: "Room Form",
+                    icon: <Plus />,
+                    component: Newroom, // Use the unified component
+                    isAuthenticated: true,
+                    isShown: false,
+                }
             ]
         },
         {
