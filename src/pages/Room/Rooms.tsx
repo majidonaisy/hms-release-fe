@@ -82,7 +82,7 @@ const Rooms = () => {
 
     const handleEditClick = (e: React.MouseEvent, roomId: string): void => {
         e.stopPropagation();
-        navigate(`/rooms/${roomId}`);
+        navigate(`/rooms/edit/${roomId}`);
     };
 
 
