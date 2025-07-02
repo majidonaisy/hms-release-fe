@@ -36,7 +36,6 @@ const Rooms = () => {
             try {
                 setLoading(true);
                 const response = await getRooms();
-                console.log('response', response)
                 setRooms(response.data);
                 setItems(response.data.length);
             } catch (error) {
@@ -82,7 +81,7 @@ const Rooms = () => {
 
     const handleEditClick = (e: React.MouseEvent, roomId: string): void => {
         e.stopPropagation();
-        navigate(`/rooms/edit/${roomId}`);
+        navigate(`/rooms/${roomId}`);
     };
 
 

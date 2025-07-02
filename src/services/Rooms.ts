@@ -41,12 +41,21 @@ export const getRooms = async (): Promise<GetRoomsResponse> => {
 
 export const getRoomById = async (id: string): Promise<{ data: any }> => {
   try {
-    const response = await apiClient({
+    const response = (await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetById}/${id}`,
       baseURL,
-    });
-    // Wrap the response in a data property to match expected format
+    })) as any;
+
+
+    // Handle the nested response structure from your API
+    // API returns: { data: { status: 200, data: roomData } }
+    // We need to extract the actual room data
+    if (response.data && response.data.data) {
+      return { data: response.data };
+    }
+
+    // Fallback if the structure is different
     return { data: response };
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get room";

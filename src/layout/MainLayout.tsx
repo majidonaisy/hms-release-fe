@@ -169,7 +169,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     };
 
     const getSidebarRoutes = () => {
-        console.log('routes', routes)
         if (!routes || !Array.isArray(routes)) return [];
         return routes.filter(route => route.isShown === true);
     };
