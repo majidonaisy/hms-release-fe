@@ -13,6 +13,10 @@ export const RoomShape = z.object({
   floor: z.number().optional(),
   adultOccupancy: z.number().int().optional(),
   childOccupancy: z.number().int().optional(),
+  maxOccupancy: z.number().int().optional(),
+  description: z.string().optional().nullable(),
+  hotelId: z.string(),
+  photos: z.array(z.any()).optional(),
 });
 
 // Add Room
