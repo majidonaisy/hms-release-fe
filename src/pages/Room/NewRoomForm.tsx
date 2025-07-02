@@ -8,7 +8,7 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
-import { AddRoomRequest, AddRoomRequestSchema, RoomType } from '@/validation';
+import {  AddRoomRequestSchema, RoomType } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 
@@ -63,17 +63,9 @@ const defaultFormData: RoomFormData = {
   photos: []
 };
 
-const floorOptions = [
-  { value: 'ground', label: 'Ground Floor' },
-  { value: '1st', label: '1st Floor' },
-  { value: '2nd', label: '2nd Floor' },
-  { value: '3rd', label: '3rd Floor' },
-  { value: '4th', label: '4th Floor' },
-  { value: '5th', label: '5th Floor' }
-];
 
 const statusOptions = [
-  { value: 'active', label: 'Active' },
+  { value: 'Active', label: 'Active' },
   { value: 'maintenance', label: 'Under Maintenance' },
   { value: 'out-of-service', label: 'Out of Service' },
   { value: 'cleaning', label: 'Cleaning' }
@@ -204,9 +196,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Side - Form Section */}
         <div className='px-7'>
-
           <div className="space-y-6">
             {/* Room Number */}
             <div className="space-y-2">
