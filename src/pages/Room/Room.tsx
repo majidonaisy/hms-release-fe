@@ -73,7 +73,6 @@ const Room = () => {
     const getInitialData = (): Partial<RoomFormData> | undefined => {
         if (!room || isAddMode) return undefined;
 
-
         return {
             roomNumber: room.roomNumber,
             roomTypeId: room.roomTypeId,
@@ -90,10 +89,10 @@ const Room = () => {
             baseRate: room.roomType?.baseRate ? parseFloat(room.roomType.baseRate) : 0,
             isConnecting: false,
             connectingRoom: '',
-            facilities: [],
+            amenities: [], // Initialize as empty array, will be populated when amenities are fetched
             photos: Array.isArray(room.photos) ? room.photos : []
         };
-    };
+      };
 
     // Show loading skeleton while fetching data in edit mode
     if (isEditMode && loading) {

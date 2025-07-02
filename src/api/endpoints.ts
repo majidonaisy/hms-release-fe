@@ -25,4 +25,7 @@ export const ENDPOINTS = {
     Update: "guest/update",
     Delete: "guest/delete",
   },
+  Amenities:{
+    GetAllAmenities: "amenity/get",
+  }
 };

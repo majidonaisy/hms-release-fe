@@ -11,6 +11,8 @@ import { Switch } from '@/components/atoms/Switch';
 import { AddRoomRequestSchema, RoomType } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
+import { getAmenities } from '@/services/Rooms';
+import { Amenity } from '@/validation/schemas/amenity';
 
 export interface RoomFormData {
   roomNumber: string;
@@ -27,7 +29,7 @@ export interface RoomFormData {
   isConnecting: boolean;
   connectingRoom: string;
   description: string;
-  facilities: string[];
+  amenities: Amenity[];
   photos: File[];
 }
 
@@ -59,7 +61,7 @@ const defaultFormData: RoomFormData = {
   isConnecting: false,
   connectingRoom: '',
   description: '',
-  facilities: [],
+  amenities: [],
   photos: []
 };
 
@@ -81,20 +83,7 @@ const bedTypeOptions = [
   { value: 'crib', label: 'Crib' }
 ];
 
-const facilitiesOptions = [
-  { id: 'kitchenette', label: 'Kitchenette' },
-  { id: 'workDesk', label: 'Work Desk' },
-  { id: 'seaView', label: 'Sea View' },
-  { id: 'cityView', label: 'City View' },
-  { id: 'tv', label: 'TV' },
-  { id: 'miniBar', label: 'Mini Bar' },
-  { id: 'wardrobe', label: 'Wardrobe' },
-  { id: 'bathtub', label: 'Bathtub' },
-  { id: 'smokingAllowed', label: 'Smoking allowed' },
-  { id: 'accessible', label: 'Accessible' },
-  { id: 'petFriendly', label: 'Pet friendly' },
-  { id: 'label', label: 'Label' }
-];
+
 
 const NewRoomForm: React.FC<RoomFormProps> = ({
   initialData = {},
@@ -111,7 +100,39 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [amenities, setAmenity] = useState<Amenity[]>([]);
+
+  const fetchAmenities = async () => {
+    try {
+      const response = await getAmenities();
+      if (response.status && Array.isArray(response.data)) {
+        setAmenity(response.data);
+      } else {
+        setAmenity([]);
+        toast.error('Failed to load amenities');
+      }
+    } catch (error) {
+      setAmenity([]);
+      toast.error('Failed to load amenities');
+    }
+  };
+
+  const fetchRoomTypes = async () => {
+    try {
+      const response = await getRoomTypes();
+      if (response.status && Array.isArray(response.data)) {
+        setRoomTypes(response.data);
+      } else {
+        setRoomTypes([]);
+        toast.error('Failed to load room types');
+      }
+    } catch (error) {
+      setRoomTypes([]);
+      toast.error('Failed to load room types');
+    }
+  };
 
   // Update form data when initialData changes (for edit mode)
   useEffect(() => {
@@ -122,21 +143,12 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         ...initialData
       };
       setFormData(newData);
-    } 
+    }
   }, [initialData]);
 
   useEffect(() => {
-    const fetchRoomTypes = async () => {
-      try {
-        const response = await getRoomTypes();
-        setRoomTypes(response.data);
-      } catch (error) {
-        console.error('Failed to fetch room types:', error);
-        setRoomTypes([]);
-      }
-    };
-
     fetchRoomTypes();
+    fetchAmenities();
   }, []);
 
   const handleInputChange = (field: keyof RoomFormData, value: any) => {
@@ -146,14 +158,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }));
   };
 
-  const handleFacilityChange = (facilityId: string, checked: boolean) => {
+  const handleAmenityChange = (amenityId: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      facilities: checked
-        ? [...prev.facilities, facilityId]
-        : prev.facilities.filter(id => id !== facilityId)
+      amenities: checked
+        ? [...prev.amenities, amenities.find(a => a.id === amenityId)].filter(Boolean) as Amenity[]
+        : prev.amenities.filter(amenity => amenity?.id !== amenityId)
     }));
   };
+  
+  
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -186,9 +200,9 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         baseRate: typeof formData.baseRate === 'string' && formData.baseRate === '' ? 0 : Number(formData.baseRate),
         singleBeds: typeof formData.singleBeds === 'string' && formData.singleBeds === '' ? 0 : Number(formData.singleBeds),
         doubleBeds: typeof formData.doubleBeds === 'string' && formData.doubleBeds === '' ? 0 : Number(formData.doubleBeds),
-        status: formData.status || 'AVAILABLE'
+        status: formData.status || 'AVAILABLE',
+        amenities: formData.amenities.map(amenity => amenity.id) // Transform amenities to array of IDs for API
       };
-
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
 
@@ -198,7 +212,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
       }
     } catch (error: any) {
       console.error('Form submission error:', error);
-      if (error.errors) {
+
+      if (error.name === 'ZodError') {
         const fieldErrors: Record<string, string> = {};
         error.errors.forEach((err: any) => {
           if (err.path && err.path.length > 0) {
@@ -207,15 +222,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         });
         setErrors(fieldErrors);
         toast.error('Please fix the validation errors');
+      } else if (error.userMessage) {
+        toast.error(error.userMessage);
       } else {
-        // Don't show error toast here since parent component will handle it
         console.error('API error:', error);
+        toast.error('An unexpected error occurred');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleSaveDraft = () => {
     if (onSaveDraft) {
       onSaveDraft(formData);
@@ -499,20 +515,20 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             </div>
           )}
 
-          {/* Facilities */}
+          {/* amenities */}
           <div className="space-y-4">
-            <Label>Facilities:</Label>
+            <Label>Amenities:</Label>
             <div className="grid grid-cols-2 gap-3">
-              {facilitiesOptions.map((facility) => (
-                <div key={facility.id} className="flex items-center space-x-2">
+              {amenities.map((amenity) => (
+                <div key={amenity.id} className="flex items-center space-x-2">
                   <Checkbox
-                    id={facility.id}
+                    id={amenity.id}
                     className={cn("data-[state=checked]:bg-hms-primary")}
-                    checked={formData.facilities.includes(facility.id)}
-                    onCheckedChange={(checked: any) => handleFacilityChange(facility.id, checked as boolean)}
+                    checked={formData.amenities.some(a => a.id === amenity.id)}
+                    onCheckedChange={(checked: any) => handleAmenityChange(amenity.id, checked as boolean)}
                   />
-                  <Label htmlFor={facility.id} className="text-sm">
-                    {facility.label}
+                  <Label htmlFor={amenity.id} className="text-sm">
+                    {amenity.name}
                   </Label>
                 </div>
               ))}
