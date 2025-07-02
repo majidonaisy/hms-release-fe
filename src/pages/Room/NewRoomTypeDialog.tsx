@@ -4,7 +4,8 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
-import { AddRoomTypeRequest } from '@/validation';
+import { AddRoomTypeRequest, AddRoomTypeRequestSchema } from '@/validation';
+import { toast } from 'sonner';
 
 interface NewRoomTypeDialogProps {
   isOpen: boolean;
@@ -19,10 +20,11 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState<AddRoomTypeRequest>({
     name: '',
-    baseRate: 100,
-    description: 'this is a room type description',
-    capacity: 1
+    baseRate: 0,
+    description: '',
+    capacity: 0
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: keyof AddRoomTypeRequest, value: string | number) => {
     setFormData(prev => {
@@ -36,18 +38,31 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
+    try {
+      const validatedData = AddRoomTypeRequestSchema.parse(formData);
+      onConfirm(validatedData);
 
-
-    onConfirm(formData);
-
-    // Reset form after submission
-    setFormData({
-      name: '',
-      baseRate: 0,
-      description: '',
-      capacity: 1
-    });
+      // Reset form after submission
+      setFormData({
+        name: '',
+        baseRate: 0,
+        description: '',
+        capacity: 0
+      });
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path && err.path.length > 0) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast.error('Please fix the validation errors');
+      }
+    }
   };
 
   const handleCancel = () => {
@@ -55,10 +70,12 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
       name: '',
       baseRate: 0,
       description: '',
-      capacity: 1
+      capacity: 0
     });
+    setErrors({});
     onCancel();
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
@@ -76,8 +93,9 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               placeholder="e.g. Single Room"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              required
+              className={errors.name ? 'border-red-500' : ''}
             />
+            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
           </div>
 
           {/* Capacity */}
@@ -88,10 +106,11 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               type="number"
               min="1"
               placeholder="e.g. 2"
-              value={formData.capacity}
-              onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 1)}
-              required
+              value={formData.capacity || ''}
+              onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 0)}
+              className={errors.capacity ? 'border-red-500' : ''}
             />
+            {errors.capacity && <p className="text-red-500 text-sm">{errors.capacity}</p>}
           </div>
 
           {/* Price Per Night */}
@@ -103,10 +122,11 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               min="0"
               step="0.01"
               placeholder="e.g. 150"
-              value={formData.baseRate}
+              value={formData.baseRate || ''}
               onChange={(e) => handleInputChange('baseRate', parseFloat(e.target.value) || 0)}
-              required
+              className={errors.baseRate ? 'border-red-500' : ''}
             />
+            {errors.baseRate && <p className="text-red-500 text-sm">{errors.baseRate}</p>}
           </div>
 
           {/* Description */}
@@ -118,8 +138,9 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={4}
-              className="resize-none"
+              className={`resize-none ${errors.description ? 'border-red-500' : ''}`}
             />
+            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
           </div>
 
           {/* Submit Button */}

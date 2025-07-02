@@ -12,6 +12,7 @@ import { addRoomType } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
 import RoomSkeleton from './RoomSkeleton';
+import { toast } from 'sonner';
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -69,8 +70,9 @@ const Rooms = () => {
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         try {
             const response = await addRoomType(data);
+            toast.success('Room type created successfully');
         } catch (error) {
-            console.error('Error creating room type:', error);
+            toast.error('Error creating room type');
         }
         setIsRoomTypeDialogOpen(false);
     };
@@ -84,9 +86,6 @@ const Rooms = () => {
 
     const handleDeleteClick = (e: React.MouseEvent): void => {
     }
-
-
-
 
     return (
         <>

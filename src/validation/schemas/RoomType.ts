@@ -11,10 +11,10 @@ export const RoomTypeShape = z.object({
 
 // Add RoomType
 export const AddRoomTypeRequestSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  baseRate: z.number().positive(),
-  capacity: z.number().int().positive(),
+  baseRate: z.number().positive().min(1, "Base rate must be positive"),
+  capacity: z.number().int().positive().min(1, "Capacity must be at least 1"),
 });
 
 export const AddRoomTypeResponseSchema = z.object({
