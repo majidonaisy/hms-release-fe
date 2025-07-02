@@ -13,6 +13,7 @@ import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
 import RoomSkeleton from './RoomSkeleton';
 import { toast } from 'sonner';
+import DeleteDialog from '@/components/molecules/DeleteDialog';
 
 const Rooms = () => {
     const navigate = useNavigate();
@@ -25,6 +26,9 @@ const Rooms = () => {
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [items, setItems] = useState(0);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [roomToDelete, setRoomToDelete] = useState<{ id: string; roomNumber: string } | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const totalPages = Math.ceil(items / 10);
 
     const handlePageChange = (page: number) => {
@@ -84,20 +88,35 @@ const Rooms = () => {
         navigate(`/rooms/${roomId}`);
     };
 
-
-    const handleDeleteClick = async (e: React.MouseEvent, roomId: string): Promise<void> => {
+    const handleDeleteClick = (e: React.MouseEvent, room: Room): void => {
         e.stopPropagation();
+        setRoomToDelete({ id: room.id, roomNumber: room.roomNumber });
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async (): Promise<void> => {
+        if (!roomToDelete) return;
+
+        setDeleteLoading(true);
         try {
-            // Call your delete API here
-            await deleteRoom(roomId);
+            await deleteRoom(roomToDelete.id);
             toast.success('Room deleted successfully');
-            // Optionally, refresh the room list after deletion
-            setRooms(rooms.filter(room => room.id !== roomId));
-        } catch (error) {
+            setRooms(rooms.filter(room => room.id !== roomToDelete.id));
+            setItems(items - 1);
+        } catch (error: any) {
             console.error('Error deleting room:', error);
-            toast.error('Failed to delete room');
+            toast.error(error.userMessage || 'Failed to delete room');
+        } finally {
+            setDeleteLoading(false);
+            setDeleteDialogOpen(false);
+            setRoomToDelete(null);
         }
-    }
+    };
+
+    const handleDeleteCancel = (): void => {
+        setDeleteDialogOpen(false);
+        setRoomToDelete(null);
+    };
 
     return (
         <>
@@ -211,7 +230,7 @@ const Rooms = () => {
                                                         <DropdownMenuContent align="end" className='shadow-lg border-hms-accent'>
                                                             <DropdownMenuItem
                                                                 className="cursor-pointer"
-                                                                onClick={(e) => handleDeleteClick(e, room.id)}
+                                                                onClick={(e) => handleDeleteClick(e, room)}
                                                             >
                                                                 <div className="w-full flex items-center gap-2">
                                                                     Delete
@@ -249,6 +268,16 @@ const Rooms = () => {
                         isOpen={isRoomTypeDialogOpen}
                         onConfirm={handleRoomTypeConfirm}
                         onCancel={handleRoomTypeCancel}
+                    />
+
+                    {/* Delete Confirmation Dialog */}
+                    <DeleteDialog
+                        isOpen={deleteDialogOpen}
+                        onCancel={handleDeleteCancel}
+                        onConfirm={handleDeleteConfirm}
+                        loading={deleteLoading}
+                        title="Delete Room"
+                        description={`Are you sure you want to delete room ${roomToDelete?.roomNumber}? This action cannot be undone.`}
                     />
                 </>
             )}

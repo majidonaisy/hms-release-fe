@@ -44,7 +44,6 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
                     <Button
                         onClick={handleConfirm}
                         disabled={loading}
-                        variant={destructive ? "destructive" : "default"}
                     >
                         {loading ? 'Processing...' : confirmText}
                     </Button>
