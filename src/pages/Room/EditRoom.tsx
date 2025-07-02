@@ -18,13 +18,12 @@ const EditRoom = () => {
     useEffect(() => {
         const fetchRoom = async () => {
             if (!id) return;
-
             setLoading(true);
             setError(null);
-
             try {
                 const response = await getRoomById(id);
-                setRoom(response.data);
+                setRoom(response.data.data);
+                console.log('response', response)
             } catch (error: any) {
                 console.error('Error fetching room:', error);
                 setError(error.userMessage || 'Failed to load room data');
@@ -32,7 +31,6 @@ const EditRoom = () => {
                 setLoading(false);
             }
         };
-
         fetchRoom();
     }, [id]);
 
@@ -122,6 +120,7 @@ const EditRoom = () => {
 
             {/* Room Form */}
             <NewRoomForm
+                key={room.id} // Force re-render when room changes
                 initialData={getInitialData()}
                 onSubmit={handleSubmit}
                 onSaveDraft={handleSaveDraft}
