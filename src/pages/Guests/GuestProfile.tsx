@@ -11,7 +11,7 @@ import { deleteGuest, getGuests } from "@/services/Guests";
 import { GetGuestsResponse, RoomType } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 import { getRoomTypes } from "@/services/RoomTypes";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/Organisms/Dialog";
+import DeleteGuestDialog from "./DeleteGuestDialog";
 
 const GuestProfile = () => {
     const navigate = useNavigate();
@@ -82,7 +82,7 @@ const GuestProfile = () => {
         navigate(`/guests-profile/${guestId}/view`);
     };
 
-    const handleDelete = async () => {
+    const handleDeleteGuest = async () => {
         setLoading(true);
         if (guestToDelete) {
             try {
@@ -211,46 +211,53 @@ const GuestProfile = () => {
                                         Loading...
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredGuests.map((guest) => (
-                                <TableRow key={guest.id} onClick={(e) => handleViewClick(e, guest.id)} className="border-b-2 col-span-7 hover:bg-accent cursor-pointer">
-                                    <TableCell className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage />
-                                                <AvatarFallback>{guest.firstName.charAt(0).toUpperCase()}{guest.lastName.charAt(0).toUpperCase()}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="font-medium text-gray-900">{guest.firstName} {guest.lastName}</div>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.email}</TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.roomType && roomTypeMap[guest.preferences.roomType] || "Unknown"}</TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <DropdownMenu modal={false}>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <EllipsisVertical />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                                <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem onClick={() => {
-                                                    setGuestToDelete(guest.id);
-                                                    setDeleteDialogOpen(true);
-                                                }}>Delete</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                            ) : filteredGuests && filteredGuests.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="py-10 text-center text-gray-600">
+                                        No users found
                                     </TableCell>
                                 </TableRow>
-                            ))
+                            ) :
+                                filteredGuests.map((guest) => (
+                                    <TableRow key={guest.id} onClick={(e) => handleViewClick(e, guest.id)} className="border-b-2 col-span-7 hover:bg-accent cursor-pointer">
+                                        <TableCell className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar>
+                                                    <AvatarImage />
+                                                    <AvatarFallback>{guest.firstName.charAt(0).toUpperCase()}{guest.lastName.charAt(0).toUpperCase()}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="font-medium text-gray-900">{guest.firstName} {guest.lastName}</div>
+                                            </div>
+                                        </TableCell>
+
+                                        <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.email}</TableCell>
+                                        <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.roomType && roomTypeMap[guest.preferences.roomType] || "Unknown"}</TableCell>
+                                        <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
+                                        <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
+                                        <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <EllipsisVertical />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                                    <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => {
+                                                        setGuestToDelete(guest.id);
+                                                        setDeleteDialogOpen(true);
+                                                    }}>Delete</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                             }
                         </TableBody>
                     </Table>
@@ -271,18 +278,13 @@ const GuestProfile = () => {
                 onCancel={handleGuestTypeCancel}
             />
 
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent>
-                    <DialogTitle>Confirm Deletion</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete this guest?
-                    </DialogDescription>
-                    <DialogFooter>
-                        <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleDelete} disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DeleteGuestDialog
+                isOpen={isDeleteDialogOpen}
+                guestId={guestToDelete}
+                onConfirm={handleDeleteGuest}
+                onCancel={() => setDeleteDialogOpen(false)}
+                loading={loading}
+            />
         </>
     );
 };

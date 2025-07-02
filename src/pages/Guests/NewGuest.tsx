@@ -193,6 +193,10 @@ const NewGuest = () => {
                                     mode="single"
                                     selected={formData.dob}
                                     onSelect={(date) => date && setFormData({ ...formData, dob: date })}
+                                    captionLayout="dropdown"
+                                    startMonth={new Date(1900, 0)}
+                                    endMonth={new Date(new Date().getFullYear(), 11)} 
+                                    defaultMonth={formData.dob}
                                 />
                             </PopoverContent>
                         </Popover>

@@ -1,26 +1,51 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
-import { Badge } from '@/components/atoms/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
-import { getGuestById } from '@/services/Guests';
-import { GetGuestByIdResponse, RoomType } from '@/validation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/molecules/Popover';
+import { Calendar } from '@/components/molecules/Calendar';
+import { Switch } from '@/components/atoms/Switch';
+import { format } from 'date-fns';
+import { deleteGuest, getGuestById, updateGuest } from '@/services/Guests';
+import { GetGuestByIdResponse, RoomType, AddGuestRequest } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
+import { toast } from 'sonner';
+import DeleteGuestDialog from './DeleteGuestDialog';
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
     const location = useLocation();
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [guestToDelete, setGuestToDelete] = useState<string | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const [guest, setGuest] = useState<GetGuestByIdResponse | null>(null);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [formData, setFormData] = useState<AddGuestRequest>({
+        firstName: '',
+        lastName: '',
+        dob: new Date(),
+        nationality: '',
+        email: '',
+        phoneNumber: '',
+        identification: {
+            type: 'passport',
+            number: '1234'
+        },
+        preferences: {
+            smoking: false,
+            roomType: '',
+        }
+    });
 
     useEffect(() => {
         const fetchGuestData = async () => {
@@ -30,9 +55,25 @@ const GuestProfileView = () => {
             setError(null);
 
             try {
-                // Get guest data
                 const guestResponse = await getGuestById(id);
                 setGuest(guestResponse);
+                // Set form data when guest data is loaded
+                setFormData({
+                    firstName: guestResponse.data.firstName,
+                    lastName: guestResponse.data.lastName,
+                    dob: guestResponse.data.dob,
+                    nationality: guestResponse.data.nationality,
+                    email: guestResponse.data.email,
+                    phoneNumber: guestResponse.data.phoneNumber,
+                    identification: guestResponse.data.identification || {
+                        type: 'passport',
+                        number: '1234'
+                    },
+                    preferences: {
+                        smoking: guestResponse.data.preferences?.smoking || false,
+                        roomType: guestResponse.data.preferences?.roomType || '',
+                    }
+                });
 
                 const roomTypesResponse = await getRoomTypes();
                 setRoomTypes(roomTypesResponse.data);
@@ -48,6 +89,101 @@ const GuestProfileView = () => {
         fetchGuestData();
     }, [id, location.state]);
 
+    const handleInputChange = (field: keyof AddGuestRequest | 'preferences.roomType', value: string) => {
+        if (field === 'preferences.roomType') {
+            setFormData(prev => ({
+                ...prev,
+                preferences: {
+                    ...prev.preferences,
+                    roomType: value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setFormData(prev => ({
+            ...prev,
+            photo: file
+        }));
+    };
+
+    const handleSaveEdit = async () => {
+        if (!id) return;
+        
+        setLoading(true);
+        try {
+            await updateGuest(id, formData);
+            toast("Success!", {
+                description: "Guest was updated successfully.",
+            });
+            
+            // Refresh guest data
+            const guestResponse = await getGuestById(id);
+            setGuest(guestResponse);
+            setIsEditMode(false);
+        } catch (error) {
+            toast("Error!", {
+                description: "Failed to update guest.",
+            });
+            console.error("Failed to update guest:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        if (guest) {
+            // Reset form data to original values
+            setFormData({
+                firstName: guest.data.firstName,
+                lastName: guest.data.lastName,
+                dob: guest.data.dob,
+                nationality: guest.data.nationality,
+                email: guest.data.email,
+                phoneNumber: guest.data.phoneNumber,
+                identification: guest.data.identification || {
+                    type: 'passport',
+                    number: '1234'
+                },
+                preferences: {
+                    smoking: guest.data.preferences?.smoking || false,
+                    roomType: guest.data.preferences?.roomType || '',
+                }
+            });
+        }
+        setIsEditMode(false);
+    };
+
+    const handleDeleteGuest = async () => {
+        setLoading(true);
+        if (guestToDelete) {
+            try {
+                await deleteGuest(guestToDelete);
+                setDeleteDialogOpen(false);
+                setGuestToDelete(null);
+                navigate('/guests-profile');
+                toast("Success!", {
+                    description: "Guest was deleted successfully.",
+                });
+            } catch (error) {
+                if (error instanceof Error && 'userMessage' in error) {
+                    console.error("Failed to delete guest:", (error as any).userMessage);
+                } else {
+                    console.error("Failed to delete guest:", error);
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     const roomTypeMap = roomTypes.reduce((map, roomType) => {
         map[roomType.id] = roomType.name;
         return map;
@@ -62,7 +198,7 @@ const GuestProfileView = () => {
         return `${day}/${month}/${year}`;
     };
 
-    if (loading) {
+    if (loading && !guest) {
         return (
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="flex items-center gap-4 mb-6">
@@ -109,7 +245,9 @@ const GuestProfileView = () => {
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-xl font-bold">Guest Profile</h1>
+                <h1 className="text-xl font-bold">
+                    {isEditMode ? 'Edit Guest Profile' : 'Guest Profile'}
+                </h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -121,18 +259,57 @@ const GuestProfileView = () => {
                             <Avatar className="h-32 w-32">
                                 <AvatarImage src="" alt={`${guest.data.firstName} ${guest.data.lastName}`} />
                                 <AvatarFallback className="text-2xl">
-                                    {guest.data.firstName.charAt(0).toUpperCase()}{guest.data.lastName.charAt(0).toUpperCase()}
+                                    {isEditMode ? 
+                                        `${formData.firstName.charAt(0).toUpperCase()}${formData.lastName.charAt(0).toUpperCase()}` :
+                                        `${guest.data.firstName.charAt(0).toUpperCase()}${guest.data.lastName.charAt(0).toUpperCase()}`
+                                    }
                                 </AvatarFallback>
                             </Avatar>
                         </div>
 
                         <div className="text-center mb-4">
-                            <h2 className="text-xl font-semibold">{guest.data.firstName} {guest.data.lastName}</h2>
-                            <Badge className="bg-blue-100 text-blue-700 border-0 mb-2">
-                                {/* {guest.data.profileType || 'Individual'} */}
-                            </Badge>
+                            <h2 className="text-xl font-semibold">
+                                {isEditMode ? 
+                                    `${formData.firstName} ${formData.lastName}` : 
+                                    `${guest.data.firstName} ${guest.data.lastName}`
+                                }
+                            </h2>
                         </div>
-
+                        
+                        <div className='flex gap-2 text-center justify-center'>
+                            {isEditMode ? (
+                                <>
+                                    <Button 
+                                        onClick={handleSaveEdit}
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Saving...' : 'Save Changes'}
+                                    </Button>
+                                    <Button
+                                        variant='primaryOutline'
+                                        onClick={handleCancelEdit}
+                                        disabled={loading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button onClick={() => setIsEditMode(true)}>
+                                        Edit Profile
+                                    </Button>
+                                    <Button
+                                        variant='primaryOutline'
+                                        onClick={() => {
+                                            setGuestToDelete(guest.data.id);
+                                            setDeleteDialogOpen(true);
+                                        }}
+                                    >
+                                        Delete Profile
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </Card>
 
                     {/* Personal Info Card */}
@@ -145,100 +322,199 @@ const GuestProfileView = () => {
 
                         <CardContent className="p-0 space-y-3">
                             <div className='flex justify-between items-center'>
-                                <Label className="font-semibold">Full Name</Label>
-                                <p>{guest.data.firstName} {guest.data.lastName}</p>
+                                <Label className="font-semibold">First Name</Label>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.firstName}
+                                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='John'
+                                    />
+                                ) : (
+                                    <p>{guest.data.firstName}</p>
+                                )}
                             </div>
+                            
+                            <div className='flex justify-between items-center'>
+                                <Label className="font-semibold">Last Name</Label>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.lastName}
+                                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='Doe'
+                                    />
+                                ) : (
+                                    <p>{guest.data.lastName}</p>
+                                )}
+                            </div>
+                            
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Email</Label>
-                                <p>{guest.data.email}</p>
+                                {isEditMode ? (
+                                    <Input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleInputChange('email', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='john.doe@example.com'
+                                    />
+                                ) : (
+                                    <p>{guest.data.email}</p>
+                                )}
                             </div>
+                            
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Phone Number</Label>
-                                <p>{guest.data.phoneNumber}</p>
+                                {isEditMode ? (
+                                    <Input
+                                        type='tel'
+                                        value={formData.phoneNumber}
+                                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='1234567890'
+                                    />
+                                ) : (
+                                    <p>{guest.data.phoneNumber}</p>
+                                )}
                             </div>
+                            
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Date of Birth</Label>
-                                <p>{formatDate(guest.data.dob)}</p>
+                                {isEditMode ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                data-empty={!formData.dob}
+                                                className="data-[empty=true]:text-muted-foreground w-40 h-8 justify-start text-left font-normal text-sm"
+                                            >
+                                                <CalendarIcon className="h-3 w-3" />
+                                                {formData.dob ? format(formData.dob, "dd/MM/yyyy") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={formData.dob}
+                                                onSelect={(date) => date && setFormData({ ...formData, dob: date })}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <p>{formatDate(guest.data.dob)}</p>
+                                )}
                             </div>
+                            
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Nationality</Label>
-                                <p>{guest.data.nationality || '-'}</p>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.nationality}
+                                        onChange={(e) => handleInputChange('nationality', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='US'
+                                    />
+                                ) : (
+                                    <p>{guest.data.nationality || '-'}</p>
+                                )}
                             </div>
+                            
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Guest ID</Label>
                                 <p>{guest.data.gid || '-'}</p>
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* Documents Card
-                    {guest.data.documents && guest.data.documents.length > 0 && (
-                        <Card className="p-3">
-                            <CardHeader className='p-0'>
-                                <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
-                                    ID, Passport, or Other Legal Documents
-                                </CardTitle>
-                            </CardHeader>
-
-                            <CardContent className="p-0 space-y-3">
-                                {guest.data.documents.map((doc, index) => (
-                                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                        <span className="text-sm font-medium">{doc.type}</span>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleViewDocument(doc.url)}
-                                            >
-                                                <Eye className="h-4 w-4 mr-1" />
-                                                View
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleDownloadDocument(doc.url)}
-                                            >
-                                                <Download className="h-4 w-4 mr-1" />
-                                                Download
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    )} */}
                 </div>
 
-                {/* Middle Column - Preferences */}
-                <Card className="p-3">
-                    <CardHeader className='p-0'>
-                        <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
-                            Special Requests
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0 space-y-3">
-                        <div className='flex justify-between items-center'>
-                            <Label className="font-semibold">Preferred Room</Label>
-                            <p>{guest.data.preferences?.roomType ? roomTypeMap[guest.data.preferences.roomType] || 'Unknown' : '-'}</p>
-                        </div>
-                        <div className='flex justify-between items-center'>
-                            <Label className="font-semibold">Smoking Preference</Label>
-                            <p>{guest.data.preferences?.smoking ? 'Smoking' : 'No Smoking'}</p>
-                        </div>
-                        {/* {guest.data.preferences?.specialRequests && guest.data.preferences.specialRequests.length > 0 && (
-                            <div className="mt-4">
-                                <Label className="font-semibold">Special Requests</Label>
-                                <div className="space-y-1 mt-2">
-                                    {guest.data.preferences.specialRequests.map((request, index) => (
-                                        <div key={index} className="text-sm p-2 bg-gray-50 rounded">
-                                            • {request}
-                                        </div>
-                                    ))}
+                <div className='space-y-6'>
+                    <Card className='p-3'>
+                        <CardHeader className='p-0'>
+                            <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+                                ID, Passport, Legal Documents
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3">
+                            {isEditMode ? (
+                                <div className="border border-slate-300 rounded-lg p-5 text-center">
+                                    <div className='flex justify-center'>
+                                        <CloudUpload className="" />
+                                    </div>
+                                    <p className="text-muted-foreground text-sm">Drag & drop or click to choose file</p>
+                                    <Label htmlFor="photo-upload" className="cursor-pointer justify-center">
+                                        <Button type="button" variant="foreground" className='px-3 mt-2'>
+                                            <Plus />
+                                        </Button>
+                                        <input
+                                            id="photo-upload"
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleFileChange}
+                                        />
+                                    </Label>
                                 </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No documents uploaded</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                    
+                    <Card className="p-3">
+                        <CardHeader className='p-0'>
+                            <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+                                Special Requests
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 space-y-3">
+                            <div className='flex justify-between items-center'>
+                                <Label className="font-semibold">Preferred Room</Label>
+                                {isEditMode ? (
+                                    <Select
+                                        value={formData.preferences.roomType}
+                                        onValueChange={(value) => handleInputChange('preferences.roomType', value)}
+                                    >
+                                        <SelectTrigger className='w-40 h-8 text-sm'>
+                                            <SelectValue placeholder="Select Room" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {roomTypes.map((type) => (
+                                                <SelectItem key={type.id} value={type.id}>
+                                                    {type.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <p>{guest.data.preferences?.roomType ? roomTypeMap[guest.data.preferences.roomType] || 'Unknown' : '-'}</p>
+                                )}
                             </div>
-                        )} */}
-                    </CardContent>
-                </Card>
+                            
+                            <div className='flex justify-between items-center'>
+                                <Label className="font-semibold">Smoking Preference</Label>
+                                {isEditMode ? (
+                                    <Switch
+                                        checked={formData.preferences.smoking}
+                                        onCheckedChange={(checked) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                preferences: {
+                                                    ...prev.preferences,
+                                                    smoking: checked,
+                                                },
+                                            }))
+                                        }
+                                        className='data-[state=checked]:bg-hms-primary'
+                                    />
+                                ) : (
+                                    <p>{guest.data.preferences?.smoking ? 'Smoking' : 'No Smoking'}</p>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Right Column - Reservation History */}
                 <Card className="p-3">
@@ -264,6 +540,14 @@ const GuestProfileView = () => {
                         </div>
                     </CardHeader>
                 </Card>
+
+                <DeleteGuestDialog
+                    isOpen={isDeleteDialogOpen}
+                    guestId={guestToDelete}
+                    onConfirm={handleDeleteGuest}
+                    onCancel={() => setDeleteDialogOpen(false)}
+                    loading={loading}
+                />
             </div>
         </div>
     );
