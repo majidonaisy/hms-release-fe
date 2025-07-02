@@ -33,8 +33,8 @@ export const AddRoomRequestSchema = z.object({
   isConnecting: z.boolean().optional(),
   connectingRoom: z.string().optional(),
   description: z.string().optional(),
-  facilities: z.array(z.string()).optional(),
-  photos: z.array(z.any()).optional(),
+  amenities: z.array(z.any()).optional(),
+    photos: z.array(z.any()).optional(),
 });
 
 export const AddRoomResponseSchema = z.object({
