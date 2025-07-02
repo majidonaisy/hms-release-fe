@@ -71,6 +71,7 @@ const Rooms = () => {
 
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         try {
+            console.log('data', data)
             await addRoomType(data);
             toast.success('Room type created successfully');
         } catch (error) {

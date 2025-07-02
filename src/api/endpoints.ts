@@ -4,7 +4,7 @@ export const ENDPOINTS = {
     AddUser: "auth/add-user",
   },
   RoomType: {
-    Add: "roomtype",
+    Add: "roomtype/add",
     GetAll: "roomtype/get",
     GetById: "roomtype/get",
     Update: "roomtype/update",
