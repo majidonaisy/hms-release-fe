@@ -7,7 +7,7 @@ import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
 import NewRoomTypeDialog from './NewRoomTypeDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
-import { getRooms } from '@/services/Rooms';
+import { deleteRoom, getRooms } from '@/services/Rooms';
 import { addRoomType } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
@@ -86,9 +86,18 @@ const Rooms = () => {
     };
 
 
-    const handleDeleteClick = (e: React.MouseEvent, roomId: string): void => {
+    const handleDeleteClick = async (e: React.MouseEvent, roomId: string): Promise<void> => {
         e.stopPropagation();
-        // Implement delete functionality here
+        try {
+            // Call your delete API here
+            await deleteRoom(roomId);
+            toast.success('Room deleted successfully');
+            // Optionally, refresh the room list after deletion
+            setRooms(rooms.filter(room => room.id !== roomId));
+        } catch (error) {
+            console.error('Error deleting room:', error);
+            toast.error('Failed to delete room');
+        }
     }
 
     return (
