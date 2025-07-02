@@ -27,7 +27,6 @@ const Room = () => {
 
                 try {
                     const response = await getRoomById(id);
-                    // Handle the nested API response structure
                     const roomData = response.data?.data || response.data;
                     setRoom(roomData);
                 } catch (error: any) {
