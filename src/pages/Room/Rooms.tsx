@@ -71,13 +71,14 @@ const Rooms = () => {
 
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
         try {
-            console.log('data', data)
             await addRoomType(data);
             toast.success('Room type created successfully');
-        } catch (error) {
-            toast.error('Error creating room type');
+            setIsRoomTypeDialogOpen(false); // Close dialog after successful creation
+        } catch (error: any) {
+            console.error('Error creating room type:', error);
+            toast.error(error.userMessage || 'Error creating room type');
+            throw error; // Re-throw to let the dialog handle loading state
         }
-        setIsRoomTypeDialogOpen(false);
     };
 
     const handleRoomTypeCancel = () => {
