@@ -80,10 +80,10 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        const validFiles = files.filter(file => 
+        const validFiles = files.filter(file =>
             file.type === 'image/jpeg' || file.type === 'image/png'
         );
-        
+
         if (validFiles.length !== files.length) {
             toast.error('Only JPG and PNG files are allowed');
         }
@@ -103,22 +103,22 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.areaType) {
             toast.error('Please select an area type');
             return;
         }
-        
+
         if (!formData.areaNameOrNumber) {
             toast.error('Please enter area name or number');
             return;
         }
-        
+
         if (!formData.issueDescription) {
             toast.error('Please enter issue description');
             return;
         }
-        
+
         if (!formData.assignedTo) {
             toast.error('Please assign to a staff member');
             return;
@@ -169,7 +169,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="flex flex-row items-center justify-between pb-4">
                     <DialogTitle className="text-xl font-semibold">New Maintenance</DialogTitle>
-                    
+
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

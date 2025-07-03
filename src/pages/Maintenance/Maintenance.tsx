@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 
-// Mock data types
 interface MaintenanceRequest {
     id: string;
     roomNumber: string;
@@ -99,6 +98,78 @@ const mockMaintenanceData: MaintenanceRequest[] = [
         requestedBy: 'Guest Complaint',
         requestDate: '2025-01-02',
         estimatedDuration: 1
+    },
+    {
+        id: '6',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
+    },
+    {
+        id: '7',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
+    },
+    {
+        id: '8',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
+    },
+    {
+        id: '9',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
+    },
+    {
+        id: '10',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
+    },
+    {
+        id: '11',
+        roomNumber: '150',
+        type: 'REPAIR',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        title: 'Broken Window Latch',
+        description: 'Window latch is broken and needs replacement',
+        requestedBy: 'Guest Complaint',
+        requestDate: '2025-01-02',
+        estimatedDuration: 1
     }
 ];
 
@@ -114,7 +185,7 @@ const Maintenance = () => {
     const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const itemsPerPage = 10;
+    const itemsPerPage = 7;
 
     // Filter and search logic
     const filteredRequests = maintenanceRequests.filter(request => {
@@ -210,7 +281,7 @@ const Maintenance = () => {
         try {
             // Mock API call to create maintenance request
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Create new maintenance request from dialog data
             const newRequest: MaintenanceRequest = {
                 id: `new_${Date.now()}`,
@@ -225,7 +296,7 @@ const Maintenance = () => {
                 requestDate: new Date().toISOString().split('T')[0],
                 estimatedDuration: 2 // Default value
             };
-            
+
             setMaintenanceRequests(prev => [newRequest, ...prev]);
             setIsNewMaintenanceDialogOpen(false);
             toast.success('Maintenance request created successfully');
