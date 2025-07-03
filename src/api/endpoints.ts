@@ -37,6 +37,7 @@ export const ENDPOINTS = {
     Update: "reservation/update/{id}",
     CheckIn: "reservation/check-in/{id}",
   },
-  Amenities:{
+  Amenities: {
     GetAllAmenities: "amenity/get",
-};
+  }
+}
