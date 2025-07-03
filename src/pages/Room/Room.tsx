@@ -6,7 +6,7 @@ import NewRoomForm, { RoomFormData } from './NewRoomForm';
 import { getRoomById, updateRoom, addRoom } from '@/services/Rooms';
 import { Room as RoomType } from '@/validation';
 import { toast } from 'sonner';
-import RoomFormSkeleton from './RoomFormSkeleton';
+import EditingSkeleton from '../../components/Templates/EditingSkeleton';
 
 const Room = () => {
     const { id } = useParams<{ id: string }>();
@@ -95,7 +95,7 @@ const Room = () => {
 
     // Show loading skeleton while fetching data in edit mode
     if (isEditMode && loading) {
-        return <RoomFormSkeleton />;
+        return <EditingSkeleton />;
     }
 
     // Show error if failed to load room data

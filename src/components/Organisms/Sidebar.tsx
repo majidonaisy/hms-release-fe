@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
 import { Separator } from "@/components/atoms/Separator"
-import { Skeleton } from "@/components/molecules/Skeleton"
+import { Skeleton } from "@/components/atoms/Skeleton"
 import {
   Tooltip,
   TooltipContent,

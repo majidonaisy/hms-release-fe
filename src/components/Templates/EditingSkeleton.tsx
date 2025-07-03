@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/atoms/Skeleton';
 
-const RoomFormSkeleton = () => {
+const EditingSkeleton = () => {
     return (
         <div className="p-5 min-h-screen">
             {/* Header Skeleton */}
@@ -59,4 +59,4 @@ const RoomFormSkeleton = () => {
     );
 };
 
-export default RoomFormSkeleton;
+export default EditingSkeleton;

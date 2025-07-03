@@ -8,11 +8,11 @@ import { useNavigate } from "react-router-dom";
 import Pagination from "@/components/atoms/Pagination";
 import GuestTypeSelectionDialog, { GuestTypeSelectionData } from "./GuestTypeDialog";
 import { deleteGuest, getGuests } from "@/services/Guests";
-import { GetGuestsResponse, RoomType } from "@/validation";
+import { GetGuestByIdResponse, GetGuestsResponse, RoomType } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 import { getRoomTypes } from "@/services/RoomTypes";
-import DeleteGuestDialog from "./DeleteGuestDialog";
-import SkeletonComponent from "@/components/Templates/RoomSkeleton";
+import DeleteDialog from "../../components/molecules/DeleteDialog";
+import TableSkeleton from "@/components/Templates/TableSkeleton";
 
 const GuestProfile = () => {
     const navigate = useNavigate();
@@ -24,7 +24,7 @@ const GuestProfile = () => {
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [guestToDelete, setGuestToDelete] = useState<string | null>(null);
+    const [guestToDelete, setGuestToDelete] = useState<GetGuestByIdResponse['data'] | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -87,7 +87,7 @@ const GuestProfile = () => {
         setLoading(true);
         if (guestToDelete) {
             try {
-                await deleteGuest(guestToDelete);
+                await deleteGuest(guestToDelete.id);
                 setDeleteDialogOpen(false);
                 setGuestToDelete(null);
                 const response = await getGuests();
@@ -102,6 +102,11 @@ const GuestProfile = () => {
                 setLoading(false);
             }
         }
+    };
+
+    const handleDeleteCancel = (): void => {
+        setDeleteDialogOpen(false);
+        setGuestToDelete(null);
     };
 
     const clearSearch = () => {
@@ -138,7 +143,7 @@ const GuestProfile = () => {
     return (
         <>
             {loading ? (
-                <SkeletonComponent title="Guests Profile" />
+                <TableSkeleton title="Guests Profile" />
             ) : (
                 <div className="p-6 bg-gray-50 min-h-screen">
                     {/* Header Section */}
@@ -248,7 +253,7 @@ const GuestProfile = () => {
                                                         <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem onClick={() => {
-                                                            setGuestToDelete(guest.id);
+                                                            setGuestToDelete(guest);
                                                             setDeleteDialogOpen(true);
                                                         }}>Delete</DropdownMenuItem>
                                                     </DropdownMenuContent>
@@ -278,12 +283,13 @@ const GuestProfile = () => {
                 onCancel={handleGuestTypeCancel}
             />
 
-            <DeleteGuestDialog
+            <DeleteDialog
                 isOpen={isDeleteDialogOpen}
-                guestId={guestToDelete}
+                onCancel={handleDeleteCancel}
                 onConfirm={handleDeleteGuest}
-                onCancel={() => setDeleteDialogOpen(false)}
                 loading={loading}
+                title="Delete Guest"
+                description={`Are you sure you want to delete guest ${guestToDelete?.firstName} ${guestToDelete?.lastName}? This action cannot be undone.`}
             />
         </>
     );

@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 
-const SkeletonComponent: React.FC<{title: string}> = ({
+const TableSkeleton: React.FC<{title: string}> = ({
     title
 }) => {
     return (
@@ -101,4 +101,4 @@ const SkeletonComponent: React.FC<{title: string}> = ({
     );
 };
 
-export default SkeletonComponent;
+export default TableSkeleton;

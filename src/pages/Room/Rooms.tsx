@@ -11,7 +11,7 @@ import { deleteRoom, getRooms } from '@/services/Rooms';
 import { addRoomType } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
-import RoomSkeleton from '../../components/Templates/RoomSkeleton';
+import TableSkeleton from '../../components/Templates/TableSkeleton';
 import { toast } from 'sonner';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 
@@ -122,7 +122,7 @@ const Rooms = () => {
     return (
         <>
             {loading ? (
-                <RoomSkeleton title='Rooms' />
+                <TableSkeleton title='Rooms' />
             ) : (
                 <>
                     <div className="p-6 bg-gray-50 min-h-screen">

@@ -15,7 +15,7 @@ import { deleteGuest, getGuestById, updateGuest } from '@/services/Guests';
 import { GetGuestByIdResponse, RoomType, AddGuestRequest } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
-import DeleteGuestDialog from './DeleteGuestDialog';
+import DeleteDialog from "../../components/molecules/DeleteDialog";
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
@@ -25,7 +25,7 @@ const GuestProfileView = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [guestToDelete, setGuestToDelete] = useState<string | null>(null);
+    const [guestToDelete, setGuestToDelete] = useState<GetGuestByIdResponse['data'] | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
 
     const [guest, setGuest] = useState<GetGuestByIdResponse | null>(null);
@@ -116,14 +116,14 @@ const GuestProfileView = () => {
 
     const handleSaveEdit = async () => {
         if (!id) return;
-        
+
         setLoading(true);
         try {
             await updateGuest(id, formData);
             toast("Success!", {
                 description: "Guest was updated successfully.",
             });
-            
+
             // Refresh guest data
             const guestResponse = await getGuestById(id);
             setGuest(guestResponse);
@@ -165,7 +165,7 @@ const GuestProfileView = () => {
         setLoading(true);
         if (guestToDelete) {
             try {
-                await deleteGuest(guestToDelete);
+                await deleteGuest(guestToDelete.id);
                 setDeleteDialogOpen(false);
                 setGuestToDelete(null);
                 navigate('/guests-profile');
@@ -196,6 +196,11 @@ const GuestProfileView = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
+    };
+
+    const handleDeleteCancel = (): void => {
+        setDeleteDialogOpen(false);
+        setGuestToDelete(null);
     };
 
     if (loading && !guest) {
@@ -259,7 +264,7 @@ const GuestProfileView = () => {
                             <Avatar className="h-32 w-32">
                                 <AvatarImage src="" alt={`${guest.data.firstName} ${guest.data.lastName}`} />
                                 <AvatarFallback className="text-2xl">
-                                    {isEditMode ? 
+                                    {isEditMode ?
                                         `${formData.firstName.charAt(0).toUpperCase()}${formData.lastName.charAt(0).toUpperCase()}` :
                                         `${guest.data.firstName.charAt(0).toUpperCase()}${guest.data.lastName.charAt(0).toUpperCase()}`
                                     }
@@ -269,17 +274,17 @@ const GuestProfileView = () => {
 
                         <div className="text-center mb-4">
                             <h2 className="text-xl font-semibold">
-                                {isEditMode ? 
-                                    `${formData.firstName} ${formData.lastName}` : 
+                                {isEditMode ?
+                                    `${formData.firstName} ${formData.lastName}` :
                                     `${guest.data.firstName} ${guest.data.lastName}`
                                 }
                             </h2>
                         </div>
-                        
+
                         <div className='flex gap-2 text-center justify-center'>
                             {isEditMode ? (
                                 <>
-                                    <Button 
+                                    <Button
                                         onClick={handleSaveEdit}
                                         disabled={loading}
                                     >
@@ -301,7 +306,7 @@ const GuestProfileView = () => {
                                     <Button
                                         variant='primaryOutline'
                                         onClick={() => {
-                                            setGuestToDelete(guest.data.id);
+                                            setGuestToDelete(guest.data);
                                             setDeleteDialogOpen(true);
                                         }}
                                     >
@@ -334,7 +339,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.firstName}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Last Name</Label>
                                 {isEditMode ? (
@@ -348,7 +353,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.lastName}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Email</Label>
                                 {isEditMode ? (
@@ -363,7 +368,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.email}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Phone Number</Label>
                                 {isEditMode ? (
@@ -378,7 +383,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.phoneNumber}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Date of Birth</Label>
                                 {isEditMode ? (
@@ -405,7 +410,7 @@ const GuestProfileView = () => {
                                     <p>{formatDate(guest.data.dob)}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Nationality</Label>
                                 {isEditMode ? (
@@ -419,7 +424,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.nationality || '-'}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Guest ID</Label>
                                 <p>{guest.data.gid || '-'}</p>
@@ -461,7 +466,7 @@ const GuestProfileView = () => {
                             )}
                         </CardContent>
                     </Card>
-                    
+
                     <Card className="p-3">
                         <CardHeader className='p-0'>
                             <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
@@ -491,7 +496,7 @@ const GuestProfileView = () => {
                                     <p>{guest.data.preferences?.roomType ? roomTypeMap[guest.data.preferences.roomType] || 'Unknown' : '-'}</p>
                                 )}
                             </div>
-                            
+
                             <div className='flex justify-between items-center'>
                                 <Label className="font-semibold">Smoking Preference</Label>
                                 {isEditMode ? (
@@ -541,12 +546,13 @@ const GuestProfileView = () => {
                     </CardHeader>
                 </Card>
 
-                <DeleteGuestDialog
+                <DeleteDialog
                     isOpen={isDeleteDialogOpen}
-                    guestId={guestToDelete}
+                    onCancel={handleDeleteCancel}
                     onConfirm={handleDeleteGuest}
-                    onCancel={() => setDeleteDialogOpen(false)}
                     loading={loading}
+                    title="Delete Guest"
+                    description={`Are you sure you want to delete guest ${guestToDelete?.firstName} ${guestToDelete?.lastName}? This action cannot be undone.`}
                 />
             </div>
         </div>
