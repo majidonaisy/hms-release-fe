@@ -146,9 +146,17 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }
   }, [initialData]);
 
+
   useEffect(() => {
-    fetchRoomTypes();
-    fetchAmenities();
+    const fetchData = async () => {
+      try {
+        await Promise.all([fetchRoomTypes(), fetchAmenities()]);
+      } catch (error) {
+        toast.error('Failed to load initial data');
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleInputChange = (field: keyof RoomFormData, value: any) => {
@@ -188,9 +196,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     e.preventDefault();
     setErrors({});
     setIsSubmitting(true);
-
     try {
-      // Transform form data to proper types for validation
       const transformedData = {
         ...formData,
         floor: typeof formData.floor === 'string' && formData.floor === '' ? 0 : Number(formData.floor),
@@ -205,7 +211,6 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
       };
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
-
       await onSubmit(validatedData as RoomFormData);
       if (submitButtonText.includes('Create')) {
         setFormData(defaultFormData);

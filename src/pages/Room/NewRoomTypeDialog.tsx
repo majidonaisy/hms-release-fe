@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 interface NewRoomTypeDialogProps {
   isOpen: boolean;
-  onConfirm: (data: AddRoomTypeRequest) => void;
+  onConfirm: (data: AddRoomTypeRequest) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -25,6 +25,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
     capacity: 0
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof AddRoomTypeRequest, value: string | number) => {
     setFormData(prev => {
@@ -36,21 +37,24 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
     try {
       const validatedData = AddRoomTypeRequestSchema.parse(formData);
-      onConfirm(validatedData);
+      setIsLoading(true);
 
-      // Reset form after submission
+      await onConfirm(validatedData);
+
+      // Reset form after successful submission
       setFormData({
         name: '',
         baseRate: 0,
         description: '',
         capacity: 0
       });
+      setErrors({});
     } catch (error: any) {
       if (error.errors) {
         const fieldErrors: Record<string, string> = {};
@@ -61,11 +65,18 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
         });
         setErrors(fieldErrors);
         toast.error('Please fix the validation errors');
+      } else {
+        // Handle API errors
+        toast.error('Failed to create room type');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCancel = () => {
+    if (isLoading) return; // Prevent closing during loading
+
     setFormData({
       name: '',
       baseRate: 0,
@@ -94,6 +105,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               className={errors.name ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
           </div>
@@ -109,6 +121,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               value={formData.capacity || ''}
               onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 0)}
               className={errors.capacity ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.capacity && <p className="text-red-500 text-sm">{errors.capacity}</p>}
           </div>
@@ -125,6 +138,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               value={formData.baseRate || ''}
               onChange={(e) => handleInputChange('baseRate', parseFloat(e.target.value) || 0)}
               className={errors.baseRate ? 'border-red-500' : ''}
+              disabled={isLoading}
             />
             {errors.baseRate && <p className="text-red-500 text-sm">{errors.baseRate}</p>}
           </div>
@@ -139,6 +153,7 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={4}
               className={`resize-none ${errors.description ? 'border-red-500' : ''}`}
+              disabled={isLoading}
             />
             {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
           </div>
@@ -147,8 +162,9 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
           <Button
             type="submit"
             className="w-full text-white mt-6"
+            disabled={isLoading}
           >
-            Create Room Type
+            {isLoading ? 'Creating...' : 'Create Room Type'}
           </Button>
         </form>
       </DialogContent>
