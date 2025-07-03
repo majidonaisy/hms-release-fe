@@ -7,3 +7,5 @@ export { default as TeamMembers } from "./TeamMembers/TeamMembers";
 export { default as NewTeamMember } from "./TeamMembers/NewTeamMember";
 export { default as TeamMemberProfile } from "./TeamMembers/TeamMemberProfile";
 export { default as Roles } from "./RolesPermissions/Roles";
+export { default as Maintenance } from "./Maintenance/Maintenance";
+export { default as MaintenanceDetail } from "./Maintenance/MaintenanceDetail";

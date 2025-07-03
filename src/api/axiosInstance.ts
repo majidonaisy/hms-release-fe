@@ -23,7 +23,7 @@ export const createAxiosInstance = (baseURL: string) => {
       // Add request metadata for tracking
       config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       config.headers["X-Request-Time"] = new Date().toISOString();
-console.log(accessToken, "accessToken");
+      console.log("Bearer token ", accessToken);
       return config;
     },
     (error) => {

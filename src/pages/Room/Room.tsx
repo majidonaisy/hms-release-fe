@@ -48,6 +48,7 @@ const Room = () => {
     const handleSubmit = async (data: RoomFormData): Promise<void> => {
         try {
             if (isEditMode && id) {
+                console.log('data,id', data,id)
                 await updateRoom(id, data as any);
                 toast.success('Room updated successfully');
             } else if (isAddMode) {
