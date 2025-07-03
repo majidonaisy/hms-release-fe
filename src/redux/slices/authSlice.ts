@@ -33,15 +33,11 @@ export const authSlice = createSlice({
         // user?: User;
       }>
     ) => {
-      console.log("🔄 Redux login action called with:", action.payload);
       state.accessToken = action.payload.accessToken;
       // state.refreshToken = action.payload.refreshToken || null;
       // state.user = action.payload.user || null;
       state.isAuthenticated = true;
-      console.log("✅ Redux state updated:", {
-        accessToken: state.accessToken,
-        isAuthenticated: state.isAuthenticated,
-      });
+     
     },
     logout: (state) => {
       state.accessToken = null;

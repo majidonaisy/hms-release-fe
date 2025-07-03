@@ -166,9 +166,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
   const handleReservationClick = useCallback(
     (reservation: Reservation) => {
-      console.log(rooms, "reservation", reservation)
       const room = rooms.find((r) => r.id === reservation.resourceId)
-      console.log(room,"rooom")
       if (room && modalContext) {
         modalContext.openReservationModal({
           reservation,

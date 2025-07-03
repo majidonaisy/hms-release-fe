@@ -1,12 +1,16 @@
 import { z } from "zod";
 
 // Common RoomType shape
+// Update RoomType shape to match API response
 export const RoomTypeShape = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  baseRate: z.number().positive(),
-  capacity: z.number().int().positive(),
+  baseRate: z.string(), // Change from number to string to match API
+  capacity: z.number().int().positive().optional(),
+  hotelId: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 // Add RoomType

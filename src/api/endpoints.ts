@@ -4,19 +4,19 @@ export const ENDPOINTS = {
     AddUser: "auth/add-user",
   },
   RoomType: {
-    Add: "roomtype",
+    Add: "roomtype/add",
     GetAll: "roomtype/get",
-    GetById: "roomtype/get/{id}",
-    Update: "roomtype/update/{id}",
-    Delete: "roomtype/delete/{id}",
+    GetById: "roomtype/get",
+    Update: "roomtype/update",
+    Delete: "roomtype/delete",
   },
   Room: {
     Add: "room/add",
     GetAll: "room/get",
-    GetById: "room/get/{id}",
-    Update: "room/update/{id}",
-    Delete: "room/delete/{id}",
-    GetByStatus: "room/get-rooms-by-status/{status}",
+    GetById: "room/get",
+    Update: "room/update",
+    Delete: "room/delete",
+    GetByStatus: "room/get-rooms-by-status",
   },
   Guest: {
     Add: "guest/add",
@@ -36,5 +36,7 @@ export const ENDPOINTS = {
     Add: "reservation/add",
     Update: "reservation/update/{id}",
     CheckIn: "reservation/check-in/{id}",
-  }
+  },
+  Amenities:{
+    GetAllAmenities: "amenity/get",
 };

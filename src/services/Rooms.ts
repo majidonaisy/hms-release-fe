@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
+import { Amenity, AmenityResponse } from "@/validation/schemas/amenity";
 import { AddRoomRequest, AddRoomResponse, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
@@ -10,7 +11,7 @@ export const addRoom = async (data: AddRoomRequest): Promise<AddRoomResponse> =>
       method: "POST",
       endpoint: ENDPOINTS.Room.Add,
       data,
-      baseURL
+      baseURL,
     });
     return response as AddRoomResponse;
   } catch (error: any) {
@@ -39,14 +40,19 @@ export const getRooms = async (): Promise<GetRoomsResponse> => {
   }
 };
 
-export const getRoomById = async (id: string): Promise<AddRoomResponse> => {
+export const getRoomById = async (id: string): Promise<{ data: any }> => {
   try {
-    const response = await apiClient({
+    const response = (await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetById}/${id}`,
-      baseURL
-    });
-    return response as AddRoomResponse;
+      baseURL,
+    })) as any;
+    if (response.data && response.data.data) {
+      return { data: response.data };
+    }
+
+    // Fallback if the structure is different
+    return { data: response };
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get room";
     throw {
@@ -62,7 +68,7 @@ export const updateRoom = async (id: string, data: UpdateRoomRequest): Promise<U
       method: "PUT",
       endpoint: `${ENDPOINTS.Room.Update}/${id}`,
       data,
-      baseURL
+      baseURL,
     });
     return response as UpdateRoomResponse;
   } catch (error: any) {
@@ -79,7 +85,7 @@ export const deleteRoom = async (id: string): Promise<void> => {
     await apiClient({
       method: "DELETE",
       endpoint: `${ENDPOINTS.Room.Delete}/${id}`,
-      baseURL
+      baseURL,
     });
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to delete room";
@@ -95,11 +101,29 @@ export const getRoomsByStatus = async (status: string): Promise<GetRoomsResponse
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetByStatus}/${status}`,
-      baseURL
+      baseURL,
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get rooms by status";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+
+export const getAmenities = async (): Promise<AmenityResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Amenities.GetAllAmenities,
+      baseURL,
+    });
+    return response as AmenityResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get amenities";
     throw {
       userMessage: errorMessage,
       originalError: error,
