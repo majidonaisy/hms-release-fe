@@ -2,7 +2,7 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { Calendar as CalendarIcon, ChevronLeft, CloudUpload, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Check, ChevronLeft, CloudUpload, Plus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/molecules/Popover';
@@ -13,6 +13,7 @@ import { addGuest, getGuestById, updateGuest } from '@/services/Guests';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { Switch } from '@/components/atoms/Switch';
 import { toast } from 'sonner';
+import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 
 const NewGuest = () => {
     const navigate = useNavigate();
@@ -37,6 +38,7 @@ const NewGuest = () => {
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
     const { id } = useParams();
     const [isEditMode, setIsEditMode] = useState(false);
+    const [guestCreatedDialog, setGuestCreatedDialog] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -107,7 +109,7 @@ const NewGuest = () => {
                     description: "Guest was created successfully.",
                 })
             }
-            navigate('/guests-profile');
+            setGuestCreatedDialog(true)
         } catch (error) {
             toast("Error!", {
                 description: "Failed to submit form.",
@@ -195,7 +197,7 @@ const NewGuest = () => {
                                     onSelect={(date) => date && setFormData({ ...formData, dob: date })}
                                     captionLayout="dropdown"
                                     startMonth={new Date(1900, 0)}
-                                    endMonth={new Date(new Date().getFullYear(), 11)} 
+                                    endMonth={new Date(new Date().getFullYear(), 11)}
                                     defaultMonth={formData.dob}
                                 />
                             </PopoverContent>
@@ -326,7 +328,30 @@ const NewGuest = () => {
                     </Button>
                 </div>
             </form>
-        </div>
+
+            <Dialog open={guestCreatedDialog} onOpenChange={() => setGuestCreatedDialog(false)}>
+                <DialogContent className='w-fit flex flex-col items-center text-center'>
+                    <DialogHeader>
+                        <DialogTitle className="flex flex-col items-center gap-2">
+                            <Check className="bg-green-500 text-white rounded-full p-1 w-6 h-6" />
+                            The guest profile has been created
+                        </DialogTitle>
+
+                    </DialogHeader>
+                    <DialogDescription>
+                        Would you like to create a reservation for this guest now or later?
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button onClick={() => { setGuestCreatedDialog(false); navigate('/guests-profile') }} variant='background' className='text-white'>
+                            Maybe Later
+                        </Button>
+                        <Button onClick={() => navigate('/new-reservation')}>
+                            Create Reservation
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div >
     );
 };
 

@@ -38,14 +38,14 @@ export const AddRoomRequestSchema = z.object({
 });
 
 export const AddRoomResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: RoomShape,
 });
 
 // Get Rooms
 export const GetRoomsResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: z.array(RoomShape),
 });
@@ -71,7 +71,7 @@ export const UpdateRoomRequestSchema = z.object({
 });
 
 export const UpdateRoomResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: RoomShape,
 });

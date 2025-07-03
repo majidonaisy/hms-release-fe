@@ -25,4 +25,16 @@ export const ENDPOINTS = {
     Update: "guest/update",
     Delete: "guest/delete",
   },
+  RatePlan: {
+    Add: 'ratePlan/add',
+    GetAll: "ratePlan/get",
+    GetById: "ratePlan/get",
+    Update: "ratePlan/update",
+    Delete: "ratePlan/delete",
+  },
+  Reservations: {
+    Add: "reservation/add",
+    Update: "reservation/update/{id}",
+    CheckIn: "reservation/check-in/{id}",
+  }
 };

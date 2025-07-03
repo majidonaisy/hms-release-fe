@@ -1,14 +1,16 @@
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 
-const RoomSkeleton = () => {
+const SkeletonComponent: React.FC<{title: string}> = ({
+    title
+}) => {
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section Skeleton */}
             <div className="mb-6">
                 {/* Title and Count Skeleton */}
                 <div className="flex items-center gap-2 mb-4">
-                    <h1 className="text-2xl font-semibold text-gray-900">Rooms</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
                     <Skeleton className="h-8 w-24" />
                 </div>
 
@@ -61,7 +63,7 @@ const RoomSkeleton = () => {
                                     <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-6 w-20 rounded-full" />
+                                    <Skeleton className="h-4 w-20 rounded-full" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
                                     <Skeleton className="h-4 w-24" />
@@ -99,4 +101,4 @@ const RoomSkeleton = () => {
     );
 };
 
-export default RoomSkeleton;
+export default SkeletonComponent;

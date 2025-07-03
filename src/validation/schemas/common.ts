@@ -13,7 +13,7 @@ export const TokenPayloadSchema = z.object({
 });
 
 export const ErrorResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string(),
   error: z.object({
     code: z.string(),

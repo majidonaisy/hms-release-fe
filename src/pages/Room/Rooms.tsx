@@ -11,7 +11,7 @@ import { getRooms } from '@/services/Rooms';
 import { addRoomType } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room } from '@/validation';
 import Pagination from '@/components/atoms/Pagination';
-import RoomSkeleton from './RoomSkeleton';
+import RoomSkeleton from '../../components/Templates/RoomSkeleton';
 import { toast } from 'sonner';
 
 const Rooms = () => {
@@ -90,7 +90,7 @@ const Rooms = () => {
     return (
         <>
             {loading ? (
-                <RoomSkeleton />
+                <RoomSkeleton title='Rooms' />
             ) : (
                 <>
                     <div className="p-6 bg-gray-50 min-h-screen">
