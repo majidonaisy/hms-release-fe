@@ -9,6 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Pagination from '@/components/atoms/Pagination';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import NewMaintenanceDialog from './NewMaintenanceDialog';
+import DeleteDialog from '@/components/molecules/DeleteDialog';
 
 // Mock data types
 interface MaintenanceRequest {
@@ -107,6 +109,10 @@ const Maintenance = () => {
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(mockMaintenanceData);
+    const [isNewMaintenanceDialogOpen, setIsNewMaintenanceDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const itemsPerPage = 10;
 
@@ -171,10 +177,66 @@ const Maintenance = () => {
         navigate(`/maintenance/${requestId}`);
     };
 
-    const handleDeleteClick = (e: React.MouseEvent, _requestId: string) => {
+    const handleDeleteClick = (e: React.MouseEvent, request: MaintenanceRequest) => {
         e.stopPropagation();
-        // Handle delete logic here
-        toast.success('Maintenance request deleted successfully');
+        setRequestToDelete({ id: request.id, title: request.title });
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!requestToDelete) return;
+
+        setDeleteLoading(true);
+        try {
+            // Mock delete operation
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            setMaintenanceRequests(prev => prev.filter(req => req.id !== requestToDelete.id));
+            toast.success('Maintenance request deleted successfully');
+        } catch (error) {
+            toast.error('Failed to delete maintenance request');
+        } finally {
+            setDeleteLoading(false);
+            setDeleteDialogOpen(false);
+            setRequestToDelete(null);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteDialogOpen(false);
+        setRequestToDelete(null);
+    };
+
+    const handleNewMaintenanceConfirm = async (data: any) => {
+        try {
+            // Mock API call to create maintenance request
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Create new maintenance request from dialog data
+            const newRequest: MaintenanceRequest = {
+                id: `new_${Date.now()}`,
+                roomNumber: data.areaNameOrNumber,
+                type: 'REPAIR', // Map from dialog data
+                status: 'PENDING',
+                priority: data.priority,
+                title: data.issueDescription.substring(0, 50) + '...',
+                description: data.issueDescription,
+                requestedBy: 'Current User', // Should come from auth context
+                assignedTo: data.assignedTo,
+                requestDate: new Date().toISOString().split('T')[0],
+                estimatedDuration: 2 // Default value
+            };
+            
+            setMaintenanceRequests(prev => [newRequest, ...prev]);
+            setIsNewMaintenanceDialogOpen(false);
+            toast.success('Maintenance request created successfully');
+        } catch (error) {
+            toast.error('Failed to create maintenance request');
+            throw error; // Re-throw to let dialog handle it
+        }
+    };
+
+    const handleNewMaintenanceCancel = () => {
+        setIsNewMaintenanceDialogOpen(false);
     };
 
     const handleStatusChange = (requestId: string, newStatus: MaintenanceRequest['status']) => {
@@ -248,7 +310,7 @@ const Maintenance = () => {
 
                     {/* Action Button */}
                     <div className="flex gap-2 ml-auto">
-                        <Button onClick={() => navigate('/maintenance/new')}>
+                        <Button onClick={() => setIsNewMaintenanceDialogOpen(true)}>
                             <Plus className="h-4 w-4" />
                             New Request
                         </Button>
@@ -353,7 +415,7 @@ const Maintenance = () => {
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
                                                 className="cursor-pointer text-red-600"
-                                                onClick={(e) => handleDeleteClick(e, request.id)}
+                                                onClick={(e) => handleDeleteClick(e, request)}
                                             >
                                                 Delete
                                             </DropdownMenuItem>
@@ -374,6 +436,23 @@ const Maintenance = () => {
                     maxVisiblePages={7}
                 />
             </div>
+
+            {/* New Maintenance Dialog */}
+            <NewMaintenanceDialog
+                isOpen={isNewMaintenanceDialogOpen}
+                onConfirm={handleNewMaintenanceConfirm}
+                onCancel={handleNewMaintenanceCancel}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteDialog
+                isOpen={deleteDialogOpen}
+                onCancel={handleDeleteCancel}
+                onConfirm={handleDeleteConfirm}
+                loading={deleteLoading}
+                title="Delete Maintenance Request"
+                description={`Are you sure you want to delete "${requestToDelete?.title}"? This action cannot be undone.`}
+            />
         </div>
     );
 };
