@@ -12,6 +12,7 @@ import { GetGuestsResponse, RoomType } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 import { getRoomTypes } from "@/services/RoomTypes";
 import DeleteGuestDialog from "./DeleteGuestDialog";
+import SkeletonComponent from "@/components/Templates/RoomSkeleton";
 
 const GuestProfile = () => {
     const navigate = useNavigate();
@@ -136,142 +137,141 @@ const GuestProfile = () => {
 
     return (
         <>
-            <div className="p-6 bg-gray-50 min-h-screen">
-                {/* Header Section */}
-                <div className="mb-6">
-                    {/* Current Guests Title with Count */}
-                    <div className="flex items-center gap-2 mb-4">
-                        <h1 className="text-2xl font-semibold text-gray-900">Guests Profile</h1>
-                        <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                            300 profile
-                        </span>
-                    </div>
-
-                    {/* Search Bar and Actions */}
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
-                            <Input
-                                type="text"
-                                placeholder="Search text"
-                                value={searchText}
-                                onChange={(e) => setSearchText(e.target.value)}
-                                className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
-                            />
-                            {searchText && (
-                                <button
-                                    onClick={clearSearch}
-                                    className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
-                                    aria-label="Clear search"
-                                >
-                                    ✕
-                                </button>
-                            )}
-                            <Search className="h-4 w-4 text-gray-400" />
+            {loading ? (
+                <SkeletonComponent title="Guests Profile" />
+            ) : (
+                <div className="p-6 bg-gray-50 min-h-screen">
+                    {/* Header Section */}
+                    <div className="mb-6">
+                        {/* Current Guests Title with Count */}
+                        <div className="flex items-center gap-2 mb-4">
+                            <h1 className="text-2xl font-semibold text-gray-900">Guests Profile</h1>
+                            <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                                {guests.length} profiles
+                            </span>
                         </div>
 
-                        {/* Filter Button */}
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowFilter(!showFilter)}
-                            className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
-                        >
-                            <Filter className="h-4 w-4" />
-                            Filter
-                        </Button>
-                        <div className="flex gap-2 ml-auto">
+                        {/* Search Bar and Actions */}
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                <Input
+                                    type="text"
+                                    placeholder="Search text"
+                                    value={searchText}
+                                    onChange={(e) => setSearchText(e.target.value)}
+                                    className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                />
+                                {searchText && (
+                                    <button
+                                        onClick={clearSearch}
+                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
+                                        aria-label="Clear search"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                                <Search className="h-4 w-4 text-gray-400" />
+                            </div>
 
+                            {/* Filter Button */}
                             <Button
-                                onClick={handleNewGuestProfile}
-
+                                variant="outline"
+                                onClick={() => setShowFilter(!showFilter)}
+                                className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
                             >
-                                <Plus className="h-4 w-4" />
-                                New Guest Profile
+                                <Filter className="h-4 w-4" />
+                                Filter
                             </Button>
+                            <div className="flex gap-2 ml-auto">
+
+                                <Button
+                                    onClick={handleNewGuestProfile}
+
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    New Guest Profile
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Table Section */}
-                <div className="bg-white rounded-lg ">
-                    <Table>
-                        <TableHeader className='bg-hms-accent/15'>
-                            <TableRow className="border-b border-gray-200">
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2"> Name</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Email</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
-                                <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Contact Info</TableHead>
-                                <TableHead className="w-[100px]"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="py-10 text-center text-gray-600">
-                                        Loading...
-                                    </TableCell>
+                    {/* Table Section */}
+                    <div className="bg-white rounded-lg ">
+                        <Table>
+                            <TableHeader className='bg-hms-accent/15'>
+                                <TableRow className="border-b border-gray-200">
+                                    <TableHead className="text-left font-medium text-gray-900 px-6 py-2"> Name</TableHead>
+                                    <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Email</TableHead>
+                                    <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
+                                    <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
+                                    <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Contact Info</TableHead>
+                                    <TableHead className="w-[100px]"></TableHead>
                                 </TableRow>
-                            ) : filteredGuests && filteredGuests.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="py-10 text-center text-gray-600">
-                                        No users found
-                                    </TableCell>
-                                </TableRow>
-                            ) :
-                                filteredGuests.map((guest) => (
-                                    <TableRow key={guest.id} onClick={(e) => handleViewClick(e, guest.id)} className="border-b-2 col-span-7 hover:bg-accent cursor-pointer">
-                                        <TableCell className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage />
-                                                    <AvatarFallback>{guest.firstName.charAt(0).toUpperCase()}{guest.lastName.charAt(0).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="font-medium text-gray-900">{guest.firstName} {guest.lastName}</div>
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.email}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.roomType && roomTypeMap[guest.preferences.roomType] || "Unknown"}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
-                                        <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
-                                        <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                            <DropdownMenu modal={false}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <EllipsisVertical />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                                    <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => {
-                                                        setGuestToDelete(guest.id);
-                                                        setDeleteDialogOpen(true);
-                                                    }}>Delete</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredGuests && filteredGuests.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="py-10 text-center text-gray-600">
+                                            No users found
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            }
-                        </TableBody>
-                    </Table>
+                                ) :
+                                    filteredGuests.map((guest) => (
+                                        <TableRow key={guest.id} onClick={(e) => handleViewClick(e, guest.id)} className="border-b-2 col-span-7 hover:bg-accent cursor-pointer">
+                                            <TableCell className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        <AvatarImage />
+                                                        <AvatarFallback>{guest.firstName.charAt(0).toUpperCase()}{guest.lastName.charAt(0).toUpperCase()}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="font-medium text-gray-900">{guest.firstName} {guest.lastName}</div>
+                                                </div>
+                                            </TableCell>
 
-                    {/* Pagination */}
+                                            <TableCell className="px-6 py-4 font-medium text-gray-900">{guest.email}</TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.roomType && roomTypeMap[guest.preferences.roomType] || "Unknown"}</TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
+                                            <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
+                                            <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                                <DropdownMenu modal={false}>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <EllipsisVertical />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                                        <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            setGuestToDelete(guest.id);
+                                                            setDeleteDialogOpen(true);
+                                                        }}>Delete</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                }
+                            </TableBody>
+                        </Table>
+
+                        {/* Pagination */}
+                    </div>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        showPreviousNext={true}
+                        maxVisiblePages={7}
+                    />
                 </div>
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    showPreviousNext={true}
-                    maxVisiblePages={7}
-                />
-            </div>
+            )}
+
             <GuestTypeSelectionDialog
                 isOpen={isGuestTypeDialogOpen}
                 onConfirm={handleGuestTypeConfirm}

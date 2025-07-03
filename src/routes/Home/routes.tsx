@@ -5,6 +5,7 @@ import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
+import NewReservation from "@/pages/Reservations/NewReservation";
 
 const RoutesList = () => {
 
@@ -115,6 +116,13 @@ const RoutesList = () => {
             component: Roles,
             isShown: true
         },
+        {
+            path: '/new-reservation',
+            title: "Reservations",
+            icon: <Plus className="size-5" />,
+            component: NewReservation,
+            isShown: true
+        }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes
         )

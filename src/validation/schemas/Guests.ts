@@ -42,20 +42,20 @@ export const AddGuestRequestSchema = z.object({
 });
 
 export const AddGuestResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: GuestShape,
 });
 
 // Get Guests
 export const GetGuestsResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: z.array(GuestShape),
 });
 
 export const GetGuestByIdResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: GuestShape,
 });
@@ -69,7 +69,7 @@ export const UpdateGuestRequestSchema = z.object({
 });
 
 export const UpdateGuestResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: GuestShape,
 });

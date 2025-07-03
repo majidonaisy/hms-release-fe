@@ -22,14 +22,14 @@ export const AddRoomTypeRequestSchema = z.object({
 });
 
 export const AddRoomTypeResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: RoomTypeShape,
 });
 
 // Get RoomTypes
 export const GetRoomTypesResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: z.array(RoomTypeShape),
 });
@@ -43,7 +43,7 @@ export const UpdateRoomTypeRequestSchema = z.object({
 });
 
 export const UpdateRoomTypeResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: RoomTypeShape,
 });

@@ -6,7 +6,7 @@ export const LoginRequestSchema = z.object({
 });
 
 export const LoginResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   accessToken: z.object({
     token: z.string(),
@@ -34,7 +34,7 @@ export const AddUserRequestSchema = z.object({
 });
 
 export const AddUserResponseSchema = z.object({
-  status: z.boolean(),
+  status: z.number(),
   message: z.string().optional(),
   data: z.object({
     id: z.string(),
