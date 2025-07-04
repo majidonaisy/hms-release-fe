@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { RoomShape } from "./Rooms";
 
 // Common Maintenance shape based on CSV structure
 const MaintenanceShape = z.object({
@@ -6,6 +7,7 @@ const MaintenanceShape = z.object({
   description: z.string(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   roomId: z.string(),
+  room: RoomShape,
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
   startedAt: z.date().optional().nullable(),
   completedAt: z.date().optional().nullable(),
