@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
-import { addMaintenance, getMaintenances } from '@/services/Maintenance';
+import { addMaintenance, deleteMaintenance, getMaintenances } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 
 const Maintenance = () => {
@@ -118,10 +118,8 @@ const Maintenance = () => {
 
         setDeleteLoading(true);
         try {
-            // TODO: Replace with actual delete API call
-            // await deleteMaintenance(requestToDelete.id);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setMaintenanceRequests(prev => prev.filter(req => req.id !== requestToDelete.id));
+            await deleteMaintenance(requestToDelete.id);
+            setMaintenanceRequests(prev => prev.filter(request => request.id !== requestToDelete.id));
             toast.success('Maintenance request deleted successfully');
         } catch (error) {
             toast.error('Failed to delete maintenance request');
@@ -141,6 +139,8 @@ const Maintenance = () => {
         try {
             const response = await addMaintenance(data);
             toast.success('Maintenance request created successfully');
+            setIsNewMaintenanceDialogOpen(false);
+            await fetchMaintenanceRequests(); // Refresh the list
         } catch (error) {
             toast.error('Failed to create maintenance request');
             throw error;
@@ -314,9 +314,9 @@ const Maintenance = () => {
                                                 {request.status === 'PENDING' && (
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(request.id, 'IN_PROGRESS')}
+                                                        onClick={() => { }}
                                                     >
-                                                        Start Work
+                                                        Activity Log
                                                     </DropdownMenuItem>
                                                 )}
                                                 {request.status === 'IN_PROGRESS' && (
