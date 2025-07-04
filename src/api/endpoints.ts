@@ -27,7 +27,7 @@ export const ENDPOINTS = {
     Delete: "guest/delete",
   },
   RatePlan: {
-    Add: 'ratePlan/add',
+    Add: "ratePlan/add",
     GetAll: "ratePlan/get",
     GetById: "ratePlan/get",
     Update: "ratePlan/update",
@@ -37,6 +37,15 @@ export const ENDPOINTS = {
     Add: "reservation/add",
     Update: "reservation/update/{id}",
     CheckIn: "reservation/check-in/{id}",
+  },
+  Maintenance: {
+    Add: "maintenance/add",
+    Start: "maintenance/start",
+    Complete: "maintenance/complete",
+    GetAll: "maintenance/get",
+    GetById: "maintenance/get",
+    Update: "maintenance/update",
+    Delete: "maintenance/delete",
   },
   Amenities: {
     GetAllAmenities: "amenity/get",
