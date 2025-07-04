@@ -7,7 +7,6 @@ import { Badge } from '@/components/atoms/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import Pagination from '@/components/atoms/Pagination';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
@@ -15,13 +14,14 @@ import { addMaintenance, deleteMaintenance, getMaintenances } from '@/services/M
 import { Maintenance as MaintenanceType } from '@/validation';
 
 const Maintenance = () => {
-    const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceType[]>([]);
     const [isNewMaintenanceDialogOpen, setIsNewMaintenanceDialogOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceType | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -101,7 +101,12 @@ const Maintenance = () => {
 
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
         e.stopPropagation();
-        navigate(`/maintenance/${requestId}`);
+        const maintenanceToEdit = maintenanceRequests.find(req => req.id === requestId);
+        if (maintenanceToEdit) {
+            setEditingMaintenance(maintenanceToEdit);
+            setIsEditMode(true);
+            setIsNewMaintenanceDialogOpen(true);
+        }
     };
 
     const handleDeleteClick = (e: React.MouseEvent, request: MaintenanceType) => {
@@ -134,21 +139,47 @@ const Maintenance = () => {
         setDeleteDialogOpen(false);
         setRequestToDelete(null);
     };
-
     const handleNewMaintenanceConfirm = async (data: any) => {
         try {
-            const response = await addMaintenance(data);
-            toast.success('Maintenance request created successfully');
+            if (isEditMode && editingMaintenance) {
+                // Handle edit mode
+                const updateData = {
+                    ...data,
+                    id: editingMaintenance.id
+                };
+                // TODO: Replace with actual update API call
+                // const response = await updateMaintenance(editingMaintenance.id, updateData);
+
+                // Update the maintenance request in the list
+                setMaintenanceRequests(prev =>
+                    prev.map(request =>
+                        request.id === editingMaintenance.id
+                            ? { ...request, ...updateData, updatedAt: new Date().toISOString() }
+                            : request
+                    )
+                );
+                toast.success('Maintenance request updated successfully');
+            } else {
+                // Handle add mode
+                const response = await addMaintenance(data);
+                setMaintenanceRequests(prev => [response.data, ...prev]);
+                setCurrentPage(1);
+                toast.success('Maintenance request created successfully');
+            }
+
             setIsNewMaintenanceDialogOpen(false);
-            await fetchMaintenanceRequests(); // Refresh the list
+            setIsEditMode(false);
+            setEditingMaintenance(null);
         } catch (error) {
-            toast.error('Failed to create maintenance request');
+            toast.error(isEditMode ? 'Failed to update maintenance request' : 'Failed to create maintenance request');
             throw error;
         }
     };
 
     const handleNewMaintenanceCancel = () => {
         setIsNewMaintenanceDialogOpen(false);
+        setIsEditMode(false);
+        setEditingMaintenance(null);
     };
 
     const handleStatusChange = (requestId: string, newStatus: MaintenanceType['status']) => {
@@ -225,7 +256,11 @@ const Maintenance = () => {
 
                     {/* Action Button */}
                     <div className="flex gap-2 ml-auto">
-                        <Button onClick={() => setIsNewMaintenanceDialogOpen(true)}>
+                        <Button onClick={() => {
+                            setIsEditMode(false);
+                            setEditingMaintenance(null);
+                            setIsNewMaintenanceDialogOpen(true);
+                        }}>
                             <Plus className="h-4 w-4" />
                             Add Maintenance
                         </Button>
@@ -241,7 +276,7 @@ const Maintenance = () => {
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
                                 Type
                             </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room ID</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Description</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Priority</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
@@ -269,7 +304,8 @@ const Maintenance = () => {
                                         {request.type || 'N/A'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        <div className="font-medium text-gray-900">{request.roomId}</div>
+                                        {/* @ts-expect-error  unknown type of a defined type*/}
+                                        <div className="font-medium text-gray-900">{request.room.roomNumber}</div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="truncate max-w-xs" title={request.description}>
@@ -283,8 +319,8 @@ const Maintenance = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${getStatusDotColor(request.status)}`}></div>
                                             <Badge className={`${getStatusBadge(request.status)} border-0`}>
+                                            <div className={`w-2 h-2 rounded-full ${getStatusDotColor(request.status)}`}></div>
                                                 {request.status.replace('_', ' ').toLowerCase()}
                                             </Badge>
                                         </div>
@@ -358,6 +394,20 @@ const Maintenance = () => {
                 isOpen={isNewMaintenanceDialogOpen}
                 onConfirm={handleNewMaintenanceConfirm}
                 onCancel={handleNewMaintenanceCancel}
+                isEditMode={isEditMode}
+                editData={editingMaintenance ? {
+                    id: editingMaintenance.id,
+                    areaType: editingMaintenance.type || 'REPAIR',
+                    roomId: editingMaintenance.roomId,
+                    description: editingMaintenance.description,
+                    priority: editingMaintenance.priority,
+                    assignedTo: editingMaintenance.assignedTo || '',
+                    photos: editingMaintenance.photos || [],
+                    repeatMaintenance: false,
+                    frequency: '',
+                    type: editingMaintenance.type,
+                    status: editingMaintenance.status
+                } : null}
             />
 
             {/* Delete Confirmation Dialog */}
