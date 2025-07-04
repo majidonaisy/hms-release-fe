@@ -25,8 +25,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<string>("Default");
-  const [customBaseURL, setCustomBaseURL] = useState<string>("");
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,9 +43,11 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
 
     try {
       const response = await login(credentials);
+      console.log('response', response)
       setSuccess(`Login successful! Welcome back!`);
       dispatch(loginAction({
-        accessToken: response.accessToken.token
+        accessToken: response.accessToken.token,
+        permissions: response.accessToken.permissions // Ensure permissions are included
       }));
     } catch (error: any) {
       console.error('Login Error:', error);

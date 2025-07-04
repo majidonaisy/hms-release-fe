@@ -1,67 +1,71 @@
-import { AbilityBuilder, createMongoAbility, MongoAbility } from '@casl/ability';
-import { Role } from '../../context/CASLContext';
-import { ACTIONS } from './actions';
-import { SUBJECTS } from './subjects';
+import { AbilityBuilder, createAliasResolver, createMongoAbility } from "@casl/ability";
 
+export interface Permission {
+  subject: string;
+  action: string;
+}
 
+export type AppAbility = ReturnType<typeof createAbility>;
 
-// Make the ability more flexible to accept strings
-export type AppAbility = MongoAbility<[string, string]>;
+// Create ability resolver for subject aliases
+const resolveAction = createAliasResolver({
+  modify: ["create", "update", "delete"],
+  read: ["list", "show"],
+});
 
-export const createAbility = (role: Role): AppAbility => {
-  const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
+export const createAbility = (permissions: Permission[]) => {
+  const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
 
-  switch (role) {
-    case 'admin':
-      can(ACTIONS.MANAGE, SUBJECTS.ALL);
-      break;
-
-    case 'manager':
-      can(ACTIONS.READ, SUBJECTS.DASHBOARD);
-      can([ACTIONS.READ, ACTIONS.CREATE, ACTIONS.UPDATE], SUBJECTS.ROOM);
-      can([ACTIONS.READ, ACTIONS.CREATE, ACTIONS.UPDATE], SUBJECTS.GUEST);
-      can([ACTIONS.READ, ACTIONS.CREATE, ACTIONS.UPDATE], SUBJECTS.RESERVATION);
-      can([ACTIONS.READ, ACTIONS.CREATE], SUBJECTS.BILLING);
-      cannot(ACTIONS.DELETE, SUBJECTS.ALL);
-      break;
-
-    case 'receptionist':
-      can(ACTIONS.READ, SUBJECTS.DASHBOARD);
-      can([ACTIONS.READ, ACTIONS.UPDATE], SUBJECTS.ROOM);
-      can([ACTIONS.READ, ACTIONS.CREATE, ACTIONS.UPDATE], SUBJECTS.GUEST);
-      can([ACTIONS.READ, ACTIONS.CREATE, ACTIONS.UPDATE], SUBJECTS.RESERVATION);
-      can(ACTIONS.READ, SUBJECTS.BILLING);
-      cannot([ACTIONS.CREATE, ACTIONS.DELETE], SUBJECTS.BILLING);
-      cannot(ACTIONS.DELETE, SUBJECTS.ALL);
-      break;
-
-    case 'guest':
-      can(ACTIONS.READ, SUBJECTS.DASHBOARD);
-      cannot([ACTIONS.CREATE, ACTIONS.UPDATE, ACTIONS.DELETE], SUBJECTS.ALL);
-      break;
-
-    default:
-      // No permissions by default
-      break;
+  // If no permissions, user is guest with no permissions
+  if (!permissions || permissions.length === 0) {
+    // Guest has no permissions by default
+    return build({ resolveAction });
   }
 
-  return build();
+  // Add permissions based on the actual permissions array
+  permissions.forEach((permission) => {
+    const { action, subject } = permission;
+    can(action, subject);
+  });
+
+  return build({ resolveAction });
 };
 
-// Helper function to get role permissions summary
-export const getRolePermissions = (role: Role) => {
-  const ability = createAbility(role);
-  return {
-    role,
-    permissions: ability.rules,
-  };
+export const isAdminPermissions = (permissions: Permission[]): boolean => {
+  return permissions.some((permission) => permission.action === "manage" && permission.subject === "all");
 };
 
-// Helper function to check if a role can perform an action on a subject
-export const canAccess = (role: Role, action: string, subject: string): boolean => {
-  const ability = createAbility(role);
-  return ability.can(action, subject);
+// Helper function to get all subjects user has access to
+export const getAccessibleSubjects = (permissions: Permission[]): string[] => {
+  const subjects = new Set<string>();
+
+  permissions.forEach((permission) => {
+    if (permission.subject === "all") {
+      subjects.add("all");
+    } else {
+      subjects.add(permission.subject);
+    }
+  });
+
+  return Array.from(subjects);
 };
 
-// Export default ability for guest users
-export const defaultAbility = createAbility('guest');
+// Helper function to get all actions user can perform on a subject
+export const getActionsForSubject = (permissions: Permission[], subject: string): string[] => {
+  const actions = new Set<string>();
+
+  permissions.forEach((permission) => {
+    if (permission.subject === subject || permission.subject === "all") {
+      if (permission.action === "manage") {
+        actions.add("create");
+        actions.add("read");
+        actions.add("update");
+        actions.add("delete");
+      } else {
+        actions.add(permission.action);
+      }
+    }
+  });
+
+  return Array.from(actions);
+};

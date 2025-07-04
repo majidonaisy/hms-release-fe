@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 import { getRoomTypes } from "@/services/RoomTypes";
 import DeleteDialog from "../../components/molecules/DeleteDialog";
 import TableSkeleton from "@/components/Templates/TableSkeleton";
-
+import { Can } from "@/context/CASLContext";
 const GuestProfile = () => {
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
@@ -238,26 +238,28 @@ const GuestProfile = () => {
                                             <TableCell className="px-6 py-4 text-gray-600">{guest.preferences?.smoking ? 'Smoking' : 'No Smoking'}</TableCell>
                                             <TableCell className="px-6 py-4 text-gray-600">{guest.phoneNumber}</TableCell>
                                             <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                                <DropdownMenu modal={false}>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <EllipsisVertical />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                                        <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => {
-                                                            setGuestToDelete(guest);
-                                                            setDeleteDialogOpen(true);
-                                                        }}>Delete</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <Can action="edit" subject="guest">
+                                                    <DropdownMenu modal={false}>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <EllipsisVertical />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                                            <DropdownMenuItem onClick={(e) => handleEditClick(e, guest.id)}>Edit</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                setGuestToDelete(guest);
+                                                                setDeleteDialogOpen(true);
+                                                            }}>Delete</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </Can>
                                             </TableCell>
                                         </TableRow>
                                     ))
