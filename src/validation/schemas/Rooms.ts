@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { RoomTypeShape } from "./RoomType";
 
 // Common Room shape
 // Update the Room shape to match the actual API response
@@ -7,34 +6,39 @@ export const RoomShape = z.object({
   id: z.string(),
   roomNumber: z.string(),
   status: z.string(),
+  floor: z.number(),
+  description: z.string(),
   roomTypeId: z.string(),
-  roomType: RoomTypeShape,
-  floor: z.number().int(),
-  adultOccupancy: z.number().int(),
-  childOccupancy: z.number().int(),
-  maxOccupancy: z.number().int(),
-  description: z.string().optional().nullable(),
-  hotelId: z.string(),
   photos: z.array(z.any()).optional(),
+  hotelId: z.string(),
+  roomType: z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    baseRate: z.string(),
+    hotelId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    maxOccupancy: z.number(),
+    adultOccupancy: z.number(),
+    childOccupancy: z.number(),
+  }),
+  Amenities: z.array(z.any()).optional(),
+  connectedRooms: z.array(z.object({
+    id: z.string(),
+    roomNumber: z.string(),
+  })).optional(),
 });
-// Add Room - Updated with required fields and proper error messages
+
 export const AddRoomRequestSchema = z.object({
-  roomNumber: z.string().min(1, "Room number is required"),
-  roomTypeId: z.string().min(1, "Room type is required"),
-  floor: z.number().min(0, "Floor is required"),
-  status: z.string().min(1, "Status is required").optional(),
-  adultOccupancy: z.number().min(0, "Adult occupancy is required"),
-  childOccupancy: z.number().min(0, "Child occupancy is required"),
-  maxOccupancy: z.number().min(1, "Max occupancy is required"),
-  baseRate: z.number().min(0, "Base rate must be positive").optional(),
-  bedType: z.string().optional(),
-  singleBeds: z.number().min(0).optional(),
-  doubleBeds: z.number().min(0).optional(),
-  isConnecting: z.boolean().optional(),
-  connectedRoomIds: z.array(z.string()).optional(),
-  description: z.string().optional(),
-  amenities: z.array(z.any()).optional(),
-    photos: z.array(z.any()).optional(),
+  roomNumber: z.string(),
+  roomTypeId: z.string(),
+  hotelId: z.string().optional(),
+  floor: z.number(),
+  amenities: z.array(z.string()),
+  connectedRoomIds: z.array(z.string()),
+  description: z.string(),
+  photos: z.array(z.any()).optional(),
 });
 
 export const AddRoomResponseSchema = z.object({
@@ -48,6 +52,12 @@ export const GetRoomsResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
   data: z.array(RoomShape),
+});
+
+export const GetRoomByIdResponseSchema = z.object({
+  status: z.number(),
+  message: z.string().optional(),
+  data: RoomShape,
 });
 
 // Update Room - Updated with proper validation
@@ -76,9 +86,25 @@ export const UpdateRoomResponseSchema = z.object({
   data: RoomShape,
 });
 
+export const GetRoomsByRoomTypeSchema = z.object({
+  status: z.number(),
+  message: z.string().optional(),
+  data: z.array(z.object({
+    id: z.string(),
+    roomNumber: z.string(),
+    status: z.string(),
+    floor: z.number(),
+    description: z.string(),
+    roomTypeId: z.string(),
+    photos: z.array(z.any()).optional(),
+    hotelId: z.string(),
+  }))
+})
+
 export type Room = z.infer<typeof RoomShape>;
 export type AddRoomRequest = z.infer<typeof AddRoomRequestSchema>;
 export type AddRoomResponse = z.infer<typeof AddRoomResponseSchema>;
 export type GetRoomsResponse = z.infer<typeof GetRoomsResponseSchema>;
 export type UpdateRoomRequest = z.infer<typeof UpdateRoomRequestSchema>;
 export type UpdateRoomResponse = z.infer<typeof UpdateRoomResponseSchema>;
+export type GetRoomsByRoomType = z.infer<typeof GetRoomsByRoomTypeSchema>;

@@ -20,21 +20,20 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState<AddRoomTypeRequest>({
     name: '',
-    baseRate: 0,
     description: '',
-    capacity: 0
+    baseRate: 0,
+    maxOccupancy: 1,
+    childOccupancy: 0,
+    adultOccupancy: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: keyof AddRoomTypeRequest, value: string | number) => {
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [field]: value
-      };
-      return newData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,12 +46,13 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
 
       await onConfirm(validatedData);
 
-      // Reset form after successful submission
       setFormData({
         name: '',
-        baseRate: 0,
         description: '',
-        capacity: 0
+        baseRate: 0,
+        maxOccupancy: 1,
+        childOccupancy: 0,
+        adultOccupancy: 0,
       });
       setErrors({});
     } catch (error: any) {
@@ -66,7 +66,6 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
         setErrors(fieldErrors);
         toast.error('Please fix the validation errors');
       } else {
-        // Handle API errors
         toast.error('Failed to create room type');
       }
     } finally {
@@ -75,13 +74,15 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
   };
 
   const handleCancel = () => {
-    if (isLoading) return; // Prevent closing during loading
+    if (isLoading) return;
 
     setFormData({
       name: '',
-      baseRate: 0,
       description: '',
-      capacity: 0
+      baseRate: 0,
+      maxOccupancy: 1,
+      childOccupancy: 0,
+      adultOccupancy: 0,
     });
     setErrors({});
     onCancel();
@@ -112,18 +113,50 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
 
           {/* Capacity */}
           <div className="space-y-2">
-            <Label htmlFor="capacity">Capacity (Number of Guests)</Label>
+            <Label htmlFor="capacity">Max Occupancy (Total Guests)</Label>
             <Input
               id="capacity"
               type="number"
               min="1"
               placeholder="e.g. 2"
-              value={formData.capacity || ''}
-              onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 0)}
-              className={errors.capacity ? 'border-red-500' : ''}
+              value={formData.maxOccupancy || ''}
+              onChange={(e) => handleInputChange('maxOccupancy', parseInt(e.target.value) || 0)}
+              className={errors.maxOccupancy ? 'border-red-500' : ''}
               disabled={isLoading}
             />
-            {errors.capacity && <p className="text-red-500 text-sm">{errors.capacity}</p>}
+            {errors.maxOccupancy && <p className="text-red-500 text-sm">{errors.maxOccupancy}</p>}
+          </div>
+
+          {/* Adult Occupancy */}
+          <div className="space-y-2">
+            <Label htmlFor="adultOccupancy">Adult Occupancy</Label>
+            <Input
+              id="adultOccupancy"
+              type="number"
+              min="0"
+              placeholder="e.g. 2"
+              value={formData.adultOccupancy || ''}
+              onChange={(e) => handleInputChange('adultOccupancy', parseInt(e.target.value) || 0)}
+              className={errors.adultOccupancy ? 'border-red-500' : ''}
+              disabled={isLoading}
+            />
+            {errors.adultOccupancy && <p className="text-red-500 text-sm">{errors.adultOccupancy}</p>}
+          </div>
+
+          {/* Child Occupancy */}
+          <div className="space-y-2">
+            <Label htmlFor="childOccupancy">Child Occupancy</Label>
+            <Input
+              id="childOccupancy"
+              type="number"
+              min="0"
+              placeholder="e.g. 1"
+              value={formData.childOccupancy || ''}
+              onChange={(e) => handleInputChange('childOccupancy', parseInt(e.target.value) || 0)}
+              className={errors.childOccupancy ? 'border-red-500' : ''}
+              disabled={isLoading}
+            />
+            {errors.childOccupancy && <p className="text-red-500 text-sm">{errors.childOccupancy}</p>}
           </div>
 
           {/* Price Per Night */}

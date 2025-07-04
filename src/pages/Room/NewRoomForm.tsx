@@ -14,8 +14,6 @@ import { toast } from 'sonner';
 import { getAmenities, getRooms } from '@/services/Rooms';
 import { Amenity } from '@/validation/schemas/amenity';
 
-
-
 export interface RoomFormProps {
   initialData?: Partial<AddRoomRequest>;
   onSubmit: (data: AddRoomRequest) => Promise<void>;
@@ -27,39 +25,16 @@ export interface RoomFormProps {
   roomTypes?: RoomType[];
 }
 
-
 // Default form data
 const defaultFormData: AddRoomRequest = {
   roomNumber: '',
   roomTypeId: '',
   floor: 0,
-  status: 'AVAILABLE',
-  adultOccupancy: 0,
-  childOccupancy: 0,
-  bedType: '',
-  singleBeds: 0,
-  doubleBeds: 0,
-  maxOccupancy: 0,
-  baseRate: 0,
-  isConnecting: false,
+  amenities: [],
   connectedRoomIds: [],
   description: '',
-  amenities: [],
-  photos: []
+  photos: [],
 };
-
-
-const statusOptions = [
-  { value: 'AVAILABLE', label: 'Available' },
-  { value: 'OCCUPIED', label: 'Occupied' },
-  { value: 'MAINTENANCE', label: 'Under Maintenance' },
-  { value: 'OUT_OF_SERVICE', label: 'Out of Service' },
-  { value: 'CLEANING', label: 'Cleaning' }
-];
-
-
-
-
 
 const NewRoomForm: React.FC<RoomFormProps> = ({
   initialData = {},
@@ -76,7 +51,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [isConnecting, setIsConnecting] = useState(false);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [amenities, setAmenity] = useState<Amenity[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -157,8 +132,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     setFormData(prev => ({
       ...prev,
       amenities: checked
-        ? [...(prev.amenities || []), amenities.find(a => a.id === amenityId)].filter(Boolean) as Amenity[]
-        : (prev.amenities || []).filter(amenity => amenity?.id !== amenityId)
+        ? [...(prev.amenities || []), amenityId]
+        : (prev.amenities || []).filter(id => id !== amenityId)
     }));
   };
 
@@ -187,14 +162,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
       const transformedData = {
         ...formData,
         floor: typeof formData.floor === 'string' && formData.floor === '' ? 0 : Number(formData.floor),
-        adultOccupancy: typeof formData.adultOccupancy === 'string' && formData.adultOccupancy === '' ? 0 : Number(formData.adultOccupancy),
-        childOccupancy: typeof formData.childOccupancy === 'string' && formData.childOccupancy === '' ? 0 : Number(formData.childOccupancy),
-        maxOccupancy: typeof formData.maxOccupancy === 'string' && formData.maxOccupancy === '' ? 0 : Number(formData.maxOccupancy),
-        baseRate: typeof formData.baseRate === 'string' && formData.baseRate === '' ? 0 : Number(formData.baseRate),
-        singleBeds: typeof formData.singleBeds === 'string' && formData.singleBeds === '' ? 0 : Number(formData.singleBeds),
-        doubleBeds: typeof formData.doubleBeds === 'string' && formData.doubleBeds === '' ? 0 : Number(formData.doubleBeds),
-        status: formData.status || 'AVAILABLE',
-        amenities: (formData.amenities || []).map(amenity => amenity.id) // Transform amenities to array of IDs for API
+        amenities: (formData.amenities || []).map((amenity) => amenity)
       };
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
@@ -286,163 +254,19 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
               />
               {errors.floor && <p className="text-red-500 text-sm">{errors.floor}</p>}
             </div>
-            {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => handleInputChange('status', value)}
-              >
-                <SelectTrigger className={`border border-slate-300 w-full ${errors.status ? 'border-red-500' : ''}`}>
-                  <SelectValue placeholder="Select Active, Under Maintenance, Out of Service..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-            </div>
-
-            {/* Occupancy */}
-            <div className="space-y-4">
-              <Label>Occupancy</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="adults" className="text-sm text-slate-600">Adults</Label>
-                  <Input
-                    id="adults"
-                    type="number"
-                    placeholder="Max 5"
-                    value={formData.adultOccupancy === 0 ? '' : formData.adultOccupancy}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      handleInputChange('adultOccupancy', value === '' ? 0 : Number(value));
-                    }}
-                    className={`border border-slate-300 ${errors.adultOccupancy ? 'border-red-500' : ''}`}
-                  />
-                  {errors.adultOccupancy && <p className="text-red-500 text-sm">{errors.adultOccupancy}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="children" className="text-sm text-slate-600">Children</Label>
-                  <Input
-                    id="children"
-                    type="number"
-                    placeholder="Max 2"
-                    value={formData.childOccupancy === 0 ? '' : formData.childOccupancy}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      handleInputChange('childOccupancy', value === '' ? 0 : Number(value));
-                    }}
-                    className={`border border-slate-300 ${errors.childOccupancy ? 'border-red-500' : ''}`}
-                  />
-                  {errors.childOccupancy && <p className="text-red-500 text-sm">{errors.childOccupancy}</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Bed Types */}
-            {/* <div className="space-y-4">
-              <Label>Bed Types</Label>
-              <Select
-                value={formData.bedType}
-                onValueChange={(value) => handleInputChange('bedType', value)}
-              >
-                <SelectTrigger className='border border-slate-300 w-full'>
-                  <SelectValue placeholder="Select Single, Double, King, Sofa Bed, Crib..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {bedTypeOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="space-y-4">
-                <Label className="text-sm text-slate-600">Number of Beds</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="singleBeds" className="text-xs text-slate-500">Single</Label>
-                    <Input
-                      id="singleBeds"
-                      type="number"
-                      placeholder="1, 2, 3"
-                      value={formData.singleBeds === 0 || formData.singleBeds === '' ? '' : formData.singleBeds}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        handleInputChange('singleBeds', value === '' ? 0 : Number(value));
-                      }}
-                      className='border border-slate-300'
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="doubleBeds" className="text-xs text-slate-500">Double</Label>
-                    <Input
-                      id="doubleBeds"
-                      type="number"
-                      placeholder="1, 2, 3"
-                      value={formData.doubleBeds === 0 || formData.doubleBeds === '' ? '' : formData.doubleBeds}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        handleInputChange('doubleBeds', value === '' ? 0 : Number(value));
-                      }}
-                      className='border border-slate-300'
-                    />
-                  </div>
-                </div>
-              </div>
-            </div> */}
-
-            {/* Max Occupancy */}
-            <div className="space-y-2">
-              <Label htmlFor="maxOccupancy">Max Occupancy</Label>
-              <Input
-                id="maxOccupancy"
-                type="number"
-                placeholder="e.g. 4"
-                value={formData.maxOccupancy === 0 ? '' : formData.maxOccupancy}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleInputChange('maxOccupancy', value === '' ? 0 : Number(value));
-                }}
-                className={`border border-slate-300 ${errors.maxOccupancy ? 'border-red-500' : ''}`}
-              />
-              {errors.maxOccupancy && <p className="text-red-500 text-sm">{errors.maxOccupancy}</p>}
-            </div>
-
-            {/* Base Rate per Night */}
-            <div className="space-y-2">
-              <Label htmlFor="baseRate">Base Rate per Night</Label>
-              <Input
-                id="baseRate"
-                type="number"
-                placeholder="e.g. 150"
-                value={formData.baseRate === 0 ? '' : formData.baseRate}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  handleInputChange('baseRate', value === '' ? 0 : Number(value));
-                }}
-                className='border border-slate-300'
-              />
-            </div>
 
             {/* Connecting Room Toggle */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Is this a connecting room?</Label>
                 <Switch
-                  checked={formData.isConnecting}
-                  onCheckedChange={(checked) => handleInputChange('isConnecting', checked)}
+                  checked={isConnecting}
+                  onCheckedChange={setIsConnecting}
                   className='border border-slate-300 data-[state=checked]:bg-hms-primary'
                 />
               </div>
 
-              {formData.isConnecting && (
+              {isConnecting && (
                 <div className="space-y-2">
                   <Label htmlFor="connectedRoomIds">Connecting Rooms</Label>
                   <div className="relative">
@@ -562,7 +386,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   <Checkbox
                     id={amenity.id}
                     className={cn("data-[state=checked]:bg-hms-primary")}
-                    checked={(formData.amenities || []).some(a => a.id === amenity.id)}
+                    checked={(formData.amenities || []).includes(amenity.id)}
                     onCheckedChange={(checked: any) => handleAmenityChange(amenity.id, checked as boolean)}
                   />
                   <Label htmlFor={amenity.id} className="text-sm">

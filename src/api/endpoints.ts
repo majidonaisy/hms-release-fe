@@ -17,6 +17,7 @@ export const ENDPOINTS = {
     Update: "room/update",
     Delete: "room/delete",
     GetByStatus: "room/get-rooms-by-status",
+    GetByType: "room/get-by-room-type",
   },
   Guest: {
     Add: "guest/add",
