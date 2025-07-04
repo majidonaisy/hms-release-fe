@@ -1,62 +1,55 @@
-import { useCallback, useMemo } from 'react';
 import { useRole } from '../context/CASLContext';
-import type { Role } from '../context/CASLContext';
 
-interface UsePermissionsReturn {
-  // Permission checks
-  can: (action: string, subject: string) => boolean;
-  cannot: (action: string, subject: string) => boolean;
+export const usePermissions = () => {
+  const {
+    can,
+    cannot,
+    isAdmin,
+    isAuthenticated,
+    permissions,
+    ability,
+    logout
+  } = useRole();
 
-  // Role information
-  currentRole: Role;
-  isAuthenticated: boolean;
+  // Helper functions for common permission checks
+  const canManage = (subject: string): boolean => {
+    return can('manage', subject) || can('manage', 'all');
+  };
 
-  // Role checks (convenience methods)
-  isAdmin: boolean;
-  isManager: boolean;
-  isReceptionist: boolean;
-  isGuest: boolean;
+  const canRead = (subject: string): boolean => {
+    return can('read', subject) || canManage(subject);
+  };
 
-  // Actions
-  setRole: (role: Role) => void;
-  logout: () => void;
+  const canCreate = (subject: string): boolean => {
+    return can('create', subject) || canManage(subject);
+  };
 
-  // Raw ability for advanced usage
-  ability: import('../lib/ability/ability').AppAbility;
-}
+  const canUpdate = (subject: string): boolean => {
+    return can('update', subject) || canManage(subject);
+  };
 
-export const usePermissions = (): UsePermissionsReturn => {
-  const { ability, currentRole, isAuthenticated, setRole, logout } = useRole();
-
-  // Memoize permission check functions to prevent unnecessary re-renders
-  const can = useCallback((action: string, subject: string): boolean => {
-    return ability.can(action, subject);
-  }, [ability]);
-
-  const cannot = useCallback((action: string, subject: string): boolean => {
-    return ability.cannot(action, subject);
-  }, [ability]);
-
-  // Memoize role checks
-  const roleChecks = useMemo(() => ({
-    isAdmin: currentRole === 'admin',
-    isManager: currentRole === 'manager',
-    isReceptionist: currentRole === 'receptionist',
-    isGuest: currentRole === 'guest',
-  }), [currentRole]);
+  const canDelete = (subject: string): boolean => {
+    return can('delete', subject) || canManage(subject);
+  };
 
   return {
-    // Permission methods
+    // Core permission methods
     can,
     cannot,
 
-    // Role info
-    currentRole,
+    // Helper methods
+    canManage,
+    canRead,
+    canCreate,
+    canUpdate,
+    canDelete,
+
+    // Status
+    isAdmin,
     isAuthenticated,
-    ...roleChecks,
+    permissions,
 
     // Actions
-    setRole,
     logout,
 
     // Advanced

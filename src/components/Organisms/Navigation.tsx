@@ -1,7 +1,6 @@
-// src/atomic/Organisms/Navigation.tsx
 import React, { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { usePermissions } from '../../hooks/usePermissions';
+import { useRole } from '../../context/CASLContext';
 import {
   Home,
   BarChart3,
@@ -14,25 +13,22 @@ import {
   ChevronDown,
   LogOut,
   Menu,
-  X
+  X,
+  DoorOpen,
+  Wrench
 } from 'lucide-react';
-import { ACTIONS } from '@/lib/ability/actions';
-import { SUBJECTS } from '@/lib/ability/subjects';
 
 interface NavItem {
   path: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  permission: {
-    action: string;
-    subject: string;
-  };
+  icon: React.ComponentType<any>;
+  permission: { action: string; subject: string };
   adminOnly?: boolean;
 }
 
 const Navigation = () => {
   const location = useLocation();
-  const { currentRole, setRole, can, isAdmin, isGuest, logout } = usePermissions();
+  const { can, isAdmin, isAuthenticated, logout, permissions } = useRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Define all possible navigation items with their required permissions
@@ -41,43 +37,56 @@ const Navigation = () => {
       path: '/',
       label: 'Home',
       icon: Home,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.DASHBOARD }
+      permission: { action: 'read', subject: 'dashboard' },
+      adminOnly: false
     },
     {
-      path: '/Dashboard',
-      label: 'Dashboard',
-      icon: BarChart3,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.DASHBOARD }
-    },
-    {
-      path: '/Rooms',
+      path: '/rooms',
       label: 'Rooms',
-      icon: Hotel,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.ROOM }
+      icon: DoorOpen,
+      permission: { action: 'read', subject: 'room' },
+      adminOnly: false
     },
     {
-      path: '/Guests',
+      path: '/guests-profile',
       label: 'Guests',
       icon: Users,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.GUEST }
+      permission: { action: 'read', subject: 'guest' },
+      adminOnly: false
     },
     {
-      path: '/Reservations',
-      label: 'Reservations',
+      path: '/calendar',
+      label: 'Calendar',
       icon: Calendar,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.RESERVATION }
+      permission: { action: 'read', subject: 'reservation' },
+      adminOnly: false
     },
     {
-      path: '/Billing',
+      path: '/team-members',
+      label: 'Team',
+      icon: Users,
+      permission: { action: 'read', subject: 'user' },
+      adminOnly: false
+    },
+    {
+      path: '/maintenance',
+      label: 'Maintenance',
+      icon: Wrench,
+      permission: { action: 'read', subject: 'maintenance' },
+      adminOnly: false
+    },
+    {
+      path: '/roles-permissions',
+      label: 'Roles',
+      icon: Shield,
+      permission: { action: 'manage', subject: 'role' },
+      adminOnly: true
+    },
+    {
+      path: '/billing',
       label: 'Billing',
       icon: CreditCard,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.BILLING }
-    },
-    {
-      path: '/caslTest',
-      label: 'CASL Test',
-      icon: Shield,
-      permission: { action: ACTIONS.READ, subject: SUBJECTS.DASHBOARD },
+      permission: { action: 'read', subject: 'billing' },
       adminOnly: false
     },
   ], []);
@@ -95,21 +104,6 @@ const Navigation = () => {
     }), [allNavItems, can, isAdmin]
   );
 
-  // Role options for the dropdown
-  const roleOptions = [
-    { value: 'admin' as const, label: 'Admin', color: 'text-red-600', bgColor: 'bg-red-50' },
-    { value: 'manager' as const, label: 'Manager', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-    { value: 'receptionist' as const, label: 'Receptionist', color: 'text-green-600', bgColor: 'bg-green-50' },
-    { value: 'guest' as const, label: 'Guest', color: 'text-gray-600', bgColor: 'bg-gray-50' },
-  ];
-
-  const currentRoleData = roleOptions.find(role => role.value === currentRole);
-
-  const handleRoleChange = (newRole: typeof roleOptions[number]['value']) => {
-    setRole(newRole);
-    setIsMobileMenuOpen(false);
-  };
-
   const handleLogout = () => {
     logout();
     setIsMobileMenuOpen(false);
@@ -123,88 +117,70 @@ const Navigation = () => {
       <Link
         to={item.path}
         className={`px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${isActive
-          ? 'bg-blue-100 text-blue-700 border border-blue-200'
-          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            ? 'bg-blue-100 text-blue-700'
+            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         onClick={() => setIsMobileMenuOpen(false)}
       >
         <Icon className="h-4 w-4" />
         {item.label}
-        {/* Show permission indicator for testing */}
-        {item.path === '/caslTest' && (
-          <span className="ml-1 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-            {visibleNavItems.length}
-          </span>
-        )}
       </Link>
     );
   };
 
   return (
-    <nav className="bg-white shadow-lg border-b sticky top-0 z-50">
+    <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-
-
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-2">
-              {visibleNavItems.map((item) => (
-                <NavLink key={item.path} item={item} />
-              ))}
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 flex items-center">
+              <Hotel className="h-8 w-8 text-blue-600" />
+              <span className="ml-2 text-xl font-bold text-gray-900">HMS</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <button
-                className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border transition-colors ${currentRoleData ? `${currentRoleData.color} ${currentRoleData.bgColor} border-current` : 'text-gray-600 bg-gray-50'
-                  }`}
-              >
-                <User className="h-4 w-4" />
-                {currentRoleData?.label || 'Unknown'}
-                <ChevronDown className="h-4 w-4" />
-              </button>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex md:items-center md:space-x-4">
+            {visibleNavItems.map((item) => (
+              <NavLink key={item.path} item={item} />
+            ))}
+          </div>
 
-              {/* Role Dropdown */}
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="py-1">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b">
-                    Switch Role ({visibleNavItems.length} items visible)
-                  </div>
-                  {roleOptions.map((role) => (
-                    <button
-                      key={role.value}
-                      onClick={() => handleRoleChange(role.value)}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 transition-colors ${currentRole === role.value
-                        ? `${role.bgColor} ${role.color}`
-                        : 'text-gray-700'
-                        }`}
-                    >
-                      <User className="h-4 w-4" />
-                      {role.label}
-                      {currentRole === role.value && (
-                        <span className="ml-auto text-current">✓</span>
-                      )}
-                    </button>
-                  ))}
-                  <div className="border-t mt-1">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Logout (Guest Mode)
-                    </button>
-                  </div>
+          {/* User Menu */}
+          <div className="flex items-center">
+            <div className="relative ml-3">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-700">
+                    {isAuthenticated ? (
+                      <>
+                        {isAdmin ? 'Admin' : 'User'}
+                        <span className="text-xs text-gray-500">
+                          ({permissions.length} permissions)
+                        </span>
+                      </>
+                    ) : (
+                      'Guest'
+                    )}
+                  </span>
                 </div>
+                {isAuthenticated && (
+                  <button
+                    onClick={handleLogout}
+                    className="ml-2 p-1 rounded-full text-gray-400 hover:text-gray-500"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="md:hidden ml-2">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-gray-700 hover:text-gray-900 focus:outline-none focus:text-gray-900 p-2"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
               >
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -215,12 +191,27 @@ const Navigation = () => {
             </div>
           </div>
         </div>
-
-
-
       </div>
 
-
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+            {visibleNavItems.map((item) => (
+              <NavLink key={item.path} item={item} />
+            ))}
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

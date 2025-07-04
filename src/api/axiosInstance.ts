@@ -1,6 +1,7 @@
 import axios from "axios";
 import { store } from "@/redux/store";
 import { logout } from "@/redux/slices/authSlice";
+import { permission } from "process";
 
 export const createAxiosInstance = (baseURL: string) => {
   const instance = axios.create({
@@ -14,7 +15,7 @@ export const createAxiosInstance = (baseURL: string) => {
   instance.interceptors.request.use(
     (config) => {
       const state = store.getState();
-      const { accessToken } = state.auth;
+      const { accessToken,permissions } = state.auth;
 
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -23,7 +24,7 @@ export const createAxiosInstance = (baseURL: string) => {
       // Add request metadata for tracking
       config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       config.headers["X-Request-Time"] = new Date().toISOString();
-      console.log("Bearer token ", accessToken);
+      console.log("Bearer token ", accessToken, permissions);
       return config;
     },
     (error) => {

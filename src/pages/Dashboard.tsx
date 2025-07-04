@@ -46,7 +46,8 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
       console.log('response', response)
       setSuccess(`Login successful! Welcome back!`);
       dispatch(loginAction({
-        accessToken: response.accessToken.token
+        accessToken: response.accessToken.token,
+        permissions: response.accessToken.permissions // Ensure permissions are included
       }));
     } catch (error: any) {
       console.error('Login Error:', error);
