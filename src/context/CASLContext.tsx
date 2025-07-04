@@ -74,3 +74,66 @@ export const useRole = (): RoleContextType => {
   }
   return context;
 };
+
+interface CanProps {
+  action?: string;
+  subject?: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export const Can: React.FC<CanProps> = ({
+  action,
+  subject,
+  children,
+  fallback = null
+}) => {
+  const { can, isAuthenticated } = useRole();
+
+  // If no action or subject provided, check if user is authenticated
+  if (!action && !subject) {
+    return isAuthenticated ? <>{children}</> : <>{fallback}</>;
+  }
+
+  // If action or subject is missing, don't render
+  if (!action || !subject) {
+    return <>{fallback}</>;
+  }
+
+  // Check permission
+  const hasPermission = can(action, subject);
+
+  return hasPermission ? <>{children}</> : <>{fallback}</>;
+};
+
+// Cannot component for inverse conditional rendering
+interface CannotProps {
+  action?: string;
+  subject?: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export const Cannot: React.FC<CannotProps> = ({
+  action,
+  subject,
+  children,
+  fallback = null
+}) => {
+  const { cannot, isAuthenticated } = useRole();
+
+  // If no action or subject provided, check if user is not authenticated
+  if (!action && !subject) {
+    return !isAuthenticated ? <>{children}</> : <>{fallback}</>;
+  }
+
+  // If action or subject is missing, don't render
+  if (!action || !subject) {
+    return <>{fallback}</>;
+  }
+
+  // Check permission (inverse)
+  const hasNoPermission = cannot(action, subject);
+
+  return hasNoPermission ? <>{children}</> : <>{fallback}</>;
+};

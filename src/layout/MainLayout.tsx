@@ -2,20 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, Link, Outlet } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarHeader,
-    SidebarInset,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarProvider,
-    SidebarTrigger,
-} from '@/components/Organisms/Sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import ReservationModal from '../components/Templates/ReservationModal';
@@ -32,7 +19,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
     const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
     const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
-    const [openTabs, setOpenTabs] = useState<string[]>([]); // Add this for collapsible subroutes
+    const [openTabs, setOpenTabs] = useState<string[]>([]); 
 
     const defaultRoom = sampleRooms[0];
 
@@ -90,14 +77,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
         return routes
             .filter((route: any) => route.isAuthenticated !== false && route.isShown !== false)
             .map((route: any) => {
-                // For subroutes, use the full path directly, for main routes use as is
                 const fullPath = route.path;
                 const isOpen = openTabs.includes(fullPath);
-
-                // Check if there are any visible subroutes
                 const hasVisibleSubroutes = route.subRoutes && route.subRoutes.some((subRoute: any) => subRoute.isShown !== false);
 
-                // Check if route is active
                 const isActive = location.pathname === fullPath ||
                     location.pathname.startsWith(fullPath + '/') ||
                     (route.subRoutes && route.subRoutes.some((subRoute: any) => {
@@ -108,7 +91,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                     <React.Fragment key={fullPath}>
                         <SidebarMenuItem>
                             {hasVisibleSubroutes ? (
-                                // Parent with visible subroutes - show chevron
                                 <div className="flex items-center w-full">
                                     <SidebarMenuButton asChild isActive={isActive} className="flex-1">
                                         <Link to={fullPath} className="flex items-center">
@@ -133,7 +115,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     </button>
                                 </div>
                             ) : (
-                                // Regular route link (no visible subroutes or no subroutes at all)
                                 <SidebarMenuButton
                                     tooltip={route.title}
                                     asChild
@@ -151,8 +132,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                 </SidebarMenuButton>
                             )}
                         </SidebarMenuItem>
-
-                        {/* Render subroutes only if there are visible ones */}
                         {hasVisibleSubroutes && (
                             <div
                                 className={`pl-4 overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:hidden ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
