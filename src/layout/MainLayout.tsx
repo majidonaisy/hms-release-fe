@@ -12,51 +12,8 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
-    const [openTabs, setOpenTabs] = useState<string[]>([]); // Add this for collapsible subroutes
     const navigate = useNavigate();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
-    const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
-    const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
     const [openTabs, setOpenTabs] = useState<string[]>([]); 
-
-    const defaultRoom = sampleRooms[0];
-
-    const handleOpenNewReservation = () => {
-        setSelectedRoom(defaultRoom);
-        setSelectedDateRange({
-            start: new Date(),
-            end: addDays(new Date(), 1),
-        });
-        setSelectedReservation(undefined);
-        setIsModalOpen(true);
-    };
-
-    const handleOpenReservationModal = (data: {
-        room?: Room;
-        reservation?: Reservation;
-        dateRange?: { start: Date; end: Date };
-    }) => {
-        setSelectedRoom(data.room);
-        setSelectedReservation(data.reservation);
-        setSelectedDateRange(data.dateRange);
-        setIsModalOpen(true);
-    };
-
-    const handleSaveReservation = () => {
-        setIsModalOpen(false);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedReservation(undefined);
-        setSelectedRoom(undefined);
-        setSelectedDateRange(undefined);
-    };
-
-    const modalContext = {
-        openReservationModal: handleOpenReservationModal,
-    };
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
