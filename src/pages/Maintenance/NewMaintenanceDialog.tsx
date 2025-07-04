@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
 import { Button } from '@/components/atoms/Button';
 import { Label } from '@/components/atoms/Label';
@@ -7,17 +7,18 @@ import { Textarea } from '@/components/atoms/Textarea';
 import { Switch } from '@/components/atoms/Switch';
 import { X, Upload, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { getRooms } from '@/services/Rooms';
+import { Room } from '@/validation';
 
 interface NewMaintenanceDialogProps {
     isOpen: boolean;
     onConfirm: (data: MaintenanceFormData) => Promise<void>;
     onCancel: () => void;
 }
-
 interface MaintenanceFormData {
     areaType: string;
-    areaNameOrNumber: string;
-    issueDescription: string;
+    roomId: string;
+    description: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     assignedTo: string;
     photos: File[];
@@ -62,14 +63,16 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<MaintenanceFormData>({
         areaType: '',
-        areaNameOrNumber: '',
-        issueDescription: '',
+        roomId: '',
+        description: '',
         priority: 'MEDIUM',
         assignedTo: '',
         photos: [],
         repeatMaintenance: false,
         frequency: ''
     });
+
+    const [rooms, setRooms] = useState<Room[]>([]);
 
     const handleInputChange = (field: keyof MaintenanceFormData, value: any) => {
         setFormData(prev => ({
@@ -103,26 +106,26 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+console.log('formData', formData)
         if (!formData.areaType) {
             toast.error('Please select an area type');
             return;
         }
 
-        if (!formData.areaNameOrNumber) {
+        if (!formData.roomId) {
             toast.error('Please enter area name or number');
             return;
         }
 
-        if (!formData.issueDescription) {
+        if (!formData.description) {
             toast.error('Please enter issue description');
             return;
         }
 
-        if (!formData.assignedTo) {
-            toast.error('Please assign to a staff member');
-            return;
-        }
+        // if (!formData.assignedTo) {
+        //     toast.error('Please assign to a staff member');
+        //     return;
+        // }
 
         if (formData.repeatMaintenance && !formData.frequency) {
             toast.error('Please select frequency for repeat maintenance');
@@ -135,8 +138,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             // Reset form after successful submission
             setFormData({
                 areaType: '',
-                areaNameOrNumber: '',
-                issueDescription: '',
+                roomId: '',
+                description: '',
                 priority: 'MEDIUM',
                 assignedTo: '',
                 photos: [],
@@ -153,8 +156,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     const handleCancel = () => {
         setFormData({
             areaType: '',
-            areaNameOrNumber: '',
-            issueDescription: '',
+            roomId: '',
+            description: '',
             priority: 'MEDIUM',
             assignedTo: '',
             photos: [],
@@ -163,6 +166,23 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
         });
         onCancel();
     };
+
+    const fetchRooms = async () => {
+        try {
+            const response = await getRooms();
+            setRooms(response.data);
+        } catch (error) {
+            console.error('Failed to fetch rooms:', error);
+            toast.error('Failed to fetch rooms. Please try again later.');
+        }
+    }
+
+
+    useEffect(() => {
+        Promise.all([
+            fetchRooms()
+        ]);
+    }, []);
 
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>
@@ -193,29 +213,27 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                     {/* Area name or number */}
                     <div className="space-y-2">
                         <Label htmlFor="areaNameOrNumber">Area name or number</Label>
-                        <Select value={formData.areaNameOrNumber} onValueChange={(value) => handleInputChange('areaNameOrNumber', value)}>
+                        <Select value={formData.roomId} onValueChange={(value) => handleInputChange('roomId', value)}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select area name or number" />
                             </SelectTrigger>
                             <SelectContent>
-                                {/* Mock area options - in real app, this would be dynamic based on areaType */}
-                                <SelectItem value="101">Room 101</SelectItem>
-                                <SelectItem value="102">Room 102</SelectItem>
-                                <SelectItem value="201">Room 201</SelectItem>
-                                <SelectItem value="lobby_main">Main Lobby</SelectItem>
-                                <SelectItem value="elevator_1">Elevator 1</SelectItem>
-                                <SelectItem value="pool_area">Pool Area</SelectItem>
+                                {rooms.map((room) => (
+                                    <SelectItem key={room.id} value={room.id}>
+                                        {room.roomNumber}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
 
                     {/* Issue description */}
                     <div className="space-y-2">
-                        <Label htmlFor="issueDescription">Issue description</Label>
+                        <Label htmlFor="description">Issue description</Label>
                         <Textarea
-                            id="issueDescription"
-                            value={formData.issueDescription}
-                            onChange={(e) => handleInputChange('issueDescription', e.target.value)}
+                            id="description"
+                            value={formData.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
                             placeholder="Describe the maintenance issue..."
                             className="min-h-20"
                         />
