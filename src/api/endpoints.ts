@@ -50,4 +50,8 @@ export const ENDPOINTS = {
   Amenities: {
     GetAllAmenities: "amenity/get",
   },
-};
+  Employees: {
+    GetAll: "auth/employees",
+    GetEmployeeById: "auth/get-user"
+  }
+}
