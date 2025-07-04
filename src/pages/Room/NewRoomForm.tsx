@@ -8,35 +8,18 @@ import { Upload, X } from 'lucide-react';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
-import { AddRoomRequestSchema, RoomType } from '@/validation';
+import { AddRoomRequest, AddRoomRequestSchema, Room, RoomType } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
-import { getAmenities } from '@/services/Rooms';
+import { getAmenities, getRooms } from '@/services/Rooms';
 import { Amenity } from '@/validation/schemas/amenity';
 
-export interface RoomFormData {
-  roomNumber: string;
-  roomTypeId: string;
-  floor: number | string;
-  status: string;
-  adultOccupancy: number | string;
-  childOccupancy: number | string;
-  bedType: string;
-  singleBeds: number | string;
-  doubleBeds: number | string;
-  maxOccupancy: number | string;
-  baseRate: number | string;
-  isConnecting: boolean;
-  connectingRoom: string;
-  description: string;
-  amenities: Amenity[];
-  photos: File[];
-}
+
 
 export interface RoomFormProps {
-  initialData?: Partial<RoomFormData>;
-  onSubmit: (data: RoomFormData) => Promise<void>;
-  onSaveDraft?: (data: RoomFormData) => void;
+  initialData?: Partial<AddRoomRequest>;
+  onSubmit: (data: AddRoomRequest) => Promise<void>;
+  onSaveDraft?: (data: AddRoomRequest) => void;
   isLoading?: boolean;
   submitButtonText?: string;
   draftButtonText?: string;
@@ -46,20 +29,20 @@ export interface RoomFormProps {
 
 
 // Default form data
-const defaultFormData: RoomFormData = {
+const defaultFormData: AddRoomRequest = {
   roomNumber: '',
   roomTypeId: '',
-  floor: '',
-  status: '',
-  adultOccupancy: '',
-  childOccupancy: '',
+  floor: 0,
+  status: 'AVAILABLE',
+  adultOccupancy: 0,
+  childOccupancy: 0,
   bedType: '',
-  singleBeds: '',
-  doubleBeds: '',
-  maxOccupancy: '',
+  singleBeds: 0,
+  doubleBeds: 0,
+  maxOccupancy: 0,
   baseRate: 0,
   isConnecting: false,
-  connectingRoom: '',
+  connectedRoomIds: [],
   description: '',
   amenities: [],
   photos: []
@@ -74,14 +57,7 @@ const statusOptions = [
   { value: 'CLEANING', label: 'Cleaning' }
 ];
 
-const bedTypeOptions = [
-  { value: 'single', label: 'Single' },
-  { value: 'double', label: 'Double' },
-  { value: 'king', label: 'King' },
-  { value: 'queen', label: 'Queen' },
-  { value: 'sofa', label: 'Sofa Bed' },
-  { value: 'crib', label: 'Crib' }
-];
+
 
 
 
@@ -94,7 +70,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   draftButtonText = 'Save as Draft',
   className = ''
 }) => {
-  const [formData, setFormData] = useState<RoomFormData>({
+  const [formData, setFormData] = useState<AddRoomRequest>({
     ...defaultFormData,
     ...initialData
   });
@@ -103,6 +79,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [amenities, setAmenity] = useState<Amenity[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   const fetchAmenities = async () => {
     try {
@@ -134,6 +111,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }
   };
 
+  const fetchRooms = async () => {
+    try {
+      const response = await getRooms();
+      setRooms(response.data);
+    } catch (error) {
+      console.error('Failed to fetch rooms:', error);
+      toast.error('Failed to load rooms');
+    }
+  };
+
   // Update form data when initialData changes (for edit mode)
   useEffect(() => {
 
@@ -150,7 +137,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await Promise.all([fetchRoomTypes(), fetchAmenities()]);
+        await Promise.all([fetchRoomTypes(), fetchAmenities(), fetchRooms()]);
       } catch (error) {
         toast.error('Failed to load initial data');
       }
@@ -159,7 +146,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     fetchData();
   }, []);
 
-  const handleInputChange = (field: keyof RoomFormData, value: any) => {
+  const handleInputChange = (field: keyof AddRoomRequest, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -170,25 +157,25 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     setFormData(prev => ({
       ...prev,
       amenities: checked
-        ? [...prev.amenities, amenities.find(a => a.id === amenityId)].filter(Boolean) as Amenity[]
-        : prev.amenities.filter(amenity => amenity?.id !== amenityId)
+        ? [...(prev.amenities || []), amenities.find(a => a.id === amenityId)].filter(Boolean) as Amenity[]
+        : (prev.amenities || []).filter(amenity => amenity?.id !== amenityId)
     }));
   };
-  
-  
+
+
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setFormData(prev => ({
       ...prev,
-      photos: [...prev.photos, ...files]
+      photos: [...(prev.photos || []), ...files]
     }));
   };
 
   const removePhoto = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
+      photos: (prev.photos || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -207,11 +194,11 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         singleBeds: typeof formData.singleBeds === 'string' && formData.singleBeds === '' ? 0 : Number(formData.singleBeds),
         doubleBeds: typeof formData.doubleBeds === 'string' && formData.doubleBeds === '' ? 0 : Number(formData.doubleBeds),
         status: formData.status || 'AVAILABLE',
-        amenities: formData.amenities.map(amenity => amenity.id) // Transform amenities to array of IDs for API
+        amenities: (formData.amenities || []).map(amenity => amenity.id) // Transform amenities to array of IDs for API
       };
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
-      await onSubmit(validatedData as RoomFormData);
+      await onSubmit(validatedData as AddRoomRequest);
       if (submitButtonText.includes('Create')) {
         setFormData(defaultFormData);
       }
@@ -330,10 +317,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="adults"
                     type="number"
                     placeholder="Max 5"
-                    value={formData.adultOccupancy === 0 || formData.adultOccupancy === '' ? '' : formData.adultOccupancy}
+                    value={formData.adultOccupancy === 0 ? '' : formData.adultOccupancy}
                     onChange={(e) => {
                       const value = e.target.value;
-                      handleInputChange('adultOccupancy', value === '' ? '' : Number(value));
+                      handleInputChange('adultOccupancy', value === '' ? 0 : Number(value));
                     }}
                     className={`border border-slate-300 ${errors.adultOccupancy ? 'border-red-500' : ''}`}
                   />
@@ -345,10 +332,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     id="children"
                     type="number"
                     placeholder="Max 2"
-                    value={formData.childOccupancy === 0 || formData.childOccupancy === '' ? '' : formData.childOccupancy}
+                    value={formData.childOccupancy === 0 ? '' : formData.childOccupancy}
                     onChange={(e) => {
                       const value = e.target.value;
-                      handleInputChange('childOccupancy', value === '' ? '' : Number(value));
+                      handleInputChange('childOccupancy', value === '' ? 0 : Number(value));
                     }}
                     className={`border border-slate-300 ${errors.childOccupancy ? 'border-red-500' : ''}`}
                   />
@@ -358,7 +345,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
             </div>
 
             {/* Bed Types */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <Label>Bed Types</Label>
               <Select
                 value={formData.bedType}
@@ -376,7 +363,6 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 </SelectContent>
               </Select>
 
-              {/* Number of Beds */}
               <div className="space-y-4">
                 <Label className="text-sm text-slate-600">Number of Beds</Label>
                 <div className="grid grid-cols-2 gap-4">
@@ -410,7 +396,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Max Occupancy */}
             <div className="space-y-2">
@@ -419,10 +405,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 id="maxOccupancy"
                 type="number"
                 placeholder="e.g. 4"
-                value={formData.maxOccupancy === 0 || formData.maxOccupancy === '' ? '' : formData.maxOccupancy}
+                value={formData.maxOccupancy === 0 ? '' : formData.maxOccupancy}
                 onChange={(e) => {
                   const value = e.target.value;
-                  handleInputChange('maxOccupancy', value === '' ? '' : Number(value));
+                  handleInputChange('maxOccupancy', value === '' ? 0 : Number(value));
                 }}
                 className={`border border-slate-300 ${errors.maxOccupancy ? 'border-red-500' : ''}`}
               />
@@ -458,14 +444,61 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
               {formData.isConnecting && (
                 <div className="space-y-2">
-                  <Label htmlFor="connectingRoom">Connects with Room</Label>
-                  <Input
-                    id="connectingRoom"
-                    placeholder="Add room"
-                    value={formData.connectingRoom}
-                    onChange={(e) => handleInputChange('connectingRoom', e.target.value)}
-                    className='border border-slate-300'
-                  />
+                  <Label htmlFor="connectedRoomIds">Connecting Rooms</Label>
+                  <div className="relative">
+                    <Select
+                      value="" // Keep empty as we're handling multiple values differently
+                      onValueChange={(value) => {
+                        // Add room if not already selected
+                        if (!formData.connectedRoomIds?.includes(value)) {
+                          handleInputChange('connectedRoomIds', [...(formData.connectedRoomIds || []), value]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={`border border-slate-300 w-full ${errors.connectedRoomIds ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Select connecting rooms..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rooms
+                          .filter(room => !formData.connectedRoomIds?.includes(room.id))
+                          .map(option => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.roomNumber} - {option.roomType.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Display selected rooms */}
+                  {formData.connectedRoomIds && formData.connectedRoomIds.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-slate-600">Selected Rooms:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.connectedRoomIds.map(roomId => {
+                          const room = rooms.find(r => r.id === roomId);
+                          return room ? (
+                            <div key={roomId} className="flex items-center bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm">
+                              <span>{room.roomNumber} - {room.roomType.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleInputChange('connectedRoomIds',
+                                    formData.connectedRoomIds?.filter(id => id !== roomId) || []
+                                  );
+                                }}
+                                className="ml-2 text-slate-500 hover:text-red-500"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.connectedRoomIdss && <p className="text-red-500 text-sm">{errors.connectedRoomIdss}</p>}
                 </div>
               )}
             </div>
@@ -499,9 +532,9 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
           </div>
 
           {/* Preview uploaded photos */}
-          {formData.photos.length > 0 && (
+          {(formData.photos || []).length > 0 && (
             <div className="grid grid-cols-2 gap-4">
-              {formData.photos.map((photo, index) => (
+              {(formData.photos || []).map((photo, index) => (
                 <div key={index} className="relative">
                   <img
                     src={URL.createObjectURL(photo)}
@@ -529,7 +562,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   <Checkbox
                     id={amenity.id}
                     className={cn("data-[state=checked]:bg-hms-primary")}
-                    checked={formData.amenities.some(a => a.id === amenity.id)}
+                    checked={(formData.amenities || []).some(a => a.id === amenity.id)}
                     onCheckedChange={(checked: any) => handleAmenityChange(amenity.id, checked as boolean)}
                   />
                   <Label htmlFor={amenity.id} className="text-sm">

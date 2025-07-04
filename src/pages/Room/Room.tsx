@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
-import NewRoomForm, { RoomFormData } from './NewRoomForm';
+import NewRoomForm from './NewRoomForm';
 import { getRoomById, updateRoom, addRoom } from '@/services/Rooms';
-import { Room as RoomType } from '@/validation';
+import { AddRoomRequest, Room as RoomType } from '@/validation';
 import { toast } from 'sonner';
 import EditingSkeleton from '../../components/Templates/EditingSkeleton';
 
@@ -27,6 +27,7 @@ const Room = () => {
 
                 try {
                     const response = await getRoomById(id);
+                    console.log('response', response)
                     const roomData = response.data?.data || response.data;
                     setRoom(roomData);
                 } catch (error: any) {
@@ -45,10 +46,10 @@ const Room = () => {
         navigate('/rooms');
     };
 
-    const handleSubmit = async (data: RoomFormData): Promise<void> => {
+    const handleSubmit = async (data: AddRoomRequest): Promise<void> => {
         try {
             if (isEditMode && id) {
-                console.log('data,id', data,id)
+                console.log('data,id', data, id)
                 await updateRoom(id, data as any);
                 toast.success('Room updated successfully');
             } else if (isAddMode) {
@@ -65,12 +66,12 @@ const Room = () => {
         }
     };
 
-    const handleSaveDraft = (data: RoomFormData) => {
+    const handleSaveDraft = (data: AddRoomRequest) => {
         toast.info('Draft saved');
     };
 
     // Transform room data to form data for editing
-    const getInitialData = (): Partial<RoomFormData> | undefined => {
+    const getInitialData = (): Partial<AddRoomRequest> | undefined => {
         if (!room || isAddMode) return undefined;
 
         return {
@@ -88,11 +89,11 @@ const Room = () => {
             doubleBeds: 0,
             baseRate: room.roomType?.baseRate ? parseFloat(room.roomType.baseRate) : 0,
             isConnecting: false,
-            connectingRoom: '',
+            connectedRoomIds: [],
             amenities: [], // Initialize as empty array, will be populated when amenities are fetched
             photos: Array.isArray(room.photos) ? room.photos : []
         };
-      };
+    };
 
     // Show loading skeleton while fetching data in edit mode
     if (isEditMode && loading) {
