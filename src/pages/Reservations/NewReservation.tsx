@@ -1,8 +1,7 @@
 import { Button } from '@/components/atoms/Button';
-import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, X, Calendar as CalendarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { GetGuestsResponse, GetRoomsResponse } from '@/validation';
@@ -10,29 +9,31 @@ import { getGuests } from '@/services/Guests';
 import { toast } from 'sonner';
 import { AddReservationRequest } from '@/validation/schemas/Reservations';
 import { addReservation } from '@/services/Reservation';
-import { getRooms } from '@/services/Rooms';
-import { Textarea } from '@/components/atoms/Textarea';
+import { getRooms, getRoomById } from '@/services/Rooms';
 import { getRatePlans } from '@/services/RatePlans';
 import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/molecules/Popover';
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/molecules/Calendar';
 
 const NewReservation = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<AddReservationRequest>({
-        checkInDate: new Date(),
-        checkOutDate: new Date(),
+        checkIn: new Date(),
+        checkOut: new Date(),
         guestId: '',
-        numberOfGuests: 0,
         ratePlanId: '',
-        roomId: '',
-        specialRequests: ''
+        roomIds: [],
     });
     const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, _setIsEditMode] = useState(false);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
+    const [connectableRooms, setConnectableRooms] = useState<GetRoomsResponse['data']>([]);
+    const [selectedRoomType, setSelectedRoomType] = useState<string>("");
 
-    const handleInputChange = (field: keyof AddReservationRequest, value: string) => {
+    const handleInputChange = (field: keyof AddReservationRequest, value: string | string[]) => {
         setFormData(prev => {
             const updatedFormData = {
                 ...prev,
@@ -42,26 +43,68 @@ const NewReservation = () => {
         });
     };
 
+    const handleRoomSelection = async (roomId: string) => {
+        if (!formData.roomIds?.includes(roomId)) {
+            const updatedRoomIds = [...(formData.roomIds || []), roomId];
+            handleInputChange('roomIds', updatedRoomIds);
+
+            // If this is the first room selected, get its connectable rooms
+            if (formData.roomIds?.length === 0) {
+                try {
+                    const roomResponse = await getRoomById(roomId);
+                    // The service returns { data: apiResponse }, and apiResponse has { status, data }
+                    const actualRoomData = roomResponse.data.data;
+                    const connectedRooms = actualRoomData.connectedRooms || [];
+                    console.log('Full room response:', roomResponse);
+                    console.log('Actual room data:', actualRoomData);
+                    console.log('Connected rooms:', connectedRooms);
+                    setConnectableRooms(connectedRooms);
+                } catch (error) {
+                    console.error('Failed to get room details:', error);
+                    toast("Error!", {
+                        description: "Failed to get room connection details.",
+                    });
+                }
+            }
+        }
+    };
+
+    const handleRoomRemoval = (roomIdToRemove: string) => {
+        const updatedRoomIds = formData.roomIds?.filter(id => id !== roomIdToRemove) || [];
+        handleInputChange('roomIds', updatedRoomIds);
+
+        // If no rooms are left, reset connectable rooms to show all rooms
+        if (updatedRoomIds.length === 0) {
+            setConnectableRooms([]);
+        }
+    };
+
+    const getAvailableRooms = () => {
+        // If no rooms are selected, filter by selected room type
+        if (!formData.roomIds || formData.roomIds.length === 0) {
+            return rooms.filter(room =>
+                (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
+                !formData.roomIds?.includes(room.id)
+            );
+        }
+
+        // If rooms are selected, show only connectable rooms that aren't already selected
+        // Get the full room details from the rooms array using the connected room IDs
+        const connectableRoomIds = connectableRooms.map(connectedRoom => connectedRoom.id);
+        return rooms.filter(room =>
+            connectableRoomIds.includes(room.id) &&
+            !formData.roomIds?.includes(room.id)
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // if (isEditMode) {
-            //     if (id) {
-            //         await updateGuest(id, formData);
-            //         toast("Success!", {
-            //             description: "Guest was updated successfully.",
-            //         })
-
-            //     } else {
-            //         console.error("Guest ID is undefined.");
-            //     }
-            // } else {
             await addReservation(formData);
             toast("Success!", {
                 description: "Reservation was created successfully.",
             })
-            // }
             navigate('/guests-profile');
         } catch (error) {
             toast("Error!", {
@@ -110,6 +153,8 @@ const NewReservation = () => {
         navigate(-1);
     };
 
+    const availableRooms = getAvailableRooms();
+
     return (
         <div className="p-5">
             <div className="flex items-center gap-3 mb-5">
@@ -148,61 +193,129 @@ const NewReservation = () => {
                         </Select>
                     </div>
 
+                    <h2 className='text-lg font-bold'>Room Assignment</h2>
+
                     <div className='space-y-1'>
-                        <Label>Room</Label>
+                        <Label>Room Type</Label>
                         <Select
-                            value={formData.roomId}
-                            onValueChange={(value) => handleInputChange('roomId', value)}
+                            value={selectedRoomType}
+                            onValueChange={(value) => setSelectedRoomType(value)}
                         >
                             <SelectTrigger className='w-full border border-slate-300'>
-                                <SelectValue placeholder="Select Room" />
+                                <SelectValue placeholder="Select Room Type" />
                             </SelectTrigger>
                             <SelectContent>
-                                {rooms.map((room) => (
-                                    <SelectItem key={room.id} value={room.id}>
-                                        {room.roomType.name} {room.roomNumber}
-                                    </SelectItem>
-                                ))}
+                                {/* Get unique room types from rooms array */}
+                                {Array.from(new Map(rooms.map(room => [room.roomType?.id, room.roomType])).values())
+                                    .filter(rt => rt && rt.id)
+                                    .map(rt => (
+                                        <SelectItem key={rt.id} value={rt.id}>
+                                            {rt.name}
+                                        </SelectItem>
+                                    ))}
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <div className='space-y-1'>
+                        <Label>Room</Label>
+                        <div className="relative">
+                            <Select
+                                value=""
+                                onValueChange={handleRoomSelection}
+                            >
+                                <SelectTrigger className={`border border-slate-300 w-full`}>
+                                    <SelectValue placeholder={
+                                        formData.roomIds?.length === 0
+                                            ? "Select a room..."
+                                            : "Select connecting rooms..."
+                                    } />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableRooms.map(room => (
+                                        <SelectItem key={room.id} value={room.id}>
+                                            {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Display selected rooms */}
+                        {formData.roomIds && formData.roomIds.length > 0 && (
+                            <div className="space-y-2">
+                                <Label className="text-sm text-slate-600">Selected Rooms:</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.roomIds.map(roomId => {
+                                        const room = rooms.find(r => r.id === roomId) ||
+                                            connectableRooms.find(r => r.id === roomId);
+                                        return room ? (
+                                            <div key={roomId} className="flex items-center bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm">
+                                                <span>{room.roomNumber} - {room.roomType?.name || 'Unknown Type'}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRoomRemoval(roomId)}
+                                                    className="ml-2 text-slate-500 hover:text-red-500"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <h2 className='text-lg font-bold'>Stay Information</h2>
 
                     <div className='space-y-1'>
                         <Label>Check In</Label>
-                        <Input
-                            className='border border-slate-300'
-                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    data-empty={!formData.checkIn}
+                                    className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                >
+                                    <CalendarIcon />
+                                    {formData.checkIn ? format(formData.checkIn, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <CalendarComponent
+                                    mode="single"
+                                    selected={formData.checkIn}
+                                    onSelect={(date) => date && setFormData({ ...formData, checkIn: date })}
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <div className='space-y-1'>
                         <Label>Check Out</Label>
-                        <Input
-                            className='border border-slate-300'
-                        />
-                    </div>
-
-                    <div>
-                        <Label>Number of Guests</Label>
-                        <Input
-                            className='border border-r-slate-300'
-                            type='number'
-                            value={formData.numberOfGuests}
-                            onChange={(e) => handleInputChange('numberOfGuests', e.target.value)}
-                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    data-empty={!formData.checkOut}
+                                    className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                >
+                                    <CalendarIcon />
+                                    {formData.checkOut ? format(formData.checkOut, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <CalendarComponent
+                                    mode="single"
+                                    selected={formData.checkOut}
+                                    onSelect={(date) => date && setFormData({ ...formData, checkOut: date })}
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <h2 className='text-lg font-bold'>Extra Information & Services</h2>
-
-                    <div className='space-y-1'>
-                        <Label>Special Requests</Label>
-                        <Textarea
-                            className='border border-slate-300'
-                            value={formData.specialRequests}
-                            onChange={(e) => handleInputChange('specialRequests', e.target.value)}
-                        />
-                    </div>
 
                     <div className='space-y-1'>
                         <Label>Rate Plan</Label>
@@ -247,8 +360,8 @@ const NewReservation = () => {
                                 : "Create Reservation"}
                     </Button>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 };
 

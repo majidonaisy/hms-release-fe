@@ -22,7 +22,7 @@ const Rooms = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     // Sorting state
-    const [sortBy, setSortBy] = useState('name');
+    const [sortBy, _setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [items, setItems] = useState(0);
@@ -177,9 +177,9 @@ const Rooms = () => {
                         </div>
 
                         {/* Table Section */}
-                        <div className="bg-white rounded-lg shadow">
+                        <div className="bg-white rounded-lg">
                             <Table>
-                                <TableHeader>
+                                <TableHeader className='bg-hms-accent/15 rounded-lg'>
                                     <TableRow className="border-b border-gray-200">
                                         <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
                                             <div className="flex items-center gap-1">
@@ -197,7 +197,7 @@ const Rooms = () => {
                                 </TableHeader>
                                 <TableBody>
                                     {rooms.map((room) => (
-                                        <TableRow key={room.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                        <TableRow key={room.id} className="border-b-2 hover:bg-gray-50">
                                             <TableCell className="px-6 py-4 font-medium text-gray-900">
                                                 {room.roomNumber}
                                             </TableCell>
@@ -213,10 +213,10 @@ const Rooms = () => {
                                                 {room.floor}
                                             </TableCell>
                                             <TableCell className="px-6 py-4 text-gray-600">
-                                                {room.adultOccupancy} Adult, {room.childOccupancy} Child
+                                                {room.roomType.adultOccupancy} Adult, {room.roomType.childOccupancy} Child
                                             </TableCell>
                                             <TableCell className="px-6 py-4 text-gray-600">
-                                                {room.maxOccupancy}
+                                                {room.roomType.maxOccupancy}
                                             </TableCell>
                                             <TableCell className="px-6 py-4">
                                                 <div className="flex items-center gap-2">

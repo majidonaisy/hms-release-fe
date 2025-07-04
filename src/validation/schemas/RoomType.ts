@@ -3,14 +3,18 @@ import { z } from "zod";
 // Common RoomType shape
 // Update RoomType shape to match API response
 export const RoomTypeShape = z.object({
+
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  baseRate: z.string(), // Change from number to string to match API
-  capacity: z.number().int().positive().optional(),
+  maxOccupancy: z.number().int().min(1, "Max occupancy must be at least 1"),
+  adultOccupancy: z.number().int().min(0, "Adult occupancy must be at least 0"),
+  childOccupancy: z.number().int().min(0, "Child occupancy must be at least 0"),
+  baseRate: z.string(),
   hotelId: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date()
+
 });
 
 // Add RoomType
@@ -18,7 +22,9 @@ export const AddRoomTypeRequestSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   baseRate: z.number().positive().min(1, "Base rate must be positive"),
-  capacity: z.number().int().positive().min(1, "Capacity must be at least 1"),
+  maxOccupancy: z.number().min(1, "Max occupancy must be at least 1"),
+  childOccupancy: z.number().min(0, "Child occupancy must be at least 0"),
+  adultOccupancy: z.number().min(0, "Adult occupancy must be at least 0"),
 });
 
 export const AddRoomTypeResponseSchema = z.object({

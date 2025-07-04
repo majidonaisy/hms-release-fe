@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { Amenity, AmenityResponse } from "@/validation/schemas/amenity";
-import { AddRoomRequest, AddRoomResponse, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
+import { AmenityResponse } from "@/validation/schemas/amenity";
+import { AddRoomRequest, AddRoomResponse, GetRoomsByRoomType, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -124,6 +124,23 @@ export const getAmenities = async (): Promise<AmenityResponse> => {
     return response as AmenityResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get amenities";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const getRoomsByRoomTypes = async (id: string): Promise<GetRoomsByRoomType> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Room.GetByType}/${id}`,
+      baseURL,
+    });
+    return response as GetRoomsByRoomType;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get rooms by type";
     throw {
       userMessage: errorMessage,
       originalError: error,

@@ -138,7 +138,7 @@ const RoutesList = () => {
             title: "Reservations",
             icon: <Plus className="size-5" />,
             component: NewReservation,
-            isShown: true
+            isShown: false
         }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes

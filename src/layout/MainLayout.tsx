@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useLocation, Link, Outlet } from 'react-router-dom';
-import { addDays, format } from 'date-fns';
+import { useLocation, Link, useNavigate, Outlet } from 'react-router-dom';
+import { format } from 'date-fns';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
     Sidebar,
@@ -18,9 +18,6 @@ import {
 } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
-import ReservationModal from '../components/Templates/ReservationModal';
-import { Room, Reservation } from '../types/reservation';
-import { sampleRooms } from '../data/data';
 
 interface MainLayoutProps {
     routes: any[];
@@ -28,49 +25,8 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>();
-    const [selectedRoom, setSelectedRoom] = useState<Room | undefined>();
-    const [selectedDateRange, setSelectedDateRange] = useState<{ start: Date; end: Date } | undefined>();
     const [openTabs, setOpenTabs] = useState<string[]>([]); // Add this for collapsible subroutes
-
-    const defaultRoom = sampleRooms[0];
-
-    const handleOpenNewReservation = () => {
-        setSelectedRoom(defaultRoom);
-        setSelectedDateRange({
-            start: new Date(),
-            end: addDays(new Date(), 1),
-        });
-        setSelectedReservation(undefined);
-        setIsModalOpen(true);
-    };
-
-    const handleOpenReservationModal = (data: {
-        room?: Room;
-        reservation?: Reservation;
-        dateRange?: { start: Date; end: Date };
-    }) => {
-        setSelectedRoom(data.room);
-        setSelectedReservation(data.reservation);
-        setSelectedDateRange(data.dateRange);
-        setIsModalOpen(true);
-    };
-
-    const handleSaveReservation = () => {
-        setIsModalOpen(false);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedReservation(undefined);
-        setSelectedRoom(undefined);
-        setSelectedDateRange(undefined);
-    };
-
-    const modalContext = {
-        openReservationModal: handleOpenReservationModal,
-    };
+    const navigate = useNavigate();
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
@@ -226,7 +182,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                             <div className="flex items-center gap-3">
                                 <Button
                                     variant='primaryOutline'
-                                    onClick={handleOpenNewReservation}
+                                    onClick={() => navigate('/new-reservation')}
                                     className='h-7'
                                 >
                                     <Plus size={18} className="mr-2" />
@@ -238,23 +194,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                     </header>
 
                     <main className="flex-1 overflow-auto">
-                        <Outlet context={modalContext} />
+                        <Outlet />
                     </main>
                 </SidebarInset>
 
-                {/* Reservation Modal */}
-                {selectedRoom && (
-                    <ReservationModal
-                        isOpen={isModalOpen}
-                        onClose={handleCloseModal}
-                        onSave={handleSaveReservation}
-                        reservation={selectedReservation}
-                        room={selectedRoom}
-                        selectedDateRange={selectedDateRange}
-                    />
-                )}
+
             </div>
-        </SidebarProvider>
+        </SidebarProvider >
     );
 };
 

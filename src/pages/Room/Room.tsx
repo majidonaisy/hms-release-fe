@@ -4,15 +4,15 @@ import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import NewRoomForm from './NewRoomForm';
 import { getRoomById, updateRoom, addRoom } from '@/services/Rooms';
-import { AddRoomRequest, Room as RoomType } from '@/validation';
+import { AddRoomRequest, Room } from '@/validation';
 import { toast } from 'sonner';
 import EditingSkeleton from '../../components/Templates/EditingSkeleton';
 
-const Room = () => {
+const RoomPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [room, setRoom] = useState<RoomType | null>(null);
+    const [room, setRoom] = useState<Room | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     // Determine if we're in edit mode or add mode
@@ -27,11 +27,9 @@ const Room = () => {
 
                 try {
                     const response = await getRoomById(id);
-                    console.log('response', response)
                     const roomData = response.data?.data || response.data;
                     setRoom(roomData);
                 } catch (error: any) {
-                    console.error('Error fetching room:', error);
                     setError(error.userMessage || 'Failed to load room data');
                 } finally {
                     setLoading(false);
@@ -49,58 +47,42 @@ const Room = () => {
     const handleSubmit = async (data: AddRoomRequest): Promise<void> => {
         try {
             if (isEditMode && id) {
-                console.log('data,id', data, id)
-                await updateRoom(id, data as any);
+                await updateRoom(id, data);
                 toast.success('Room updated successfully');
             } else if (isAddMode) {
-                await addRoom(data as any);
+                await addRoom(data);
                 toast.success('Room created successfully');
             }
-
             navigate('/rooms');
         } catch (error: any) {
-            console.error('Error saving room:', error);
             toast.error(error.userMessage || `Failed to ${isEditMode ? 'update' : 'create'} room`);
-            // Re-throw the error so the form can handle it
             throw error;
         }
     };
 
-    const handleSaveDraft = (data: AddRoomRequest) => {
+    const handleSaveDraft = () => {
         toast.info('Draft saved');
     };
 
     // Transform room data to form data for editing
     const getInitialData = (): Partial<AddRoomRequest> | undefined => {
         if (!room || isAddMode) return undefined;
-
         return {
             roomNumber: room.roomNumber,
             roomTypeId: room.roomTypeId,
             floor: room.floor,
-            status: room.status,
-            adultOccupancy: room.adultOccupancy,
-            childOccupancy: room.childOccupancy,
-            maxOccupancy: room.maxOccupancy,
             description: room.description || '',
-            // Set default values for fields not in API response
-            bedType: '',
-            singleBeds: 0,
-            doubleBeds: 0,
-            baseRate: room.roomType?.baseRate ? parseFloat(room.roomType.baseRate) : 0,
-            isConnecting: false,
-            connectedRoomIds: [],
-            amenities: [], // Initialize as empty array, will be populated when amenities are fetched
-            photos: Array.isArray(room.photos) ? room.photos : []
+            amenities: room.Amenities ? room.Amenities.map((a: any) => a.id) : [],
+            connectedRoomIds: room.connectedRooms ? room.connectedRooms.map((cr: any) => cr.id) : [],
+            photos: Array.isArray(room.photos) ? room.photos : [],
+            hotelId: room.hotelId,
         };
     };
 
-    // Show loading skeleton while fetching data in edit mode
     if (isEditMode && loading) {
         return <EditingSkeleton />;
     }
 
-    // Show error if failed to load room data
     if (isEditMode && (error || (!loading && !room))) {
         return (
             <div className="p-5 min-h-screen">
@@ -112,18 +94,15 @@ const Room = () => {
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-xl font-bold">
-                        {error || 'Room Not Found'}
-                    </h1>
                 </div>
+                <div className="text-red-500">{error || 'Room not found.'}</div>
             </div>
         );
     }
 
     return (
         <div className="p-5 min-h-screen">
-            {/* Header with Back Button */}
-            <div className="flex items-center gap-3 mb-6">
+               <div className="flex items-center gap-3 mb-6">
                 <Button
                     variant="ghost"
                     onClick={handleBack}
@@ -139,17 +118,15 @@ const Room = () => {
                 </h1>
             </div>
 
-            {/* Room Form */}
             <NewRoomForm
-                key={room?.id} // Force re-render when room changes
                 initialData={getInitialData()}
                 onSubmit={handleSubmit}
                 onSaveDraft={handleSaveDraft}
-                submitButtonText={isEditMode ? "Update Room" : "Create Room"}
-                draftButtonText="Save as Draft"
+                isLoading={loading}
+                submitButtonText={isEditMode ? 'Update Room' : 'Create Room'}
             />
         </div>
     );
 };
 
-export default Room;
+export default RoomPage;
