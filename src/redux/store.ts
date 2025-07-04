@@ -8,7 +8,7 @@ import authReducer from "./slices/authSlice";
 const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["accessToken", "isAuthenticated"],
+  whitelist: ["accessToken", "isAuthenticated", "permissions"], // Specify which parts of the state to persist
 };
 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
@@ -24,7 +24,6 @@ export const store = configureStore({
       },
     }),
 });
-
 export const persistor = persistStore(store);
 
 // Enable listener behavior for the store

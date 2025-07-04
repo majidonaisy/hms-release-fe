@@ -5,12 +5,17 @@ export const LoginRequestSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
+export const PermissionsSchema = z.object({
+  subject: z.string(),
+  action: z.string(),
+});
+
 export const LoginResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
   accessToken: z.object({
     token: z.string(),
-    permissions: z.array(z.string()),
+    permissions: z.array(PermissionsSchema),
   }),
   data: z.object({
     user: z.object({
@@ -45,6 +50,7 @@ export const AddUserResponseSchema = z.object({
   }),
 });
 
+export type Permissions = z.infer<typeof PermissionsSchema>;
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export type AddUserRequest = z.infer<typeof AddUserRequestSchema>;

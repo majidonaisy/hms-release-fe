@@ -1,16 +1,13 @@
+import { Permissions } from "@/validation";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// interface User {
-//   id?: string;
-//   firstName?: string;
-//   lastName?: string;
-//   email?: string;
-// }
+
 
 interface AuthState {
   accessToken: string | null;
   // refreshToken: string | null;
   isAuthenticated: boolean;
+  permissions: Permissions[];
   // user: User | null;
 }
 
@@ -18,6 +15,7 @@ const initialState: AuthState = {
   accessToken: null,
   // refreshToken: null,
   isAuthenticated: false,
+  permissions: [], 
   // user: null,
 };
 
@@ -29,11 +27,13 @@ export const authSlice = createSlice({
       state,
       action: PayloadAction<{
         accessToken: string;
+        permissions?: Permissions[]; 
         // refreshToken?: string;
         // user?: User;
       }>
     ) => {
       state.accessToken = action.payload.accessToken;
+      state.permissions = action.payload.permissions || [];
       // state.refreshToken = action.payload.refreshToken || null;
       // state.user = action.payload.user || null;
       state.isAuthenticated = true;
@@ -41,6 +41,7 @@ export const authSlice = createSlice({
     },
     logout: (state) => {
       state.accessToken = null;
+      state.permissions = [];
       // state.refreshToken = null;
       // state.user = null;
       state.isAuthenticated = false;
