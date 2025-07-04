@@ -31,7 +31,7 @@ export const AddRoomRequestSchema = z.object({
   singleBeds: z.number().min(0).optional(),
   doubleBeds: z.number().min(0).optional(),
   isConnecting: z.boolean().optional(),
-  connectingRoom: z.string().optional(),
+  connectedRoomIds: z.array(z.string()).optional(),
   description: z.string().optional(),
   amenities: z.array(z.any()).optional(),
     photos: z.array(z.any()).optional(),
