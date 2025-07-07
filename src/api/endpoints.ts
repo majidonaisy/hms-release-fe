@@ -56,6 +56,10 @@ export const ENDPOINTS = {
     GetEmployeeById: "auth/get-user"
   },
   Role: {
-    Get: "role/get"
+    Add: "role/add",
+    GetAll: "role/get",
+    GetById: "role/get",
+    Update: "role/update",
+    Delete: "role/delete",
   }
 }

@@ -74,6 +74,7 @@ export const UpdateGuestResponseSchema = z.object({
   data: GuestShape,
 });
 
+export type Guest = z.infer<typeof GuestShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
 export type GetGuestsResponse = z.infer<typeof GetGuestsResponseSchema>;
