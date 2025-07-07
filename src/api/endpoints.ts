@@ -37,6 +37,7 @@ export const ENDPOINTS = {
     Add: "reservation/add",
     Update: "reservation/update/{id}",
     CheckIn: "reservation/check-in/{id}",
+    Get: "reservation/get-reservation"
   },
   Maintenance: {
     Add: "maintenance/add",
@@ -53,5 +54,8 @@ export const ENDPOINTS = {
   Employees: {
     GetAll: "auth/employees",
     GetEmployeeById: "auth/get-user"
+  },
+  Role: {
+    Get: "role/get"
   }
 }

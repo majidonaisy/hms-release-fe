@@ -20,3 +20,25 @@ export const addReservation = async (data: AddReservationRequest): Promise<Reser
     };
   }
 };
+
+export const getReservations = async (startDate?: Date, endDate?: Date): Promise<ReservationResponse> => {
+  try {
+    const params: Record<string, string> = {};
+    if (startDate) params.startDate = startDate.toISOString().split("T")[0];
+    if (endDate) params.endDate = endDate.toISOString().split("T")[0];
+
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Reservations.Get,
+      baseURL,
+      params,
+    });
+    return response as ReservationResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

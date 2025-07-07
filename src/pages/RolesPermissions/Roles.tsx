@@ -1,29 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Filter, Plus, ChevronDown, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
-import { permissionsList, rolesData, teamMembersData } from '@/data/data';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/atoms/ScrollArea';
-
-export interface Role {
-    id: number;
-    name: string;
-    code: string;
-    status: string;
-    department: string;
-    level: string;
-    assignedCount: string;
-    permissions: string;
-    description: string;
-}
+import { Role, RoleResponse } from '@/validation/schemas/Roles';
+import { getRoles } from '@/services/Role';
 
 const Roles = () => {
     const [searchText, setSearchText] = useState<string>('');
@@ -35,21 +24,33 @@ const Roles = () => {
         assignedUsers: [],
         selectedPermissions: [] as string[]
     });
+    const [roles, setRoles] = useState<RoleResponse['data']>();
+
+    useEffect(() => {
+        const handleGetRoles = async () => {
+            try {
+                const response = await getRoles();
+                setRoles(response.data)
+            } catch (error) {
+                console.error(error)
+            }
+        }
+        handleGetRoles()
+    }, [])
 
     const filteredRoles = useMemo(() => {
         if (!searchText.trim()) {
-            return rolesData;
+            return roles;
         }
 
         const searchTerm = searchText.toLowerCase().trim();
 
-        return rolesData.filter((member) => {
+        return roles?.filter((member) => {
             return (
-                member.name.toLowerCase().includes(searchTerm) ||
-                member.code.toLowerCase().includes(searchTerm)
+                member.name.toLowerCase().includes(searchTerm)
             );
         });
-    }, [searchText]);
+    }, [searchText, roles]);
 
     const clearSearch = (): void => {
         setSearchText('');
@@ -68,7 +69,7 @@ const Roles = () => {
         }
     };
 
-    const handleDeleteClick = (e: React.MouseEvent, roleId: number): void => {
+    const handleDeleteClick = (e: React.MouseEvent, roleId: string): void => {
         e.stopPropagation();
         // Handle delete logic here
         console.log('Delete role:', roleId);
@@ -104,7 +105,7 @@ const Roles = () => {
                 <div className="flex items-center gap-2 mb-4">
                     <h1 className="text-2xl font-semibold text-gray-900">Roles</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        {rolesData.length} roles
+                        {roles?.length} roles
                     </span>
                 </div>
 
@@ -169,7 +170,7 @@ const Roles = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredRoles.length === 0 && searchText ? (
+                        {filteredRoles?.length === 0 && searchText ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                     <div className="flex flex-col items-center gap-2">
@@ -179,7 +180,7 @@ const Roles = () => {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ) : filteredRoles.map((role) => (
+                        ) : filteredRoles?.map((role) => (
                             <TableRow
                                 key={role.id}
                                 className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
@@ -187,28 +188,34 @@ const Roles = () => {
                                 <TableCell className="px-6 py-4 font-medium text-gray-900 flex gap-1">
                                     <div className='grid'>
                                         <p>{role.name}</p>
-                                        <p className='text-xs'>{role.code}</p>
+                                        {/* <p className='text-xs'>{role.code}</p> */}
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <Badge className={`${getStatusColor(role.status)} border-0`}>
+                                    {/* <Badge className={`${getStatusColor(role.status)} border-0`}>
                                         • {role.status}
-                                    </Badge>
+                                    </Badge> */}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-gray-600">
-                                    {role.department}
+                                    {/* {role.department} */}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-gray-600">
-                                    {role.level}
+                                    {/* {role.level} */}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-gray-600">
-                                    {role.assignedCount}
+                                    {/* {role.assignedCount} */}
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-gray-600">
-                                    {role.permissions}
+                                    {
+                                        role.permissions.map((permission) => (
+                                            <p>
+                                                {permission.action} {permission.subject}
+                                            </p>
+                                        ))
+                                    }
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <div className="flex items-center gap-2"> 
+                                    <div className="flex items-center gap-2">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild>
                                                 <Button
@@ -317,9 +324,9 @@ const Roles = () => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-full">
                                     <ScrollArea className='h-[10rem]'>
-                                        {teamMembersData.map((user) => (
+                                        {/* {teamMembersData.map((user) => (
                                             <DropdownMenuItem className='w-full'>{user.name}</DropdownMenuItem>
-                                        ))}
+                                        ))} */}
                                     </ScrollArea>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -342,7 +349,7 @@ const Roles = () => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-full">
                                     <ScrollArea className='h-[10rem]    '>
-                                        {permissionsList.map((permission, index) => (
+                                        {/* {permissionsList.map((permission, index) => (
                                             <DropdownMenuItem
                                                 key={index}
                                                 onSelect={(e) => e.preventDefault()}
@@ -361,7 +368,7 @@ const Roles = () => {
                                                     {permission}
                                                 </Label>
                                             </DropdownMenuItem>
-                                        ))}
+                                        ))} */}
                                     </ScrollArea>
 
                                 </DropdownMenuContent>
