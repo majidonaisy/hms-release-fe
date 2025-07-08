@@ -1,7 +1,27 @@
 import { z } from "zod/v4";
 
-export const ReservationShape = z.object({
+export const ReservationResponseShape = z.object({
     id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    maxOccupancy: z.number(),
+    adultOccupancy: z.number(),
+    childOccupancy: z.number(),
+    baseRate: z.string(),
+    hotelId: z.string(),
+    createdAt: z.string().transform((val) => new Date(val)),
+    updatedAt: z.string().transform((val) => new Date(val)),
+    Room: z.array(z.object({
+        id: z.string(),
+        roomNumber: z.string(),
+        status: z.string(),
+        floor: z.number(),
+        description: z.string(),
+        roomTypeId: z.string(),
+        photos: z.array(z.any()).optional(),
+        hotelId: z.string(),
+        reservations: z.array(z.any()).optional(),
+    })),
 });
 
 export const AddReservationRequestSchema = z.object({
@@ -15,7 +35,7 @@ export const AddReservationRequestSchema = z.object({
 export const ReservationResponseSchema = z.object({
     status: z.number(),
     message: z.string(),
-    data: ReservationShape,
+    data: z.array(ReservationResponseShape),
 });
 
 export const UpdateReservationRequestSchema = z.object({
@@ -49,6 +69,7 @@ export const CheckOutResponse = z.object({
     data: z.object({})
 });
 
+export type Reservation = z.infer<typeof ReservationResponseShape>
 export type AddReservationRequest = z.infer<typeof AddReservationRequestSchema>;
 export type ReservationResponse = z.infer<typeof ReservationResponseSchema>;
 export type UpdateReservationRequest = z.infer<typeof UpdateReservationRequestSchema>;

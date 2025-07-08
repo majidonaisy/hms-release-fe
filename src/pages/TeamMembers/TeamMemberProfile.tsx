@@ -130,7 +130,7 @@ const TeamMemberProfile = () => {
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-
+                                <p className='text-center font-semibold'>{teamMember.firstName} {teamMember.lastName}</p>
                                 <div className="text-center">
                                     <Badge className={`${getStatusColor(teamMember.isActive)} border-0 mb-2`}>
                                         • {teamMember.isActive ? 'Active' : 'Inactive'}
