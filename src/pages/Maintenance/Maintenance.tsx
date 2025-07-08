@@ -7,7 +7,6 @@ import { Badge } from '@/components/atoms/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import Pagination from '@/components/atoms/Pagination';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
@@ -15,13 +14,14 @@ import { addMaintenance, deleteMaintenance, getMaintenances } from '@/services/M
 import { Maintenance as MaintenanceType } from '@/validation';
 
 const Maintenance = () => {
-    const navigate = useNavigate();
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceType[]>([]);
     const [isNewMaintenanceDialogOpen, setIsNewMaintenanceDialogOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceType | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -32,6 +32,7 @@ const Maintenance = () => {
     const filteredRequests = maintenanceRequests.filter(request => {
         const matchesSearch =
             request.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
+            (request.room?.roomNumber && request.room.roomNumber.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.title && request.title.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.assignedTo && request.assignedTo.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.requestedBy && request.requestedBy.toLowerCase().includes(searchText.toLowerCase())) ||
@@ -49,35 +50,34 @@ const Maintenance = () => {
         currentPage * itemsPerPage
     );
 
-    // Status badge styling
+    // Status badge styling - Updated for new status values
     const getStatusBadge = (status: MaintenanceType['status']) => {
         const styles = {
             PENDING: 'bg-chart-1/20 text-chart-1 hover:bg-chart-1/20',
             IN_PROGRESS: 'bg-chart-2/20 text-chart-2 hover:bg-chart-2/20',
             COMPLETED: 'bg-chart-3/20 text-chart-3 hover:bg-chart-3/20',
-            CANCELLED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20'
+            CANCELED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20' // Updated from CANCELLED to CANCELED
         };
         return styles[status];
     };
 
-    // Priority badge styling
+    // Priority badge styling - Updated for new priority values
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
             LOW: 'bg-green-100 text-green-700 hover:bg-green-100',
             MEDIUM: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
-            HIGH: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
-            CRITICAL: 'bg-red-100 text-red-700 hover:bg-red-100'
+            HIGH: 'bg-red-100 text-red-700 hover:bg-red-100', // Updated from CRITICAL to HIGH
         };
         return styles[priority];
     };
 
-    // Status dot color
+    // Status dot color - Updated for new status values
     const getStatusDotColor = (status: MaintenanceType['status']) => {
         const dotColors = {
             PENDING: 'bg-chart-1',
             IN_PROGRESS: 'bg-chart-2',
             COMPLETED: 'bg-chart-3',
-            CANCELLED: 'bg-chart-4'
+            CANCELED: 'bg-chart-4' // Updated from CANCELLED to CANCELED
         };
         return dotColors[status];
     };
@@ -95,13 +95,20 @@ const Maintenance = () => {
         }
     };
 
+
+
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
         e.stopPropagation();
-        navigate(`/maintenance/${requestId}`);
+        const maintenanceToEdit = maintenanceRequests.find(req => req.id === requestId);
+        if (maintenanceToEdit) {
+            setEditingMaintenance(maintenanceToEdit);
+            setIsEditMode(true);
+            setIsNewMaintenanceDialogOpen(true);
+        }
     };
 
     const handleDeleteClick = (e: React.MouseEvent, request: MaintenanceType) => {
@@ -137,18 +144,43 @@ const Maintenance = () => {
 
     const handleNewMaintenanceConfirm = async (data: any) => {
         try {
-            const response = await addMaintenance(data);
-            toast.success('Maintenance request created successfully');
+            if (isEditMode && editingMaintenance) {
+                // Handle edit mode
+                const updateData = {
+                    ...data,
+                    id: editingMaintenance.id
+                };
+                setMaintenanceRequests(prev =>
+                    prev.map(request =>
+                        request.id === editingMaintenance.id
+                            ? { ...request, ...updateData, updatedAt: new Date().toISOString() }
+                            : request
+                    )
+                );
+                toast.success('Maintenance request updated successfully');
+            } else {
+                // Handle add mode
+                const response = await addMaintenance(data);
+                
+                // Add the new maintenance request to the beginning of the list
+                setMaintenanceRequests(prev => [response.data, ...prev]);
+                setCurrentPage(1);
+                toast.success('Maintenance request created successfully');
+            }
+
             setIsNewMaintenanceDialogOpen(false);
-            await fetchMaintenanceRequests(); // Refresh the list
+            setIsEditMode(false);
+            setEditingMaintenance(null);
         } catch (error) {
-            toast.error('Failed to create maintenance request');
+            toast.error(isEditMode ? 'Failed to update maintenance request' : 'Failed to create maintenance request');
             throw error;
         }
     };
 
     const handleNewMaintenanceCancel = () => {
         setIsNewMaintenanceDialogOpen(false);
+        setIsEditMode(false);
+        setEditingMaintenance(null);
     };
 
     const handleStatusChange = (requestId: string, newStatus: MaintenanceType['status']) => {
@@ -195,7 +227,7 @@ const Maintenance = () => {
                         <Search className="h-4 w-4 text-gray-400" />
                     </div>
 
-                    {/* Status Filter */}
+                    {/* Status Filter - Updated for new status values */}
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Status" />
@@ -205,7 +237,7 @@ const Maintenance = () => {
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                             <SelectItem value="COMPLETED">Completed</SelectItem>
-                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                            <SelectItem value="CANCELED">Canceled</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -225,7 +257,11 @@ const Maintenance = () => {
 
                     {/* Action Button */}
                     <div className="flex gap-2 ml-auto">
-                        <Button onClick={() => setIsNewMaintenanceDialogOpen(true)}>
+                        <Button onClick={() => {
+                            setIsEditMode(false);
+                            setEditingMaintenance(null);
+                            setIsNewMaintenanceDialogOpen(true);
+                        }}>
                             <Plus className="h-4 w-4" />
                             Add Maintenance
                         </Button>
@@ -241,7 +277,7 @@ const Maintenance = () => {
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
                                 Type
                             </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room ID</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Description</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Priority</TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
@@ -269,7 +305,9 @@ const Maintenance = () => {
                                         {request.type || 'N/A'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        <div className="font-medium text-gray-900">{request.roomId}</div>
+                                        <div className="font-medium text-gray-900">
+                                            {request.room?.roomNumber || request.roomId || 'Unknown Room'}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="truncate max-w-xs" title={request.description}>
@@ -314,9 +352,9 @@ const Maintenance = () => {
                                                 {request.status === 'PENDING' && (
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
-                                                        onClick={() => { }}
+                                                        onClick={() => handleStatusChange(request.id, 'IN_PROGRESS')}
                                                     >
-                                                        Activity Log
+                                                        Start Work
                                                     </DropdownMenuItem>
                                                 )}
                                                 {request.status === 'IN_PROGRESS' && (
@@ -358,6 +396,20 @@ const Maintenance = () => {
                 isOpen={isNewMaintenanceDialogOpen}
                 onConfirm={handleNewMaintenanceConfirm}
                 onCancel={handleNewMaintenanceCancel}
+                isEditMode={isEditMode}
+                editData={editingMaintenance ? {
+                    id: editingMaintenance.id,
+                    areaType: editingMaintenance.type || 'REPAIR',
+                    roomId: editingMaintenance.roomId,
+                    description: editingMaintenance.description,
+                    priority: editingMaintenance.priority,
+                    assignedTo: editingMaintenance.assignedTo || '',
+                    photos: editingMaintenance.photos || [],
+                    repeatMaintenance: false,
+                    frequency: '',
+                    type: editingMaintenance.type,
+                    status: editingMaintenance.status
+                } : null}
             />
 
             {/* Delete Confirmation Dialog */}

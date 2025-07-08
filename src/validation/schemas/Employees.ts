@@ -32,6 +32,6 @@ export const GetEmployeeByIdResponseSchema = z.object({
     data: EmployeeShape
 });
 
-
+export type Employee = z.infer<typeof EmployeeShape>;
 export type GetEmployeesResponse = z.infer<typeof GetEmployeesResponseSchema>;
 export type GetEmployeeByIdResponse = z.infer<typeof GetEmployeeByIdResponseSchema>;

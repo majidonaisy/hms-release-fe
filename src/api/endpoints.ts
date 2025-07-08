@@ -48,6 +48,15 @@ export const ENDPOINTS = {
     Update: "maintenance/update",
     Delete: "maintenance/delete",
   },
+  Housekeeping: {
+    Add: "housekeeping/add",
+    Start: "housekeeping/start",
+    Complete: "housekeeping/complete",
+    GetAll: "housekeeping/get",
+    GetById: "housekeeping/get",
+    Update: "housekeeping/update",
+    Delete: "housekeeping/delete",
+  },
   Amenities: {
     GetAllAmenities: "amenity/get",
   },
@@ -62,4 +71,4 @@ export const ENDPOINTS = {
     Update: "role/update",
     Delete: "role/delete",
   }
-}
+};

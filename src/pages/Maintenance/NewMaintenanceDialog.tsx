@@ -9,21 +9,29 @@ import { X, Upload, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { getRooms } from '@/services/Rooms';
 import { Room } from '@/validation';
+import { Employee } from '@/validation/schemas/Employees';
+import { getEmployees } from '@/services/Employees';
 
 interface NewMaintenanceDialogProps {
     isOpen: boolean;
     onConfirm: (data: MaintenanceFormData) => Promise<void>;
     onCancel: () => void;
+    editData?: Partial<MaintenanceFormData> | null;
+    isEditMode?: boolean;
 }
+
 interface MaintenanceFormData {
+    id?: string;
     areaType: string;
     roomId: string;
     description: string;
-    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Updated to match Prisma Priority enum
     assignedTo: string;
     photos: File[];
     repeatMaintenance: boolean;
     frequency: string;
+    type?: string;
+    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'; // Updated to match Prisma maintenanceStatus enum
 }
 
 const areaTypes = [
@@ -39,13 +47,6 @@ const areaTypes = [
     { value: 'OTHER', label: 'Other' }
 ];
 
-const maintenanceStaff = [
-    { value: 'john_doe', label: 'John Doe - Technician' },
-    { value: 'mike_smith', label: 'Mike Smith - Electrician' },
-    { value: 'sarah_jones', label: 'Sarah Jones - Plumber' },
-    { value: 'tom_wilson', label: 'Tom Wilson - General Maintenance' },
-    { value: 'lisa_brown', label: 'Lisa Brown - Cleaner' }
-];
 
 const frequencies = [
     { value: 'WEEKLY', label: 'Weekly' },
@@ -58,7 +59,9 @@ const frequencies = [
 const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     isOpen,
     onConfirm,
-    onCancel
+    onCancel,
+    editData = null,
+    isEditMode = false
 }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<MaintenanceFormData>({
@@ -73,6 +76,49 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     });
 
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]); // Assuming you have a way to fetch employees
+
+
+    const fetchEmployees = async () => {
+        // Assuming you have a service to fetch employees
+        try {
+            const response = await getEmployees(); // Replace with actual service call
+            setEmployees(response.data);
+        } catch (error) {
+            console.error('Failed to fetch employees:', error);
+            toast.error('Failed to fetch employees. Please try again later.');
+        }
+    };
+    // Load edit data when editing
+    useEffect(() => {
+        if (isEditMode && editData) {
+            setFormData({
+                id: editData.id || '',
+                areaType: editData.areaType || '',
+                roomId: editData.roomId || '',
+                description: editData.description || '',
+                priority: editData.priority || 'MEDIUM',
+                assignedTo: editData.assignedTo || '',
+                photos: editData.photos || [],
+                repeatMaintenance: editData.repeatMaintenance || false,
+                frequency: editData.frequency || '',
+                type: editData.type,
+                status: editData.status
+            });
+        } else {
+            // Reset form for new maintenance
+            setFormData({
+                areaType: '',
+                roomId: '',
+                description: '',
+                priority: 'MEDIUM',
+                assignedTo: '',
+                photos: [],
+                repeatMaintenance: false,
+                frequency: ''
+            });
+        }
+    }, [isEditMode, editData, isOpen]);
 
     const handleInputChange = (field: keyof MaintenanceFormData, value: any) => {
         setFormData(prev => ({
@@ -106,7 +152,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-console.log('formData', formData)
+        console.log('formData', formData)
+
         if (!formData.areaType) {
             toast.error('Please select an area type');
             return;
@@ -122,11 +169,6 @@ console.log('formData', formData)
             return;
         }
 
-        // if (!formData.assignedTo) {
-        //     toast.error('Please assign to a staff member');
-        //     return;
-        // }
-
         if (formData.repeatMaintenance && !formData.frequency) {
             toast.error('Please select frequency for repeat maintenance');
             return;
@@ -136,6 +178,27 @@ console.log('formData', formData)
         try {
             await onConfirm(formData);
             // Reset form after successful submission
+            if (!isEditMode) {
+                setFormData({
+                    areaType: '',
+                    roomId: '',
+                    description: '',
+                    priority: 'MEDIUM',
+                    assignedTo: '',
+                    photos: [],
+                    repeatMaintenance: false,
+                    frequency: ''
+                });
+            }
+        } catch (error) {
+            // Error handling is done in parent component
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancel = () => {
+        if (!isEditMode) {
             setFormData({
                 areaType: '',
                 roomId: '',
@@ -146,24 +209,7 @@ console.log('formData', formData)
                 repeatMaintenance: false,
                 frequency: ''
             });
-        } catch (error) {
-            // Error handling is done in parent component
-        } finally {
-            setLoading(false);
         }
-    };
-
-    const handleCancel = () => {
-        setFormData({
-            areaType: '',
-            roomId: '',
-            description: '',
-            priority: 'MEDIUM',
-            assignedTo: '',
-            photos: [],
-            repeatMaintenance: false,
-            frequency: ''
-        });
         onCancel();
     };
 
@@ -180,7 +226,8 @@ console.log('formData', formData)
 
     useEffect(() => {
         Promise.all([
-            fetchRooms()
+            fetchRooms(),
+            fetchEmployees()
         ]);
     }, []);
 
@@ -188,8 +235,9 @@ console.log('formData', formData)
         <Dialog open={isOpen} onOpenChange={handleCancel}>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="flex flex-row items-center justify-between pb-4">
-                    <DialogTitle className="text-xl font-semibold">New Maintenance</DialogTitle>
-
+                    <DialogTitle className="text-xl font-semibold">
+                        {isEditMode ? 'Edit Maintenance' : 'New Maintenance'}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -250,6 +298,7 @@ console.log('formData', formData)
                                 <SelectItem value="LOW">Low</SelectItem>
                                 <SelectItem value="MEDIUM">Medium</SelectItem>
                                 <SelectItem value="HIGH">High</SelectItem>
+                                <SelectItem value="CRITICAL">Critical</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -262,9 +311,9 @@ console.log('formData', formData)
                                 <SelectValue placeholder="Select maintenance staff" />
                             </SelectTrigger>
                             <SelectContent>
-                                {maintenanceStaff.map((staff) => (
-                                    <SelectItem key={staff.value} value={staff.value}>
-                                        {staff.label}
+                                {employees.map((staff) => (
+                                    <SelectItem key={staff.id} value={staff.id}>
+                                        {staff.firstName} {staff.lastName} - {staff.role.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -362,7 +411,10 @@ console.log('formData', formData)
                         disabled={loading}
                         className="w-full "
                     >
-                        {loading ? 'Creating...' : 'Create Maintenance'}
+                        {loading ?
+                            (isEditMode ? 'Updating...' : 'Creating...') :
+                            (isEditMode ? 'Update Maintenance' : 'Create Maintenance')
+                        }
                     </Button>
                 </form>
             </DialogContent>
