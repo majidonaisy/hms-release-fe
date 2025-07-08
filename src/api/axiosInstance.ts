@@ -1,7 +1,6 @@
 import axios from "axios";
 import { store } from "@/redux/store";
 import { logout } from "@/redux/slices/authSlice";
-import { permission } from "process";
 
 export const createAxiosInstance = (baseURL: string) => {
   const instance = axios.create({
@@ -24,10 +23,22 @@ export const createAxiosInstance = (baseURL: string) => {
       // Add request metadata for tracking
       config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       config.headers["X-Request-Time"] = new Date().toISOString();
-      console.log("Bearer token ", accessToken, permissions);
+      
+      // Log full request details
+      console.log('Full Request Details:', {
+        method: config.method?.toUpperCase(),
+        url: `${config.baseURL}${config.url}`,
+        headers: config.headers,
+        params: config.params,
+        data: config.data,
+        token: accessToken ? `Bearer ${accessToken.substring(0, 10)}...` : 'No token',
+        permissions: permissions
+      });
+      
       return config;
     },
     (error) => {
+      console.error('Request Error Interceptor:', error);
       return Promise.reject(error);
     }
   );
