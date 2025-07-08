@@ -9,6 +9,8 @@ import { X, Upload, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { getRooms } from '@/services/Rooms';
 import { Room } from '@/validation';
+import { Employee } from '@/validation/schemas/Employees';
+import { getEmployees } from '@/services/Employees';
 
 interface NewMaintenanceDialogProps {
     isOpen: boolean;
@@ -45,13 +47,6 @@ const areaTypes = [
     { value: 'OTHER', label: 'Other' }
 ];
 
-const maintenanceStaff = [
-    { value: 'john_doe', label: 'John Doe - Technician' },
-    { value: 'mike_smith', label: 'Mike Smith - Electrician' },
-    { value: 'sarah_jones', label: 'Sarah Jones - Plumber' },
-    { value: 'tom_wilson', label: 'Tom Wilson - General Maintenance' },
-    { value: 'lisa_brown', label: 'Lisa Brown - Cleaner' }
-];
 
 const frequencies = [
     { value: 'WEEKLY', label: 'Weekly' },
@@ -81,7 +76,19 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     });
 
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]); // Assuming you have a way to fetch employees
 
+
+    const fetchEmployees = async () => {
+        // Assuming you have a service to fetch employees
+        try {
+            const response = await getEmployees(); // Replace with actual service call
+            setEmployees(response.data);
+        } catch (error) {
+            console.error('Failed to fetch employees:', error);
+            toast.error('Failed to fetch employees. Please try again later.');
+        }
+    };
     // Load edit data when editing
     useEffect(() => {
         if (isEditMode && editData) {
@@ -219,7 +226,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     useEffect(() => {
         Promise.all([
-            fetchRooms()
+            fetchRooms(),
+            fetchEmployees()
         ]);
     }, []);
 
@@ -303,9 +311,9 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                                 <SelectValue placeholder="Select maintenance staff" />
                             </SelectTrigger>
                             <SelectContent>
-                                {maintenanceStaff.map((staff) => (
-                                    <SelectItem key={staff.value} value={staff.value}>
-                                        {staff.label}
+                                {employees.map((staff) => (
+                                    <SelectItem key={staff.id} value={staff.id}>
+                                        {staff.firstName} {staff.lastName} - {staff.role.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

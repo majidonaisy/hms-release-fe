@@ -95,6 +95,8 @@ const Maintenance = () => {
         }
     };
 
+
+
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };

@@ -57,16 +57,7 @@ const Housekeeping = () => {
         currentPage * itemsPerPage
     );
 
-    // Status badge styling
-    const getStatusBadge = (status: Housekeeping['status']) => {
-        const styles = {
-            PENDING: 'bg-chart-1/20 text-chart-1 hover:bg-chart-1/20',
-            IN_PROGRESS: 'bg-chart-2/20 text-chart-2 hover:bg-chart-2/20',
-            COMPLETED: 'bg-chart-3/20 text-chart-3 hover:bg-chart-3/20',
-            CANCELED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20'
-        };
-        return styles[status];
-    };
+
 
     // Priority badge styling
     const getPriorityBadge = (priority: Housekeeping['priority']) => {
@@ -348,9 +339,7 @@ const Housekeeping = () => {
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-2 h-2 rounded-full ${getStatusDotColor(task.status)}`}></div>
-                                            <Badge className={`${getStatusBadge(task.status)} border-0`}>
                                                 {task.status.replace('_', ' ').toLowerCase()}
-                                            </Badge>
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
