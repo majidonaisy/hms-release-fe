@@ -380,28 +380,40 @@ const Housekeeping = () => {
                                             <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
                                                 <DropdownMenuItem
                                                     className="cursor-pointer"
+                                                    onClick={(e) => {}}
+                                                >
+                                                    Activity Log
+                                                </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer"
                                                     onClick={(e) => handleEditClick(e, task)}
                                                 >
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 {task.status === 'PENDING' && (
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}
-                                                    >
-                                                        Start Task
-                                                    </DropdownMenuItem>
+                                                    <>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}
+                                                        >
+                                                            Start Task
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                    </>
                                                 )}
                                                 {task.status === 'IN_PROGRESS' && (
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(task.id, 'COMPLETED')}
-                                                    >
-                                                        Mark Complete
-                                                    </DropdownMenuItem>
+                                                    <>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() => handleStatusChange(task.id, 'COMPLETED')}
+                                                        >
+                                                            Mark Complete
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                    </>
                                                 )}
-                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="cursor-pointer text-red-600"
                                                     onClick={(e) => handleDeleteClick(e, task)}
