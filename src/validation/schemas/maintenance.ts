@@ -1,5 +1,33 @@
 import { z } from "zod/v4";
-import { RoomShape } from "./Rooms";
+
+// Define a simplified Room shape that matches your API response
+const MaintenanceRoomShape = z.object({
+  id: z.string(),
+  roomNumber: z.string(),
+  status: z.string(),
+  floor: z.number(),
+  description: z.string(),
+  roomTypeId: z.string(),
+  photos: z.array(z.any()).optional(),
+  hotelId: z.string(),
+  roomType: z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    baseRate: z.string(),
+    hotelId: z.string(),
+    createdAt: z.string(), // Changed from z.date() to z.string()
+    updatedAt: z.string(), // Changed from z.date() to z.string()
+    maxOccupancy: z.number(),
+    adultOccupancy: z.number(),
+    childOccupancy: z.number(),
+  }),
+  Amenities: z.array(z.any()).optional(),
+  connectedRooms: z.array(z.object({
+    id: z.string(),
+    roomNumber: z.string(),
+  })).optional(),
+});
 
 // Common Maintenance shape based on CSV structure
 const MaintenanceShape = z.object({
@@ -7,12 +35,12 @@ const MaintenanceShape = z.object({
   description: z.string(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   roomId: z.string(),
-  room: RoomShape,
+  room: MaintenanceRoomShape, // Use the properly defined room shape
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
-  startedAt: z.date().optional().nullable(),
-  completedAt: z.date().optional().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  startedAt: z.string().optional().nullable(), // Changed from z.date() to z.string()
+  completedAt: z.string().optional().nullable(), // Changed from z.date() to z.string()
+  createdAt: z.string(), // Changed from z.date() to z.string()
+  updatedAt: z.string(), // Changed from z.date() to z.string()
   hotelId: z.string(),
   // Additional fields that might be needed based on your frontend
   assignedTo: z.string().optional().nullable(),
@@ -20,8 +48,8 @@ const MaintenanceShape = z.object({
   type: z.enum(["ROUTINE", "REPAIR", "URGENT", "CLEANING"]).optional(),
   title: z.string().optional().nullable(),
   estimatedDuration: z.number().optional().nullable(),
-  scheduledDate: z.date().optional().nullable(),
-  requestDate: z.date().optional(),
+  scheduledDate: z.string().optional().nullable(), // Changed from z.date() to z.string()
+  requestDate: z.string().optional(), // Changed from z.date() to z.string()
   photos: z.array(z.any()).optional(),
   notes: z.string().optional().nullable(),
 });
@@ -36,7 +64,7 @@ export const AddMaintenanceRequestSchema = z.object({
   type: z.enum(["ROUTINE", "REPAIR", "URGENT", "CLEANING"]).optional(),
   title: z.string().optional(),
   estimatedDuration: z.number().min(1).optional(),
-  scheduledDate: z.date().optional(),
+  scheduledDate: z.string().optional(),
   photos: z.array(z.any()).optional(),
   notes: z.string().optional(),
 });
@@ -66,14 +94,14 @@ export const UpdateMaintenanceRequestSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   roomId: z.string().optional(),
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
-  startedAt: z.date().optional().nullable(),
-  completedAt: z.date().optional().nullable(),
+  startedAt: z.string().optional().nullable(),
+  completedAt: z.string().optional().nullable(),
   assignedTo: z.string().optional(),
   requestedBy: z.string().optional(),
   type: z.enum(["ROUTINE", "REPAIR", "URGENT", "CLEANING"]).optional(),
   title: z.string().optional(),
   estimatedDuration: z.number().min(1).optional(),
-  scheduledDate: z.date().optional(),
+  scheduledDate: z.string().optional(),
   photos: z.array(z.any()).optional(),
   notes: z.string().optional(),
 });
@@ -129,7 +157,7 @@ export const MaintenanceFormDataSchema = z.object({
   requestedBy: z.string().optional(),
   type: z.enum(["ROUTINE", "REPAIR", "URGENT", "CLEANING"]).default("REPAIR"),
   estimatedDuration: z.number().min(1).optional(),
-  scheduledDate: z.date().optional(),
+  scheduledDate: z.string().optional(),
   notes: z.string().optional(),
 });
 

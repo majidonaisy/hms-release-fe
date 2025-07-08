@@ -147,10 +147,6 @@ const Maintenance = () => {
                     ...data,
                     id: editingMaintenance.id
                 };
-                // TODO: Replace with actual update API call
-                // const response = await updateMaintenance(editingMaintenance.id, updateData);
-
-                // Update the maintenance request in the list
                 setMaintenanceRequests(prev =>
                     prev.map(request =>
                         request.id === editingMaintenance.id
@@ -162,7 +158,7 @@ const Maintenance = () => {
             } else {
                 // Handle add mode
                 const response = await addMaintenance(data);
-                setMaintenanceRequests(prev => [response.data, ...prev]);
+                fetchMaintenanceRequests(); // Refresh the list after adding
                 setCurrentPage(1);
                 toast.success('Maintenance request created successfully');
             }
@@ -304,7 +300,6 @@ const Maintenance = () => {
                                         {request.type || 'N/A'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        {/* @ts-expect-error  unknown type of a defined type*/}
                                         <div className="font-medium text-gray-900">{request.room.roomNumber}</div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
