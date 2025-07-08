@@ -47,11 +47,20 @@ export const ENDPOINTS = {
     Update: "maintenance/update",
     Delete: "maintenance/delete",
   },
+  Housekeeping: {
+    Add: "housekeeping/add",
+    Start: "housekeeping/start",
+    Complete: "housekeeping/complete",
+    GetAll: "housekeeping/get",
+    GetById: "housekeeping/get",
+    Update: "housekeeping/update",
+    Delete: "housekeeping/delete",
+  },
   Amenities: {
     GetAllAmenities: "amenity/get",
   },
   Employees: {
     GetAll: "auth/employees",
-    GetEmployeeById: "auth/get-user"
-  }
-}
+    GetEmployeeById: "auth/get-user",
+  },
+};
