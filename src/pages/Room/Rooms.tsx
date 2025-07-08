@@ -54,7 +54,7 @@ const Rooms = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'Active':
+            case 'AVAILABLE':
                 return 'bg-green-100 text-green-700 hover:bg-green-100';
             case 'Inactive':
                 return 'bg-red-100 text-red-700 hover:bg-red-100';
@@ -257,7 +257,8 @@ const Rooms = () => {
                             </Table>
                             {/* Pagination */}
                             <Pagination
-                                currentPage={currentPage}
+                   
+                   currentPage={currentPage}
                                 totalPages={totalPages}
                                 onPageChange={handlePageChange}
                                 showPreviousNext={true}

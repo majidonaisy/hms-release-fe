@@ -1,5 +1,5 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench } from "lucide-react";
+import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -121,6 +121,13 @@ const RoutesList = () => {
             title: "Maintenance",
             icon: <Wrench className="size-5" />,
             component: Maintenance,
+            isShown: true
+        },
+        {
+            path: '/housekeeping',
+            title: "Housekeeping",
+            icon: <Sparkles className="size-5" />,
+            component: Housekeeping,
             isShown: true
         },
         {

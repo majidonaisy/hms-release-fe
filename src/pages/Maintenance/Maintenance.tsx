@@ -32,6 +32,7 @@ const Maintenance = () => {
     const filteredRequests = maintenanceRequests.filter(request => {
         const matchesSearch =
             request.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
+            (request.room?.roomNumber && request.room.roomNumber.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.title && request.title.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.assignedTo && request.assignedTo.toLowerCase().includes(searchText.toLowerCase())) ||
             (request.requestedBy && request.requestedBy.toLowerCase().includes(searchText.toLowerCase())) ||
@@ -49,35 +50,34 @@ const Maintenance = () => {
         currentPage * itemsPerPage
     );
 
-    // Status badge styling
+    // Status badge styling - Updated for new status values
     const getStatusBadge = (status: MaintenanceType['status']) => {
         const styles = {
             PENDING: 'bg-chart-1/20 text-chart-1 hover:bg-chart-1/20',
             IN_PROGRESS: 'bg-chart-2/20 text-chart-2 hover:bg-chart-2/20',
             COMPLETED: 'bg-chart-3/20 text-chart-3 hover:bg-chart-3/20',
-            CANCELLED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20'
+            CANCELED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20' // Updated from CANCELLED to CANCELED
         };
         return styles[status];
     };
 
-    // Priority badge styling
+    // Priority badge styling - Updated for new priority values
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
             LOW: 'bg-green-100 text-green-700 hover:bg-green-100',
             MEDIUM: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
-            HIGH: 'bg-orange-100 text-orange-700 hover:bg-orange-100',
-            CRITICAL: 'bg-red-100 text-red-700 hover:bg-red-100'
+            HIGH: 'bg-red-100 text-red-700 hover:bg-red-100', // Updated from CRITICAL to HIGH
         };
         return styles[priority];
     };
 
-    // Status dot color
+    // Status dot color - Updated for new status values
     const getStatusDotColor = (status: MaintenanceType['status']) => {
         const dotColors = {
             PENDING: 'bg-chart-1',
             IN_PROGRESS: 'bg-chart-2',
             COMPLETED: 'bg-chart-3',
-            CANCELLED: 'bg-chart-4'
+            CANCELED: 'bg-chart-4' // Updated from CANCELLED to CANCELED
         };
         return dotColors[status];
     };
@@ -94,6 +94,8 @@ const Maintenance = () => {
             setLoading(false);
         }
     };
+
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -139,6 +141,7 @@ const Maintenance = () => {
         setDeleteDialogOpen(false);
         setRequestToDelete(null);
     };
+
     const handleNewMaintenanceConfirm = async (data: any) => {
         try {
             if (isEditMode && editingMaintenance) {
@@ -147,10 +150,6 @@ const Maintenance = () => {
                     ...data,
                     id: editingMaintenance.id
                 };
-                // TODO: Replace with actual update API call
-                // const response = await updateMaintenance(editingMaintenance.id, updateData);
-
-                // Update the maintenance request in the list
                 setMaintenanceRequests(prev =>
                     prev.map(request =>
                         request.id === editingMaintenance.id
@@ -162,6 +161,8 @@ const Maintenance = () => {
             } else {
                 // Handle add mode
                 const response = await addMaintenance(data);
+                
+                // Add the new maintenance request to the beginning of the list
                 setMaintenanceRequests(prev => [response.data, ...prev]);
                 setCurrentPage(1);
                 toast.success('Maintenance request created successfully');
@@ -226,7 +227,7 @@ const Maintenance = () => {
                         <Search className="h-4 w-4 text-gray-400" />
                     </div>
 
-                    {/* Status Filter */}
+                    {/* Status Filter - Updated for new status values */}
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Status" />
@@ -236,7 +237,7 @@ const Maintenance = () => {
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                             <SelectItem value="COMPLETED">Completed</SelectItem>
-                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                            <SelectItem value="CANCELED">Canceled</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -304,8 +305,9 @@ const Maintenance = () => {
                                         {request.type || 'N/A'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        {/* @ts-expect-error  unknown type of a defined type*/}
-                                        <div className="font-medium text-gray-900">{request.room.roomNumber}</div>
+                                        <div className="font-medium text-gray-900">
+                                            {request.room?.roomNumber || request.roomId || 'Unknown Room'}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="truncate max-w-xs" title={request.description}>
@@ -319,8 +321,8 @@ const Maintenance = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <Badge className={`${getStatusBadge(request.status)} border-0`}>
                                             <div className={`w-2 h-2 rounded-full ${getStatusDotColor(request.status)}`}></div>
+                                            <Badge className={`${getStatusBadge(request.status)} border-0`}>
                                                 {request.status.replace('_', ' ').toLowerCase()}
                                             </Badge>
                                         </div>
@@ -350,9 +352,9 @@ const Maintenance = () => {
                                                 {request.status === 'PENDING' && (
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
-                                                        onClick={() => { }}
+                                                        onClick={() => handleStatusChange(request.id, 'IN_PROGRESS')}
                                                     >
-                                                        Activity Log
+                                                        Start Work
                                                     </DropdownMenuItem>
                                                 )}
                                                 {request.status === 'IN_PROGRESS' && (
