@@ -5,7 +5,7 @@ import { z } from "zod";
 export const RoomShape = z.object({
   id: z.string(),
   roomNumber: z.string(),
-  status: z.string(),
+  status: z.enum(["AVAILABLE", "OCCUPIED", "MAINTENANCE", "DIRTY", "CLEANING", "RESERVED", "OUT_OF_SERVICE"]), // Updated to match Prisma RoomStatus enum
   floor: z.number(),
   description: z.string(),
   roomTypeId: z.string(),
@@ -17,17 +17,21 @@ export const RoomShape = z.object({
     description: z.string(),
     baseRate: z.string(),
     hotelId: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    createdAt: z.string(), 
+    updatedAt: z.string(), 
     maxOccupancy: z.number(),
     adultOccupancy: z.number(),
     childOccupancy: z.number(),
   }),
   Amenities: z.array(z.any()).optional(),
-  connectedRooms: z.array(z.object({
-    id: z.string(),
-    roomNumber: z.string(),
-  })).optional(),
+  connectedRooms: z
+    .array(
+      z.object({
+        id: z.string(),
+        roomNumber: z.string(),
+      })
+    )
+    .optional(),
 });
 
 export const AddRoomRequestSchema = z.object({

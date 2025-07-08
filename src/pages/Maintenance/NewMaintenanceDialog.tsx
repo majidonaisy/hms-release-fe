@@ -23,13 +23,13 @@ interface MaintenanceFormData {
     areaType: string;
     roomId: string;
     description: string;
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Updated to match Prisma Priority enum
     assignedTo: string;
     photos: File[];
     repeatMaintenance: boolean;
     frequency: string;
-    type?: 'ROUTINE' | 'REPAIR' | 'URGENT' | 'CLEANING';
-    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+    type?: string;
+    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'; // Updated to match Prisma maintenanceStatus enum
 }
 
 const areaTypes = [
