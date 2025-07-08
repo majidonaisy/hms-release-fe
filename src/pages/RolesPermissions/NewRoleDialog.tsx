@@ -1,0 +1,211 @@
+import React, { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
+import { Button } from '@/components/atoms/Button';
+import { Input } from '@/components/atoms/Input';
+import { Label } from '@/components/atoms/Label';
+import { toast } from 'sonner';
+import { AddRoleRequest, AddRoleRequestSchema, PermissionsResponse, Role, UpdateRoleRequest } from '@/validation/schemas/Roles';
+import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/atoms/Checkbox';
+import { getPermissions, getRoleBId, updateRole } from '@/services/Role';
+import { ZodError } from 'zod/v4';
+import { Skeleton } from '@/components/atoms/Skeleton';
+
+interface NewRoleDialogProps {
+    isOpen: boolean;
+    onConfirm: (data: AddRoleRequest) => Promise<void>;
+    onCancel: () => void;
+    editingRole?: Role | null; // Add editing role prop
+}
+
+const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
+    isOpen,
+    onConfirm,
+    onCancel,
+    editingRole = null
+}) => {
+    const [formData, setFormData] = useState<AddRoleRequest>({
+        name: '',
+        permissionIds: []
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRoleLoading, setIsRoleLoading] = useState(false);
+    const [permissions, setPermissions] = useState<PermissionsResponse['data'] | null>(null);
+
+    const isEditing = editingRole !== null;
+
+    const handleInputChange = (field: keyof AddRoleRequest, value: string | number) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const validatedData = AddRoleRequestSchema.parse(formData);
+            setIsLoading(true);
+
+            if (isEditing && editingRole) {
+                await updateRole(editingRole.id, validatedData as UpdateRoleRequest);
+                toast("Success!", {
+                    description: "Role was updated successfully.",
+                });
+            } else {
+                await onConfirm(validatedData);
+                toast("Success!", {
+                    description: "Role was created successfully.",
+                });
+            }
+
+            setFormData({
+                name: '',
+                permissionIds: []
+            });
+            onCancel();
+        } catch (error: any) {
+            let description = isEditing ? "Failed to update role." : "Failed to create role.";
+
+            if (error instanceof ZodError) {
+                const errorMessages = error.issues.map(issue => issue.message).join(", ");
+                description = errorMessages;
+            }
+
+            toast("Error!", {
+                description,
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCancel = () => {
+        if (isLoading) return;
+
+        setFormData({
+            name: '',
+            permissionIds: []
+        });
+        onCancel();
+    };
+
+    const handlePermissionsChange = (permissionId: string, checked: boolean) => {
+        setFormData(prev => ({
+            ...prev,
+            permissionIds: checked
+                ? [...(prev.permissionIds || []), permissionId]
+                : (prev.permissionIds || []).filter(id => id !== permissionId)
+        }));
+    };
+
+    useEffect(() => {
+        const handleGetPermissions = async () => {
+            try {
+                const response = await getPermissions();
+                setPermissions(response.data);
+            } catch (error) {
+                console.error('Failed to fetch permissions:', error);
+                toast.error('Failed to load permissions');
+            }
+        };
+        handleGetPermissions();
+    }, []);
+
+    useEffect(() => {
+        const loadRoleData = async () => {
+            if (isEditing && editingRole && isOpen) {
+                setIsRoleLoading(true)
+                try {
+                    const response = await getRoleBId(editingRole.id);
+                    const roleData = response.data;
+                    setFormData({
+                        name: roleData.name,
+                        permissionIds: roleData.permissions.map(p => p.id)
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch role data:', error);
+                    toast.error('Failed to load role data');
+                } finally {
+                    setIsRoleLoading(false)
+                }
+            } else if (!isEditing && isOpen) {
+                setFormData({
+                    name: '',
+                    permissionIds: []
+                });
+            }
+        };
+
+        loadRoleData();
+    }, [isEditing, editingRole, isOpen]);
+
+    return (
+        <Dialog open={isOpen} onOpenChange={handleCancel}>
+            <DialogContent className="max-w-md">
+                <DialogHeader className="flex flex-row items-center justify-between">
+                    <DialogTitle className="text-xl font-semibold">
+                        {isEditing ? 'Edit Role' : 'New Role'}
+                    </DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="roleName">Role Name</Label>
+                        {isRoleLoading ? (
+                            <Skeleton className='h-10' />
+                        ) : (
+                            <Input
+                                id="roleName"
+                                placeholder="e.g. Admin"
+                                value={formData.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                disabled={isLoading}
+                            />
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Permissions</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {permissions?.map((permission) => (
+                                <div key={permission.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id={permission.id}
+                                        className={cn("data-[state=checked]:bg-hms-primary")}
+                                        checked={(formData.permissionIds || []).includes(permission.id)}
+                                        onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
+                                        disabled={isRoleLoading}
+                                    />
+                                    {isRoleLoading ?
+                                        (
+                                            <Skeleton className='h-5' />
+                                        ) : (
+                                            <Label htmlFor={permission.id} className="text-sm">
+                                                {permission.action.charAt(0).toUpperCase() + permission.action.slice(1)} {permission.subject.charAt(0).toUpperCase() + permission.subject.slice(1)}
+                                            </Label>
+                                        )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <Button
+                        type="submit"
+                        className="w-full text-white mt-6"
+                        disabled={isLoading}
+                    >
+                        {isLoading
+                            ? (isEditing ? 'Updating...' : 'Creating...')
+                            : (isEditing ? 'Update Role' : 'Create Role')
+                        }
+                    </Button>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+export default NewRoleDialog;
