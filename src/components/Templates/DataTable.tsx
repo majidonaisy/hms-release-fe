@@ -61,6 +61,7 @@ export interface DataTableProps<T = any> {
   pagination?: {
     currentPage: number;
     totalPages: number;
+    totalItems?: number; // Optional, if you want to show total items count
     onPageChange: (page: number) => void;
     showPreviousNext?: boolean;
     maxVisiblePages?: number;
@@ -226,7 +227,7 @@ const DataTable = <T,>({
           <div className="flex items-center gap-2 mb-4">
             <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
             <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-              {data.length} {data.length === 1 ? 'item' : 'items'}
+              {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
             </span>
           </div>
 
