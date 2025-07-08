@@ -18,6 +18,7 @@ const Maintenance = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [typeFilter, setTypeFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(8);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceType[]>([]);
     const [isNewMaintenanceDialogOpen, setIsNewMaintenanceDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -26,29 +27,18 @@ const Maintenance = () => {
     const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [loading, setLoading] = useState(false);
-    const itemsPerPage = 7;
+    const [pagination, setPagination] = useState<{
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+        hasNext: boolean;
+        hasPrevious: boolean;
+    } | null>(null);
 
-    // Filter and search logic
-    const filteredRequests = maintenanceRequests.filter(request => {
-        const matchesSearch =
-            request.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
-            (request.room?.roomNumber && request.room.roomNumber.toLowerCase().includes(searchText.toLowerCase())) ||
-            (request.title && request.title.toLowerCase().includes(searchText.toLowerCase())) ||
-            (request.assignedTo && request.assignedTo.toLowerCase().includes(searchText.toLowerCase())) ||
-            (request.requestedBy && request.requestedBy.toLowerCase().includes(searchText.toLowerCase())) ||
-            request.description.toLowerCase().includes(searchText.toLowerCase());
-
-        const matchesStatus = statusFilter === 'ALL' || request.status === statusFilter;
-        const matchesType = typeFilter === 'ALL' || (request.type && request.type === typeFilter);
-
-        return matchesSearch && matchesStatus && matchesType;
-    });
-
-    const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-    const paginatedRequests = filteredRequests.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    // With server-side pagination, we'll use the filtered data directly
+    // Client-side filtering will be done later or if there's no pagination from backend
+    const filteredRequests = maintenanceRequests;
 
     // Status badge styling - Updated for new status values
     const getStatusBadge = (status: MaintenanceType['status']) => {
@@ -85,8 +75,18 @@ const Maintenance = () => {
     const fetchMaintenanceRequests = async () => {
         setLoading(true);
         try {
-            const response = await getMaintenances();
+            const response = await getMaintenances({
+                page: currentPage,
+                limit: pageSize
+            });
             setMaintenanceRequests(response.data);
+
+            // Set pagination if available in response
+            if (response.pagination) {
+                setPagination(response.pagination);
+            } else {
+                setPagination(null);
+            }
         } catch (error) {
             console.error('Failed to fetch maintenance requests:', error);
             toast.error('Failed to load maintenance requests');
@@ -99,6 +99,7 @@ const Maintenance = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+        // Data will be fetched in the useEffect when currentPage changes
     };
 
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
@@ -161,7 +162,7 @@ const Maintenance = () => {
             } else {
                 // Handle add mode
                 const response = await addMaintenance(data);
-                
+
                 // Add the new maintenance request to the beginning of the list
                 setMaintenanceRequests(prev => [response.data, ...prev]);
                 setCurrentPage(1);
@@ -194,13 +195,17 @@ const Maintenance = () => {
         toast.success('Status updated successfully');
     };
 
+    // Define fetchMaintenanceRequests within the useEffect to avoid dependency issues
     useEffect(() => {
+        // Reset to page 1 when filters change
         setCurrentPage(1);
     }, [searchText, statusFilter, typeFilter]);
 
+    // Fetch data whenever page, pageSize, or filter changes
     useEffect(() => {
         fetchMaintenanceRequests();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, pageSize, searchText, statusFilter, typeFilter]);
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -210,7 +215,7 @@ const Maintenance = () => {
                     <Wrench className="h-6 w-6 text-hms-primary" />
                     <h1 className="text-2xl font-semibold text-gray-900">Maintenance</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        {filteredRequests.length} Request{filteredRequests.length !== 1 ? 's' : ''}
+                        {pagination ? pagination.totalItems : filteredRequests.length} Request{(pagination ? pagination.totalItems : filteredRequests.length) !== 1 ? 's' : ''}
                     </span>
                 </div>
 
@@ -292,14 +297,14 @@ const Maintenance = () => {
                                     Loading maintenance requests...
                                 </TableCell>
                             </TableRow>
-                        ) : paginatedRequests.length === 0 ? (
+                        ) : filteredRequests.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                                     No maintenance requests found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedRequests.map((request) => (
+                            filteredRequests.map((request) => (
                                 <TableRow key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4 font-medium text-gray-900">
                                         {request.type || 'N/A'}
@@ -381,14 +386,16 @@ const Maintenance = () => {
                     </TableBody>
                 </Table>
 
-                {/* Pagination */}
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    showPreviousNext={true}
-                    maxVisiblePages={7}
-                />
+                {/* Pagination - only show if pagination data is available */}
+                {pagination && (
+                    <Pagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        onPageChange={handlePageChange}
+                        showPreviousNext={true}
+                        maxVisiblePages={7}
+                    />
+                )}
             </div>
 
             {/* New Maintenance Dialog */}

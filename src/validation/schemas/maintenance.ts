@@ -23,10 +23,14 @@ const MaintenanceRoomShape = z.object({
     childOccupancy: z.number(),
   }),
   Amenities: z.array(z.any()).optional(),
-  connectedRooms: z.array(z.object({
-    id: z.string(),
-    roomNumber: z.string(),
-  })).optional(),
+  connectedRooms: z
+    .array(
+      z.object({
+        id: z.string(),
+        roomNumber: z.string(),
+      })
+    )
+    .optional(),
 });
 
 // Common Maintenance shape based on Prisma enums
@@ -74,11 +78,24 @@ export const AddMaintenanceResponseSchema = z.object({
   data: MaintenanceShape,
 });
 
+// Pagination schema
+export const PaginationSchema = z.object({
+  totalItems: z.number(),
+  totalPages: z.number(),
+  currentPage: z.number(),
+  pageSize: z.number(),
+  hasNext: z.boolean(),
+  hasPrevious: z.boolean(),
+  nextPage: z.number().nullable(),
+  previousPage: z.number().nullable(),
+});
+
 // Get Maintenances
 export const GetMaintenancesResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
   data: z.array(MaintenanceShape),
+  pagination: PaginationSchema.optional(),
 });
 
 export const GetMaintenanceByIdResponseSchema = z.object({
@@ -142,6 +159,7 @@ export type UpdateMaintenanceResponse = z.infer<typeof UpdateMaintenanceResponse
 export type StartMaintenanceResponse = z.infer<typeof StartMaintenanceResponseSchema>;
 export type CompleteMaintenanceResponse = z.infer<typeof CompleteMaintenanceResponseSchema>;
 export type DeleteMaintenanceResponse = z.infer<typeof DeleteMaintenanceResponseSchema>;
+export type Pagination = z.infer<typeof PaginationSchema>;
 
 // Form data type for your NewMaintenanceDialog
 export const MaintenanceFormDataSchema = z.object({

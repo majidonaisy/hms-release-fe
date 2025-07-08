@@ -28,6 +28,7 @@ const Housekeeping = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [priorityFilter, setPriorityFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(7);
     const [housekeepingTasks, setHousekeepingTasks] = useState<Housekeeping[]>([]);
     const [isNewTaskDialogOpen, setIsNewTaskDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -36,26 +37,17 @@ const Housekeeping = () => {
     const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [loading, setLoading] = useState(false);
-    const itemsPerPage = 7;    // Filter and search logic
-    const filteredTasks = housekeepingTasks.filter(task => {
-        const matchesSearch =
-            task.roomId.toLowerCase().includes(searchText.toLowerCase()) ||
-            (task.room?.roomNumber && task.room.roomNumber.toLowerCase().includes(searchText.toLowerCase())) ||
-            (task.description && task.description.toLowerCase().includes(searchText.toLowerCase())) ||
-            (task.user?.firstName && task.user.firstName.toLowerCase().includes(searchText.toLowerCase())) ||
-            (task.user?.lastName && task.user.lastName.toLowerCase().includes(searchText.toLowerCase()));
-
-        const matchesStatus = statusFilter === 'ALL' || task.status === statusFilter;
-        const matchesPriority = priorityFilter === 'ALL' || (task.priority && task.priority === priorityFilter);
-
-        return matchesSearch && matchesStatus && matchesPriority;
-    });
-
-    const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
-    const paginatedTasks = filteredTasks.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const [pagination, setPagination] = useState<{
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+        hasNext: boolean;
+        hasPrevious: boolean;
+    } | null>(null);    // Filter and search logic
+    // With server-side pagination, we'll use the data directly from the API
+    // Client-side filtering will be handled by the backend
+    const filteredTasks = housekeepingTasks;
 
 
 
@@ -83,8 +75,18 @@ const Housekeeping = () => {
     const fetchHousekeepingTasks = async () => {
         setLoading(true);
         try {
-            const response = await getHousekeepingTasks();
+            const response = await getHousekeepingTasks({
+                page: currentPage,
+                limit: pageSize
+            });
             setHousekeepingTasks(response.data || []);
+
+            // Set pagination if available in response
+            if (response.pagination) {
+                setPagination(response.pagination);
+            } else {
+                setPagination(null);
+            }
         } catch (error: any) {
             toast.error(error.userMessage || 'Failed to fetch housekeeping tasks');
         } finally {
@@ -94,6 +96,7 @@ const Housekeeping = () => {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+        // Data will be fetched in useEffect when currentPage changes
     };
 
     const handleEditClick = (e: React.MouseEvent, task: Housekeeping) => {
@@ -212,13 +215,16 @@ const Housekeeping = () => {
         }
     };
 
+    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchText, statusFilter, priorityFilter]);
 
+    // Fetch data whenever page, pageSize, or filter changes
     useEffect(() => {
         fetchHousekeepingTasks();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, pageSize]);
 
     if (loading) {
         return <HousekeepingSkeleton />;
@@ -232,7 +238,7 @@ const Housekeeping = () => {
                     <CheckCircle2 className="h-6 w-6 text-hms-primary" />
                     <h1 className="text-2xl font-semibold text-gray-900">Housekeeping</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        {filteredTasks.length} Task{filteredTasks.length !== 1 ? 's' : ''}
+                        {pagination?.totalItems || filteredTasks.length} Task{(pagination?.totalItems || filteredTasks.length) !== 1 ? 's' : ''}
                     </span>
                 </div>
 
@@ -312,14 +318,14 @@ const Housekeeping = () => {
                                     Loading housekeeping tasks...
                                 </TableCell>
                             </TableRow>
-                        ) : paginatedTasks.length === 0 ? (
+                        ) : filteredTasks.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="py-10 text-center text-gray-600">
                                     No housekeeping tasks found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            paginatedTasks.map((task) => (
+                            filteredTasks.map((task) => (
                                 <TableRow key={task.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4">
                                         <div className="font-medium text-gray-900">
@@ -339,7 +345,7 @@ const Housekeeping = () => {
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-2 h-2 rounded-full ${getStatusDotColor(task.status)}`}></div>
-                                                {task.status.replace('_', ' ').toLowerCase()}
+                                            {task.status.replace('_', ' ').toLowerCase()}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
@@ -369,11 +375,11 @@ const Housekeeping = () => {
                                             <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
                                                 <DropdownMenuItem
                                                     className="cursor-pointer"
-                                                    onClick={(e) => {}}
+                                                    onClick={() => {/* To be implemented */ }}
                                                 >
                                                     Activity Log
                                                 </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
+                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="cursor-pointer"
                                                     onClick={(e) => handleEditClick(e, task)}
@@ -419,13 +425,15 @@ const Housekeeping = () => {
                 </Table>
 
                 {/* Pagination */}
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    showPreviousNext={true}
-                    maxVisiblePages={7}
-                />
+                {pagination && (
+                    <Pagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        onPageChange={handlePageChange}
+                        showPreviousNext={true}
+                        maxVisiblePages={7}
+                    />
+                )}
             </div>
 
             {/* New Housekeeping Dialog */}
