@@ -21,11 +21,24 @@ export const addReservation = async (data: AddReservationRequest): Promise<Reser
   }
 };
 
-export const getReservations = async (startDate?: Date, endDate?: Date): Promise<ReservationResponse> => {
+interface GetReservationsParams {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+export const getReservations = async (startDate?: Date, endDate?: Date, paginationParams?: { page?: number; limit?: number }): Promise<ReservationResponse> => {
   try {
-    const params: Record<string, string> = {};
+    const params: GetReservationsParams = {};
+
+    // Add date filters if provided
     if (startDate) params.startDate = startDate.toISOString().split("T")[0];
     if (endDate) params.endDate = endDate.toISOString().split("T")[0];
+
+    // Add pagination params if provided
+    if (paginationParams?.page) params.page = paginationParams.page;
+    if (paginationParams?.limit) params.limit = paginationParams.limit;
 
     const response = await apiClient({
       method: "GET",

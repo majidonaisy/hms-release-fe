@@ -21,12 +21,18 @@ export const addRoomType = async (data: AddRoomTypeRequest): Promise<AddRoomType
   }
 };
 
-export const getRoomTypes = async (): Promise<GetRoomTypesResponse> => {
+interface GetRoomTypesParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getRoomTypes = async (params?: GetRoomTypesParams): Promise<GetRoomTypesResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.RoomType.GetAll,
       baseURL,
+      params,
     });
     return response as GetRoomTypesResponse;
   } catch (error: any) {
