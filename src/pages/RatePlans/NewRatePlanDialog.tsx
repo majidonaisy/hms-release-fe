@@ -2,7 +2,6 @@ import { Button } from '@/components/atoms/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/Organisms/Dialog';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
-import { Textarea } from '@/components/atoms/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { useState, useEffect } from 'react';
 import { Loader2, Check, AlertCircle } from 'lucide-react';
@@ -15,11 +14,9 @@ interface NewRatePlanDialogProps {
     onConfirm: (data: {
         name: string;
         code: string;
-        basePrice: number;
         baseAdjType: 'PERCENT' | 'FIXED';
         baseAdjVal: string;
         currencyId: string;
-        description: string
     }) => Promise<void>;
     editingRatePlan: RatePlan | null;
 }
@@ -27,20 +24,16 @@ interface NewRatePlanDialogProps {
 const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: NewRatePlanDialogProps) => {
     const [name, setName] = useState('');
     const [code, setCode] = useState('');
-    const [basePrice, setBasePrice] = useState<number>(0);
     const [baseAdjType, setBaseAdjType] = useState<'PERCENT' | 'FIXED'>('FIXED');
     const [baseAdjVal, setBaseAdjVal] = useState<string>('0');
     const [currencyId, setCurrencyId] = useState<string>('');
-    const [description, setDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<{
         name?: string;
         code?: string;
-        basePrice?: string;
         baseAdjType?: string;
         baseAdjVal?: string;
         currencyId?: string;
-        description?: string;
         form?: string;
     }>({});
 
@@ -52,19 +45,15 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
             if (editingRatePlan) {
                 setName(editingRatePlan.name);
                 setCode(editingRatePlan.code || '');
-                setBasePrice(editingRatePlan.basePrice);
-                setBaseAdjType(editingRatePlan.baseAdjType === 'AMOUNT' ? 'FIXED' : 'PERCENT');
+                setBaseAdjType(editingRatePlan.baseAdjType === 'AMOUNT' ? 'FIXED' : editingRatePlan.baseAdjType as 'PERCENT' | 'FIXED');
                 setBaseAdjVal(editingRatePlan.baseAdjVal || '0');
                 setCurrencyId(editingRatePlan.currencyId || '');
-                setDescription(editingRatePlan.description || '');
             } else {
                 setName('');
                 setCode('');
-                setBasePrice(0);
                 setBaseAdjType('FIXED');
                 setBaseAdjVal('0');
                 setCurrencyId('');
-                setDescription('');
             }
             setErrors({});
         }
@@ -74,12 +63,9 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
         const newErrors: {
             name?: string;
             code?: string;
-            basePrice?: string;
             baseAdjType?: string;
             baseAdjVal?: string;
             currencyId?: string;
-            description?: string;
-            form?: string;
         } = {};
         let isValid = true;
 
@@ -90,11 +76,6 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
 
         if (!code.trim()) {
             newErrors.code = 'Code is required';
-            isValid = false;
-        }
-
-        if (basePrice <= 0) {
-            newErrors.basePrice = 'Base price must be greater than zero';
             isValid = false;
         }
 
@@ -130,11 +111,9 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
             await onConfirm({
                 name: name.trim(),
                 code: code.trim(),
-                basePrice: basePrice,
                 baseAdjType: baseAdjType,
                 baseAdjVal: baseAdjVal,
                 currencyId: currencyId.trim(),
-                description: description.trim()
             });
             toast.success(`Rate plan ${isEditing ? 'updated' : 'created'} successfully`);
         } catch (error: any) {
@@ -164,7 +143,7 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="rate-plan-name" className="text-sm font-medium">
-                                Rate Plan Name
+                                Rate Plan Name *
                             </Label>
                             <Input
                                 id="rate-plan-name"
@@ -190,7 +169,7 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
 
                         <div className="grid gap-2">
                             <Label htmlFor="rate-plan-code" className="text-sm font-medium">
-                                Code
+                                Code *
                             </Label>
                             <Input
                                 id="rate-plan-code"
@@ -216,63 +195,8 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="rate-plan-price" className="text-sm font-medium">
-                                Base Price
-                            </Label>
-                            <Input
-                                id="rate-plan-price"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                placeholder="Enter base price"
-                                value={basePrice}
-                                onChange={(e) => {
-                                    setBasePrice(parseFloat(e.target.value) || 0);
-                                    if (errors.basePrice) {
-                                        setErrors({ ...errors, basePrice: undefined });
-                                    }
-                                }}
-                                disabled={isSubmitting}
-                                className={errors.basePrice ? "border-red-500 focus-visible:ring-red-500" : ""}
-                            />
-                            {errors.basePrice && (
-                                <div className="text-red-500 text-sm flex items-center mt-1">
-                                    <AlertCircle className="h-4 w-4 mr-1" />
-                                    {errors.basePrice}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="rate-plan-currency" className="text-sm font-medium">
-                                Currency
-                            </Label>
-                            <Input
-                                id="rate-plan-currency"
-                                placeholder="Enter currency ID (e.g., USD)"
-                                value={currencyId}
-                                onChange={(e) => {
-                                    setCurrencyId(e.target.value);
-                                    if (errors.currencyId) {
-                                        setErrors({ ...errors, currencyId: undefined });
-                                    }
-                                }}
-                                disabled={isSubmitting}
-                                className={errors.currencyId ? "border-red-500 focus-visible:ring-red-500" : ""}
-                            />
-                            {errors.currencyId && (
-                                <div className="text-red-500 text-sm flex items-center mt-1">
-                                    <AlertCircle className="h-4 w-4 mr-1" />
-                                    {errors.currencyId}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
                             <Label htmlFor="rate-plan-adj-type" className="text-sm font-medium">
-                                Adjustment Type
+                                Adjustment Type *
                             </Label>
                             <Select
                                 value={baseAdjType}
@@ -304,7 +228,7 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
 
                         <div className="grid gap-2">
                             <Label htmlFor="rate-plan-adj-value" className="text-sm font-medium">
-                                Adjustment Value
+                                Adjustment Value *
                             </Label>
                             <Input
                                 id="rate-plan-adj-value"
@@ -330,27 +254,26 @@ const NewRatePlanDialog = ({ isOpen, onCancel, onConfirm, editingRatePlan }: New
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="rate-plan-description" className="text-sm font-medium">
-                            Description (Optional)
+                        <Label htmlFor="rate-plan-currency" className="text-sm font-medium">
+                            Currency *
                         </Label>
-                        <Textarea
-                            id="rate-plan-description"
-                            placeholder="Enter details about this rate plan"
-                            value={description}
+                        <Input
+                            id="rate-plan-currency"
+                            placeholder="Enter currency ID (e.g., USD)"
+                            value={currencyId}
                             onChange={(e) => {
-                                setDescription(e.target.value);
-                                if (errors.description) {
-                                    setErrors({ ...errors, description: undefined });
+                                setCurrencyId(e.target.value);
+                                if (errors.currencyId) {
+                                    setErrors({ ...errors, currencyId: undefined });
                                 }
                             }}
                             disabled={isSubmitting}
-                            className={errors.description ? "border-red-500 focus-visible:ring-red-500" : ""}
-                            rows={3}
+                            className={errors.currencyId ? "border-red-500 focus-visible:ring-red-500" : ""}
                         />
-                        {errors.description && (
+                        {errors.currencyId && (
                             <div className="text-red-500 text-sm flex items-center mt-1">
                                 <AlertCircle className="h-4 w-4 mr-1" />
-                                {errors.description}
+                                {errors.currencyId}
                             </div>
                         )}
                     </div>
