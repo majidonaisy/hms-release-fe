@@ -3,22 +3,29 @@ import { ENDPOINTS } from "@/api/endpoints";
 import { DeleteRoleResponse, AddRoleRequest, UpdateRoleRequest, RoleResponse, AddUpdateRoleResponse, RoleByIdResponse, PermissionsResponse } from "@/validation/schemas/Roles";
 const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 
-export const getRoles = async (): Promise<RoleResponse> => {
-    try {
-        const response = await apiClient({
-            method: "GET",
-            endpoint: ENDPOINTS.Role.GetAll,
-            baseURL,
-        });
-        return response as RoleResponse;
-    } catch (error: any) {
-        const errorMessage = error.response?.data?.message || "Failed to get role";
-        throw {
-            userMessage: errorMessage,
-            originalError: error,
-        };
-    }
+interface GetRolesParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getRoles = async (params?: GetRolesParams): Promise<RoleResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Role.GetAll,
+      baseURL,
+      params,
+    });
+    return response as RoleResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get role";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
 };
+
 
 export const getPermissions = async (): Promise<PermissionsResponse> => {
     try {

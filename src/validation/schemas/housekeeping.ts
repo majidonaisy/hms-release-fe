@@ -54,11 +54,24 @@ export const AddHousekeepingResponseSchema = z.object({
   data: HousekeepingShape,
 });
 
+// Pagination schema
+export const PaginationSchema = z.object({
+  totalItems: z.number(),
+  totalPages: z.number(),
+  currentPage: z.number(),
+  pageSize: z.number(),
+  hasNext: z.boolean(),
+  hasPrevious: z.boolean(),
+  nextPage: z.number().nullable(),
+  previousPage: z.number().nullable(),
+});
+
 // Get Housekeeping
 export const GetHousekeepingResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
   data: z.array(HousekeepingShape),
+  pagination: PaginationSchema.optional(),
 });
 
 export const GetHousekeepingByIdResponseSchema = z.object({

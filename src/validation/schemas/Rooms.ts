@@ -17,8 +17,8 @@ export const RoomShape = z.object({
     description: z.string(),
     baseRate: z.string(),
     hotelId: z.string(),
-    createdAt: z.string(), 
-    updatedAt: z.string(), 
+    createdAt: z.string(),
+    updatedAt: z.string(),
     maxOccupancy: z.number(),
     adultOccupancy: z.number(),
     childOccupancy: z.number(),
@@ -32,6 +32,18 @@ export const RoomShape = z.object({
       })
     )
     .optional(),
+});
+
+// Pagination schema
+export const PaginationSchema = z.object({
+  totalItems: z.number(),
+  totalPages: z.number(),
+  currentPage: z.number(),
+  pageSize: z.number(),
+  hasNext: z.boolean(),
+  hasPrevious: z.boolean(),
+  nextPage: z.number().nullable(),
+  previousPage: z.number().nullable(),
 });
 
 export const AddRoomRequestSchema = z.object({
@@ -56,6 +68,7 @@ export const GetRoomsResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
   data: z.array(RoomShape),
+  pagination: PaginationSchema.optional(),
 });
 
 export const GetRoomByIdResponseSchema = z.object({
@@ -93,17 +106,20 @@ export const UpdateRoomResponseSchema = z.object({
 export const GetRoomsByRoomTypeSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
-  data: z.array(z.object({
-    id: z.string(),
-    roomNumber: z.string(),
-    status: z.string(),
-    floor: z.number(),
-    description: z.string(),
-    roomTypeId: z.string(),
-    photos: z.array(z.any()).optional(),
-    hotelId: z.string(),
-  }))
-})
+  data: z.array(
+    z.object({
+      id: z.string(),
+      roomNumber: z.string(),
+      status: z.string(),
+      floor: z.number(),
+      description: z.string(),
+      roomTypeId: z.string(),
+      photos: z.array(z.any()).optional(),
+      hotelId: z.string(),
+    })
+  ),
+  pagination: PaginationSchema.optional(),
+});
 
 export type Room = z.infer<typeof RoomShape>;
 export type AddRoomRequest = z.infer<typeof AddRoomRequestSchema>;
@@ -112,3 +128,4 @@ export type GetRoomsResponse = z.infer<typeof GetRoomsResponseSchema>;
 export type UpdateRoomRequest = z.infer<typeof UpdateRoomRequestSchema>;
 export type UpdateRoomResponse = z.infer<typeof UpdateRoomResponseSchema>;
 export type GetRoomsByRoomType = z.infer<typeof GetRoomsByRoomTypeSchema>;
+export type Pagination = z.infer<typeof PaginationSchema>;

@@ -23,12 +23,18 @@ export const addRoom = async (data: AddRoomRequest): Promise<AddRoomResponse> =>
   }
 };
 
-export const getRooms = async (): Promise<GetRoomsResponse> => {
+interface GetRoomsParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getRooms = async (params?: GetRoomsParams): Promise<GetRoomsResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Room.GetAll,
       baseURL,
+      params,
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
@@ -96,12 +102,13 @@ export const deleteRoom = async (id: string): Promise<void> => {
   }
 };
 
-export const getRoomsByStatus = async (status: string): Promise<GetRoomsResponse> => {
+export const getRoomsByStatus = async (status: string, params?: GetRoomsParams): Promise<GetRoomsResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetByStatus}/${status}`,
       baseURL,
+      params,
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
@@ -112,7 +119,6 @@ export const getRoomsByStatus = async (status: string): Promise<GetRoomsResponse
     };
   }
 };
-
 
 export const getAmenities = async (): Promise<AmenityResponse> => {
   try {
@@ -131,12 +137,13 @@ export const getAmenities = async (): Promise<AmenityResponse> => {
   }
 };
 
-export const getRoomsByRoomTypes = async (id: string): Promise<GetRoomsByRoomType> => {
+export const getRoomsByRoomTypes = async (id: string, params?: GetRoomsParams): Promise<GetRoomsByRoomType> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetByType}/${id}`,
       baseURL,
+      params,
     });
     return response as GetRoomsByRoomType;
   } catch (error: any) {

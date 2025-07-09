@@ -32,12 +32,18 @@ export const addHousekeepingTask = async (data: AddHousekeepingRequest): Promise
   }
 };
 
-export const getHousekeepingTasks = async (): Promise<GetHousekeepingResponse> => {
+interface GetHousekeepingParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getHousekeepingTasks = async (params?: GetHousekeepingParams): Promise<GetHousekeepingResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Housekeeping.GetAll,
       baseURL,
+      params,
     });
     return response as GetHousekeepingResponse;
   } catch (error: any) {

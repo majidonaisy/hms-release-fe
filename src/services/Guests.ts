@@ -1,13 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import {
-  AddGuestRequest,
-  AddGuestResponse,
-  GetGuestByIdResponse,
-  GetGuestsResponse,
-  UpdateGuestRequest,
-  UpdateGuestResponse,
-} from "@/validation/schemas/Guests";
+import { AddGuestRequest, AddGuestResponse, GetGuestByIdResponse, GetGuestsResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
 const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
@@ -28,17 +21,22 @@ export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse>
   }
 };
 
-export const getGuests = async (): Promise<GetGuestsResponse> => {
+interface GetGuestsParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getGuests = async (params?: GetGuestsParams): Promise<GetGuestsResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Guest.GetAll,
-      baseURL
+      baseURL,
+      params,
     });
     return response as GetGuestsResponse;
   } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to get guests";
+    const errorMessage = error.response?.data?.message || "Failed to get guests";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -51,7 +49,7 @@ export const getGuestById = async (id: string): Promise<GetGuestByIdResponse> =>
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Guest.GetById}/${id}`,
-      baseURL
+      baseURL,
     });
     return response as GetGuestByIdResponse;
   } catch (error: any) {
@@ -63,21 +61,17 @@ export const getGuestById = async (id: string): Promise<GetGuestByIdResponse> =>
   }
 };
 
-export const updateGuest = async (
-  id: string,
-  data: UpdateGuestRequest
-): Promise<UpdateGuestResponse> => {
+export const updateGuest = async (id: string, data: UpdateGuestRequest): Promise<UpdateGuestResponse> => {
   try {
     const response = await apiClient({
       method: "PUT",
       endpoint: `${ENDPOINTS.Guest.Update}/${id}`,
       data,
-      baseURL
+      baseURL,
     });
     return response as UpdateGuestResponse;
   } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to update guest";
+    const errorMessage = error.response?.data?.message || "Failed to update guest";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -90,11 +84,10 @@ export const deleteGuest = async (id: string): Promise<void> => {
     await apiClient({
       method: "DELETE",
       endpoint: `${ENDPOINTS.Guest.Delete}/${id}`,
-      baseURL
+      baseURL,
     });
   } catch (error: any) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to delete guest";
+    const errorMessage = error.response?.data?.message || "Failed to delete guest";
     throw {
       userMessage: errorMessage,
       originalError: error,

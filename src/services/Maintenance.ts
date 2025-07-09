@@ -32,12 +32,18 @@ export const addMaintenance = async (data: AddMaintenanceRequest): Promise<AddMa
   }
 };
 
-export const getMaintenances = async (): Promise<GetMaintenancesResponse> => {
+interface GetMaintenancesParams {
+  page?: number;
+  limit?: number;
+}
+
+export const getMaintenances = async (params?: GetMaintenancesParams): Promise<GetMaintenancesResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Maintenance.GetAll,
       baseURL,
+      params,
     });
     return response as GetMaintenancesResponse;
   } catch (error: any) {
