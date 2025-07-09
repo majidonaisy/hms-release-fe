@@ -107,7 +107,7 @@ const Dashboard = () => {
                     imageSrc="https://images.unsplash.com/photo-1600629677883-abc09ccfc4c9?q=80&w=1974"
                     imageAlt="Hotel Amenities"
                     onCreateClick={() => setNewAmenityOpen(true)}
-                    onViewClick={() => setViewAmenitiesOpen(true)}
+                    onViewClick={() => navigate('/amenities')}
                     createButtonText="New amenity"
                     viewButtonText="View amenities"
                 />

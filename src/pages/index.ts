@@ -10,3 +10,4 @@ export { default as Roles } from "./RolesPermissions/Roles";
 export { default as Maintenance } from "./Maintenance/Maintenance";
 export { default as Housekeeping } from "./Housekeeping/Housekeeping";
 export { default as AdminDashboard } from "./dashboard/Dashboard";
+export { default as Amenities } from "./Amenities/Amenities";

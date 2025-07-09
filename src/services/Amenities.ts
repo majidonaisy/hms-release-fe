@@ -29,10 +29,9 @@ export const getAmenities = async (params?: GetAmenitiesParams): Promise<Amenity
 
 export const addAmenity = async (data: { name: string }): Promise<Amenity> => {
   try {
-    // Assuming there's an endpoint for adding amenities
     const response = await apiClient({
       method: "POST",
-      endpoint: ENDPOINTS.Amenities.GetAllAmenities, // This would need to be updated to the correct endpoint
+      endpoint: ENDPOINTS.Amenities.Add, // This would need to be updated to the correct endpoint
       data,
       baseURL,
     });
@@ -51,11 +50,30 @@ export const deleteAmenity = async (id: string): Promise<void> => {
     // Assuming there's an endpoint for deleting amenities
     await apiClient({
       method: "DELETE",
-      endpoint: `${ENDPOINTS.Amenities.GetAllAmenities}/${id}`, // This would need to be updated to the correct endpoint
+      endpoint: `${ENDPOINTS.Amenities.Delete}/${id}`, // This would need to be updated to the correct endpoint
       baseURL,
     });
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to delete amenity";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+
+export const updateAmenity = async (id: string, data: { name: string }): Promise<Amenity> => {
+  try {
+    const response = await apiClient({
+      method: "PUT",
+      endpoint: `${ENDPOINTS.Amenities.Update}/${id}`,
+      data,
+      baseURL,
+    });
+    return response as Amenity;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to update amenity";
     throw {
       userMessage: errorMessage,
       originalError: error,
