@@ -1,5 +1,5 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping, AdminDashboard, Amenities } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee } from "lucide-react";
+import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping, AdminDashboard, Amenities, RatePlans } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -125,7 +125,7 @@ const RoutesList = () => {
             component: Housekeeping,
             isShown: true
         },
-        
+
         {
             path: '/new-reservation',
             title: "Reservations",
@@ -153,6 +153,14 @@ const RoutesList = () => {
                     title: "Amenities",
                     icon: <Coffee className="size-5" />,
                     component: Amenities,
+                    isShown: false
+                },
+                {
+                    path: '/rate-plans',
+                    title: "Rate Plans",
+                    icon: <DollarSign className="size-5" />,
+                    component: RatePlans,
+                    isAuthenticated: true,
                     isShown: false
                 },
             ]

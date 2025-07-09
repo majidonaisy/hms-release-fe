@@ -406,7 +406,7 @@ const DataTable = <T,>({
             <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
             </span>
-            </div>2
+            </div>
           </div>
 
           {/* Search Bar and Actions */}

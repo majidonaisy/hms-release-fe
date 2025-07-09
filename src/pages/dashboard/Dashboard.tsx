@@ -9,6 +9,7 @@ import { ViewAmenitiesDialog } from './Amenities/ViewAmenitiesDialog';
 import { NewAmenityDialog } from './Amenities/NewAmenityDialog';
 import { DashboardCard } from '@/components/Templates/DashboardCard';
 import NewRoleDialog from '../RolesPermissions/NewRoleDialog';
+import NewRatePlanDialog from './RatePlans/NewRatePlanDialog';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Dashboard = () => {
     // Dialog state variables
     const [viewAmenitiesOpen, setViewAmenitiesOpen] = useState(false);
     const [newAmenityOpen, setNewAmenityOpen] = useState(false);
-
+    const [newRatePlanOpen, setNewRatePlanOpen] = useState(false);
     const [newRoleOpen, setNewRoleOpen] = useState(false);
 
     const fetchRoomTypes = async () => {
@@ -122,8 +123,8 @@ const Dashboard = () => {
                     totalItems={ratePlans.pagination?.totalItems || 0}
                     imageSrc="https://images.unsplash.com/photo-1591088398332-8a7791972843?q=80&w=2074"
                     imageAlt="Hotel Rate Plans"
-                    onCreateClick={() => { }}
-                    onViewClick={() => { }}
+                    onCreateClick={() => setNewRatePlanOpen(true)}
+                    onViewClick={() => navigate('/rate-plans')}
                     createButtonText="New rate plan"
                     viewButtonText="View rate plans"
                 />
@@ -153,10 +154,17 @@ const Dashboard = () => {
                 onOpenChange={setNewAmenityOpen}
                 onAmenityAdded={fetchAmenities}
             />
+            <NewRatePlanDialog
+                isOpen={newRatePlanOpen}
+                onOpenChange={setNewRatePlanOpen}
+                onRatePlanAdded={fetchRatePlans}
+            />
             <NewRoleDialog
                 isOpen={newRoleOpen}
                 onConfirm={async (roleData) => {
                     await addRole(roleData);
+                    await fetchRoles();
+                    setNewRoleOpen(false);
                 }}
                 onCancel={() => setNewRoleOpen(false)}
                 editingRole={null}
