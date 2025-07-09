@@ -170,7 +170,7 @@ const Rooms = () => {
                         icon: <Plus />,
                         onClick: () => setIsRoomTypeDialogOpen(true),
                         variant: 'foreground'
-                    }
+                    },
                 ]}
                 getRowKey={(room) => room.id}
                 filter={{
