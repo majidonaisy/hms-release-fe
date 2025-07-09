@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { getAmenities } from '@/services/Amenities'; // Updated import
-import { getRoles } from '@/services/Role';
+import { getRoles, addRole } from '@/services/Role';
 import { getRatePlans } from '@/services/RatePlans';
 import { useNavigate } from 'react-router-dom';
 import { ViewAmenitiesDialog } from './Amenities/ViewAmenitiesDialog';
 import { NewAmenityDialog } from './Amenities/NewAmenityDialog';
 import { DashboardCard } from '@/components/Templates/DashboardCard';
+import NewRoleDialog from '../RolesPermissions/NewRoleDialog';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -21,6 +22,8 @@ const Dashboard = () => {
     // Dialog state variables
     const [viewAmenitiesOpen, setViewAmenitiesOpen] = useState(false);
     const [newAmenityOpen, setNewAmenityOpen] = useState(false);
+
+    const [newRoleOpen, setNewRoleOpen] = useState(false);
 
     const fetchRoomTypes = async () => {
         try {
@@ -132,7 +135,7 @@ const Dashboard = () => {
                     totalItems={roles.pagination?.totalItems || 0}
                     imageSrc="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070"
                     imageAlt="Hotel Staff Roles"
-                    onCreateClick={() => { }}
+                    onCreateClick={() => setNewRoleOpen(true)}
                     onViewClick={() => navigate('/roles-permissions')}
                     createButtonText="New role"
                     viewButtonText="View roles"
@@ -149,6 +152,14 @@ const Dashboard = () => {
                 isOpen={newAmenityOpen}
                 onOpenChange={setNewAmenityOpen}
                 onAmenityAdded={fetchAmenities}
+            />
+            <NewRoleDialog
+                isOpen={newRoleOpen}
+                onConfirm={async (roleData) => {
+                    await addRole(roleData);
+                }}
+                onCancel={() => setNewRoleOpen(false)}
+                editingRole={null}
             />
         </div>
     );
