@@ -333,7 +333,7 @@ const Maintenance = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
-                                        {request.assignedTo || 'Unassigned'}
+                                        {request.user?.firstName + " " + request.user?.lastName || 'Unassigned'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <DropdownMenu modal={false}>

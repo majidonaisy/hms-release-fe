@@ -30,9 +30,8 @@ const TeamMembers = () => {
                     page: currentPage,
                     limit: pageSize
                 });
+                console.log('response', response)
                 setEmployees(response.data);
-
-                // Set pagination if available in response
                 if (response.pagination) {
                     setPagination(response.pagination);
                 } else {

@@ -3,12 +3,15 @@ import { AddRoleRequest, Role, RoleResponse } from '@/validation/schemas/Roles';
 import { addRole, deleteRole, getRoles } from '@/services/Role';
 import DataTable, { ActionMenuItem, TableColumn } from '@/components/Templates/DataTable';
 import NewRoleDialog from './NewRoleDialog';
+import { Button } from '@/components/atoms/Button';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 
 const Roles = () => {
     const [newRoleDialogOpen, setNewRoleDialogOpen] = useState<boolean>(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [roles, setRoles] = useState<RoleResponse['data']>();
-
+const navigate = useNavigate();
     const fetchRoles = async () => {
         try {
             const response = await getRoles();
@@ -71,6 +74,7 @@ const Roles = () => {
 
     return (
         <>
+            
             <DataTable
                 data={roles || []}
                 loading={!roles}

@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, type ReactNode } from "react"
-import { Search, Filter, Plus, EllipsisVertical, ChevronDown } from "lucide-react"
+import { Search, Filter, Plus, EllipsisVertical, ChevronDown, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table"
@@ -17,6 +17,7 @@ import Pagination from "@/components/atoms/Pagination"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Can } from "@/context/CASLContext"
+import { useNavigate } from "react-router-dom"
 
 export interface TableColumn<T = any> {
   key: string
@@ -182,6 +183,7 @@ const DataTable = <T,>({
   className = "",
   emptyStateMessage = "No data found",
 }: DataTableProps<T>) => {
+  const navigate = useNavigate()
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -391,11 +393,20 @@ const DataTable = <T,>({
         {/* Header Section */}
         <div className="mb-6">
           {/* Title with Count */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-centergap-2 mb-4">
+            <div className="flex items-center gap-3 mb-6">
+              <Button
+                variant="ghost"
+                onClick={() => navigate(-1)}
+                className="p-0 hover:bg-slate-100"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
             <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
             <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
             </span>
+            </div>
           </div>
 
           {/* Search Bar and Actions */}
