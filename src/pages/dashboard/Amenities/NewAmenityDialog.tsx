@@ -47,7 +47,6 @@ export const NewAmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded }: NewAm
         }
 
         setIsSubmitting(true);
-
         try {
             await addAmenity({ name: name.trim() });
             toast.success('Amenity added successfully');
