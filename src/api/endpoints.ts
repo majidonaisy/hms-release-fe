@@ -37,7 +37,7 @@ export const ENDPOINTS = {
     Add: "reservation/add",
     Update: "reservation/update/{id}",
     CheckIn: "reservation/check-in/{id}",
-    Get: "reservation/get-reservation"
+    Get: "reservation/get-reservation",
   },
   Maintenance: {
     Add: "maintenance/add",
@@ -59,10 +59,14 @@ export const ENDPOINTS = {
   },
   Amenities: {
     GetAllAmenities: "amenity/get",
+    Add: "amenity/add",
+    GetById: "amenity/get",
+    Update: "amenity/update",
+    Delete: "amenity/delete",
   },
   Employees: {
     GetAll: "auth/employees",
-    GetEmployeeById: "auth/get-user"
+    GetEmployeeById: "auth/get-user",
   },
   Role: {
     Add: "role/add",
@@ -70,6 +74,6 @@ export const ENDPOINTS = {
     GetById: "role/get",
     Update: "role/update",
     Delete: "role/delete",
-    GetPermissions: "role/get-permissions"
-  }
+    GetPermissions: "role/get-permissions",
+  },
 };
