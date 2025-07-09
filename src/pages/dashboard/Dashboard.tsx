@@ -1,6 +1,6 @@
 // Import only what we need
 import { useEffect, useState } from 'react';
-import { getRoomTypes } from '@/services/RoomTypes';
+import { addRoomType, getRoomTypes } from '@/services/RoomTypes';
 import { getAmenities } from '@/services/Amenities'; // Updated import
 import { getRoles, addRole } from '@/services/Role';
 import { getRatePlans } from '@/services/RatePlans';
@@ -10,6 +10,9 @@ import { NewAmenityDialog } from './Amenities/NewAmenityDialog';
 import { DashboardCard } from '@/components/Templates/DashboardCard';
 import NewRoleDialog from '../RolesPermissions/NewRoleDialog';
 import NewRatePlanDialog from './RatePlans/NewRatePlanDialog';
+import NewRoomTypeDialog from '../Room/NewRoomTypeDialog';
+import { AddRoomTypeRequest } from '@/validation';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -25,6 +28,8 @@ const Dashboard = () => {
     const [newAmenityOpen, setNewAmenityOpen] = useState(false);
     const [newRatePlanOpen, setNewRatePlanOpen] = useState(false);
     const [newRoleOpen, setNewRoleOpen] = useState(false);
+
+    const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
 
     const fetchRoomTypes = async () => {
         try {
@@ -63,6 +68,22 @@ const Dashboard = () => {
         }
     }
 
+    const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
+        try {
+            await addRoomType(data);
+            toast.success('Room type created successfully');
+            setIsRoomTypeDialogOpen(false); // Close dialog after successful creation
+        } catch (error: any) {
+            console.error('Error creating room type:', error);
+            toast.error(error.userMessage || 'Error creating room type');
+            throw error; // Re-throw to let the dialog handle loading state
+        }
+    };
+
+    const handleRoomTypeCancel = () => {
+        setIsRoomTypeDialogOpen(false);
+    };
+
     useEffect(() => {
         setLoading(true);
         Promise.all([
@@ -97,7 +118,7 @@ const Dashboard = () => {
                     totalItems={roomTypes.pagination?.totalItems || 0}
                     imageSrc="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070"
                     imageAlt="Hotel Room Types"
-                    onCreateClick={() => { }}
+                    onCreateClick={() => setIsRoomTypeDialogOpen(true)}
                     onViewClick={() => { }}
                     createButtonText="New room type"
                     viewButtonText="View room types"
@@ -168,6 +189,11 @@ const Dashboard = () => {
                 }}
                 onCancel={() => setNewRoleOpen(false)}
                 editingRole={null}
+            />
+            <NewRoomTypeDialog
+                isOpen={isRoomTypeDialogOpen}
+                onCancel={handleRoomTypeCancel}
+                onConfirm={handleRoomTypeConfirm}
             />
         </div>
     );

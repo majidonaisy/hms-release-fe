@@ -55,6 +55,11 @@ const MaintenanceShape = z.object({
   requestDate: z.string().optional(),
   photos: z.array(z.any()).optional(),
   notes: z.string().optional().nullable(),
+  user: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+  }),
 });
 
 // Add Maintenance Request
