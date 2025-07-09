@@ -11,7 +11,7 @@ const buttonVariants = cva(
                 foreground:
                     "bg-hms-primary text-primary-foreground shadow hover:bg-hms-primary/80",
                 background:
-                    "bg-hms-accent text-primary shadow-sm hover:bg-hms-accent/80",
+                    "bg-hms-accent text-primary shadow-sm hover:bg-hms-accent/80 text-white",
                 slatePrimary:
                     "bg-slate-50 shadow-sm hover:bg-accent hover:text-accent-foreground",
                 slateSecondary:

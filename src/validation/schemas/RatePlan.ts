@@ -19,4 +19,5 @@ export const GetRatePlansResponseSchema = z.object({
     data: z.array(RatePlanShape),
 });
 
+export type RatePlan = z.infer<typeof RatePlanShape>;
 export type GetRatePlansResponse = z.infer<typeof GetRatePlansResponseSchema>;

@@ -9,3 +9,4 @@ export { default as TeamMemberProfile } from "./TeamMembers/TeamMemberProfile";
 export { default as Roles } from "./RolesPermissions/Roles";
 export { default as Maintenance } from "./Maintenance/Maintenance";
 export { default as Housekeeping } from "./Housekeeping/Housekeeping";
+export { default as AdminDashboard } from "./dashboard/Dashboard";

@@ -1,11 +1,12 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles } from "lucide-react";
+import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping, AdminDashboard } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
 import NewReservation from "@/pages/Reservations/NewReservation";
+import { is } from "date-fns/locale";
 
 const RoutesList = () => {
 
@@ -109,13 +110,7 @@ const RoutesList = () => {
                 },
             ]
         },
-        {
-            path: '/roles-permissions',
-            title: "Roles",
-            icon: <ChartColumnBig className="size-5" />,
-            component: Roles,
-            isShown: true
-        },
+
         {
             path: '/maintenance',
             title: "Maintenance",
@@ -136,6 +131,23 @@ const RoutesList = () => {
             icon: <Plus className="size-5" />,
             component: NewReservation,
             isShown: false
+        },
+        {
+            path: '/dashboard',
+            title: "Admin Dashboard",
+            icon: <LayoutDashboard className="size-5" />,
+            component: AdminDashboard,
+            isShown: true,
+            subRoutes: [
+                {
+                    path: '/roles-permissions',
+                    title: "Roles",
+                    icon: <ChartColumnBig className="size-5" />,
+                    component: Roles,
+                    isAuthenticated: true,
+                    isShown: false
+                },
+            ]
         }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes
