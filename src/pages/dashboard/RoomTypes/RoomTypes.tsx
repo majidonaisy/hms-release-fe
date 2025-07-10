@@ -3,17 +3,9 @@ import { toast } from 'sonner';
 import { getRoomTypes, deleteRoomType, updateRoomType, addRoomType } from '@/services/RoomTypes';
 import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
-import { GetRoomTypesResponse, AddRoomTypeRequest } from '@/validation/schemas/RoomType';
+import {  AddRoomTypeRequest, RoomType } from '@/validation/schemas/RoomType';
 
-interface RoomType {
-  id: string;
-  name: string;
-  description?: string;
-  capacity?: number;
-  baseRate?: string;
-  isActive?: boolean;
-  [key: string]: any;
-}
+
 
 const RoomTypes = () => {
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
@@ -99,16 +91,6 @@ const RoomTypes = () => {
     {
       key: 'capacity',
       label: 'Capacity',
-    },
-    {
-      key: 'isActive',
-      label: 'Status',
-      render: (item: RoomType) => (
-        <div className={`px-2 py-1 rounded-full text-xs inline-block ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-          }`}>
-          {item.isActive ? 'Active' : 'Inactive'}
-        </div>
-      ),
     }
   ];
 
@@ -135,7 +117,6 @@ const RoomTypes = () => {
           onClick: handleAddRoomType
         }}
         getRowKey={(item: RoomType) => item.id}
-        
         deleteConfig={{
           onDelete: handleDeleteRoomType,
           getDeleteTitle: () => 'Delete Room Type',
