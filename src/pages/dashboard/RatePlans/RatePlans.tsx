@@ -75,24 +75,15 @@ const RatePlans = () => {
     });
   };
 
-  const handleDeleteRatePlan = (ratePlan: RatePlan): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      openDialog('delete', {
-        title: 'Delete Rate Plan',
-        description: `Are you sure you want to delete "${ratePlan.name}"? This action cannot be undone.`,
-        onConfirm: async () => {
-          try {
-            await deleteRatePlan(ratePlan.id);
-            toast.success('Rate plan deleted successfully');
-            await fetchRatePlans();
-            resolve();
-          } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to delete rate plan');
-            reject(error);
-          }
-        }
-      });
-    });
+  const handleDeleteRatePlan = async (ratePlan: RatePlan): Promise<void> => {
+    try {
+      await deleteRatePlan(ratePlan.id);
+      toast.success('Rate plan deleted successfully');
+      await fetchRatePlans();
+    } catch (error: any) {
+      toast.error(error.userMessage || 'Failed to delete rate plan');
+      throw error; // Re-throw to let DataTable handle the error state
+    }
   };
 
   const formatCurrency = (amount: number): string => {
@@ -161,8 +152,10 @@ const RatePlans = () => {
         }}
         getRowKey={(item: RatePlan) => item.id}
         deleteConfig={{
-          onDelete: (item: RatePlan) => handleDeleteRatePlan(item),
-          getItemName: (item: RatePlan | null) => item ? item.name : 'this item',
+          onDelete: handleDeleteRatePlan,
+          getDeleteTitle: () => 'Delete Rate Plan',
+          getDeleteDescription: (item: RatePlan | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this rate plan? This action cannot be undone.',
+          getItemName: (item: RatePlan | null) => item ? item.name : 'this rate plan',
         }}
       />
     </div>

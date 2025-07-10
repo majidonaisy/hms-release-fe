@@ -65,24 +65,15 @@ const Amenities = () => {
     });
   };
 
-  const handleDeleteAmenity = (amenity: Amenity): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      openDialog('delete', {
-        title: 'Delete Amenity',
-        description: `Are you sure you want to delete "${amenity.name}"? This action cannot be undone.`,
-        onConfirm: async () => {
-          try {
-            await deleteAmenity(amenity.id);
-            toast.success('Amenity deleted successfully');
-            await fetchAmenities();
-            resolve();
-          } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to delete amenity');
-            reject(error);
-          }
-        }
-      });
-    });
+  const handleDeleteAmenity = async (amenity: Amenity): Promise<void> => {
+    try {
+      await deleteAmenity(amenity.id);
+      toast.success('Amenity deleted successfully');
+      await fetchAmenities();
+    } catch (error: any) {
+      toast.error(error.userMessage || 'Failed to delete amenity');
+      throw error; // Re-throw to let DataTable handle the error state
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -130,6 +121,8 @@ const Amenities = () => {
         }}
         deleteConfig={{
           onDelete: handleDeleteAmenity,
+          getDeleteTitle: () => 'Delete Amenity',
+          getDeleteDescription: (item: Amenity | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this amenity? This action cannot be undone.',
           getItemName: (item: Amenity | null) => item ? item.name : 'this amenity',
         }}
       />

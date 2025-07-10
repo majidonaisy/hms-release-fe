@@ -71,24 +71,15 @@ const RoomTypes = () => {
     });
   };
 
-  const handleDeleteRoomType = (roomType: RoomType): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      openDialog('delete', {
-        title: 'Delete Room Type',
-        description: `Are you sure you want to delete ${roomType.name}? This action cannot be undone.`,
-        onConfirm: async () => {
-          try {
-            await deleteRoomType(roomType.id);
-            toast.success('Room type deleted successfully');
-            await fetchRoomTypes();
-            resolve();
-          } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to delete room type');
-            reject(error);
-          }
-        }
-      });
-    });
+  const handleDeleteRoomType = async (roomType: RoomType): Promise<void> => {
+    try {
+      await deleteRoomType(roomType.id);
+      toast.success('Room type deleted successfully');
+      await fetchRoomTypes();
+    } catch (error: any) {
+      toast.error(error.userMessage || 'Failed to delete room type');
+      throw error; // Re-throw to let DataTable handle the error state
+    }
   };
 
   const roomTypeColumns: TableColumn<RoomType>[] = [
@@ -144,9 +135,12 @@ const RoomTypes = () => {
           onClick: handleAddRoomType
         }}
         getRowKey={(item: RoomType) => item.id}
+        
         deleteConfig={{
-          onDelete: (item: RoomType) => handleDeleteRoomType(item),
-          getItemName: (item: RoomType | null) => item ? item.name : 'this item',
+          onDelete: handleDeleteRoomType,
+          getDeleteTitle: () => 'Delete Room Type',
+          getDeleteDescription: (item: RoomType | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this room type? This action cannot be undone.',
+          getItemName: (item: RoomType | null) => item ? item.name : 'this room type',
         }}
       />
     </div>

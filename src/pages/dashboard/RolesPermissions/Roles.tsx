@@ -94,8 +94,9 @@ const Roles = () => {
                 deleteConfig={{
                     onDelete: handleDeleteRole,
                     getDeleteTitle: () => 'Delete Role',
-                    getItemName: (item: Role ) => item ? item?.name : 'this role',
-  }}
+                    getDeleteDescription: (item: Role | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this role? This action cannot be undone.',
+                    getItemName: (item: Role | null) => item ? item.name : 'this role',
+                }}
             />
             <NewRoleDialog
                 isOpen={newRoleDialogOpen}

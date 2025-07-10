@@ -4,7 +4,7 @@ import NewRoomTypeDialog from '../dialogs/NewRoomTypeDialog';
 import NewAmenityDialog from '../dialogs/NewAmenityDialog';
 import NewRoleDialog from '../dialogs/NewRoleDialog';
 import { useDialog } from '@/context/useDialog';
-import NewRatePlanDialog from '../dialogs/NewRatePlanDialog';
+import NewRatePlanDialog from '../dialogs/NewRateplanDialog';
 
 const DialogContainer: React.FC = () => {
   const { isOpen, dialogType, dialogProps, closeDialog } = useDialog();
