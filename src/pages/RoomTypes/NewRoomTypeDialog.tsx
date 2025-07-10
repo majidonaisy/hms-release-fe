@@ -3,28 +3,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/O
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
-
-import { AddRoomTypeRequest, AddRoomTypeRequestSchema } from '@/validation';
+import { Textarea } from '@/components/atoms/Textarea';
+import { AddRoomTypeRequest, AddRoomTypeRequestSchema, RoomType } from '@/validation';
 import { toast } from 'sonner';
 
 interface NewRoomTypeDialogProps {
     isOpen: boolean;
     onConfirm: (data: AddRoomTypeRequest) => Promise<void>;
     onCancel: () => void;
+    editingRoomType?: RoomType | null;
 }
 
 const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
     isOpen,
     onConfirm,
-    onCancel
+    onCancel,
+    editingRoomType = null
 }) => {
     const [formData, setFormData] = useState<AddRoomTypeRequest>({
-        name: '',
-        description: '',
-        baseRate: 0,
-        maxOccupancy: 1,
-        childOccupancy: 0,
-        adultOccupancy: 0,
+        name: editingRoomType?.name || '',
+        description: editingRoomType?.description || '',
+        baseRate: editingRoomType ? parseFloat(editingRoomType.baseRate) : 0,
+        maxOccupancy: editingRoomType?.maxOccupancy || 1,
+        childOccupancy: editingRoomType?.childOccupancy || 0,
+        adultOccupancy: editingRoomType?.adultOccupancy || 0,
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +94,9 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
         <Dialog open={isOpen} onOpenChange={handleCancel}>
             <DialogContent className="max-w-md">
                 <DialogHeader className="flex flex-row items-center justify-between">
-                    <DialogTitle className="text-xl font-semibold">New Room Type</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold">
+                        {editingRoomType ? 'Edit Room Type' : 'New Room Type'}
+                    </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -126,6 +130,38 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
                         {errors.maxOccupancy && <p className="text-red-500 text-sm">{errors.maxOccupancy}</p>}
                     </div>
 
+                    {/* Adult Occupancy */}
+                    <div className="space-y-2">
+                        <Label htmlFor="adultOccupancy">Adult Occupancy</Label>
+                        <Input
+                            id="adultOccupancy"
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 2"
+                            value={formData.adultOccupancy || ''}
+                            onChange={(e) => handleInputChange('adultOccupancy', parseInt(e.target.value) || 0)}
+                            className={errors.adultOccupancy ? 'border-red-500' : ''}
+                            disabled={isLoading}
+                        />
+                        {errors.adultOccupancy && <p className="text-red-500 text-sm">{errors.adultOccupancy}</p>}
+                    </div>
+
+                    {/* Child Occupancy */}
+                    <div className="space-y-2">
+                        <Label htmlFor="childOccupancy">Child Occupancy</Label>
+                        <Input
+                            id="childOccupancy"
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 1"
+                            value={formData.childOccupancy || ''}
+                            onChange={(e) => handleInputChange('childOccupancy', parseInt(e.target.value) || 0)}
+                            className={errors.childOccupancy ? 'border-red-500' : ''}
+                            disabled={isLoading}
+                        />
+                        {errors.childOccupancy && <p className="text-red-500 text-sm">{errors.childOccupancy}</p>}
+                    </div>
+
                     {/* Base Rate */}
                     <div className="space-y-2">
                         <Label htmlFor="baseRate">Base Rate</Label>
@@ -143,13 +179,30 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
                         {errors.baseRate && <p className="text-red-500 text-sm">{errors.baseRate}</p>}
                     </div>
 
+                    {/* Description */}
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description (Optional)</Label>
+                        <Textarea
+                            id="description"
+                            placeholder="Describe the room and any key features guests should know about."
+                            value={formData.description || ''}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
+                            rows={4}
+                            className={`resize-none ${errors.description ? 'border-red-500' : ''}`}
+                            disabled={isLoading}
+                        />
+                        {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                    </div>
+
                     {/* Submit Button */}
                     <Button
                         type="submit"
                         className="w-full text-white mt-6"
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Creating...' : 'Create Room Type'}
+                        {isLoading
+                            ? (editingRoomType ? 'Updating...' : 'Creating...')
+                            : (editingRoomType ? 'Update Room Type' : 'Create Room Type')}
                     </Button>
                 </form>
             </DialogContent>

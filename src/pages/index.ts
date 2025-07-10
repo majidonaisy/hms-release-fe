@@ -12,3 +12,4 @@ export { default as Housekeeping } from "./Housekeeping/Housekeeping";
 export { default as AdminDashboard } from "./dashboard/Dashboard";
 export { default as Amenities } from "./Amenities/Amenities";
 export { default as RatePlans } from "./RatePlans/RatePlans";
+export { default as RoomTypes } from "./RoomTypes/RoomTypes";
