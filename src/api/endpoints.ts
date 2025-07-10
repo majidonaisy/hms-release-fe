@@ -1,3 +1,5 @@
+import { Currency } from "lucide-react";
+
 export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
@@ -75,5 +77,8 @@ export const ENDPOINTS = {
     Update: "role/update",
     Delete: "role/delete",
     GetPermissions: "role/get-permissions",
+  },
+  Currency: {
+    GetAll: "exchange/currencies/",
   },
 };

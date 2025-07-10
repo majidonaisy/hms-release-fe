@@ -8,6 +8,8 @@ import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
 import { AddRatePlanSchema, AddRatePlanRequest } from '@/validation/schemas/RatePlan';
+import { Currency } from '@/validation/schemas/Currency';
+import { getAllCurrencies } from '@/services/Currency';
 
 interface RatePlanDialogProps {
   isOpen: boolean;
@@ -30,9 +32,28 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
+
+  // Fetch currencies when dialog opens
+  const fetchCurrencies = async () => {
+    try {
+      setLoadingCurrencies(true);
+      const response = await getAllCurrencies();
+      console.log('response', response)
+      setCurrencies(response.data || []);
+    } catch (error: any) {
+      console.error('Error fetching currencies:', error);
+      toast.error('Failed to load currencies');
+    } finally {
+      setLoadingCurrencies(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
+      fetchCurrencies();
+      
       if (editData) {
         setFormData({
           name: editData.name || '',
@@ -229,13 +250,35 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
           <div className="space-y-2">
             <Label htmlFor="currencyId">Currency</Label>
-            <Input
-              id="currencyId"
+            <Select
               value={formData.currencyId}
-              onChange={(e) => setFormData({ ...formData, currencyId: e.target.value })}
-              placeholder="e.g. USD, EUR"
-              className={errors.currencyId ? "border-red-500" : ""}
-            />
+              onValueChange={(value) => setFormData({ ...formData, currencyId: value })}
+            >
+              <SelectTrigger className={errors.currencyId ? "border-red-500" : ""}>
+                <SelectValue placeholder={loadingCurrencies ? "Loading currencies..." : "Select currency"} />
+              </SelectTrigger>
+              <SelectContent>
+                {loadingCurrencies ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Loading currencies...</span>
+                  </div>
+                ) : currencies.length > 0 ? (
+                  currencies.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-medium">{currency.code}</span>
+                        <span className="text-gray-500 ml-2">{currency.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center p-4 text-gray-500">
+                    No currencies available
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
             {errors.currencyId && <p className="text-red-500 text-sm">{errors.currencyId}</p>}
           </div>
 
