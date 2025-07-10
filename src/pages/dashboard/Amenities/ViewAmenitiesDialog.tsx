@@ -1,188 +1,140 @@
-import { Button } from '@/components/atoms/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/Organisms/Dialog';
-import { Amenity } from '@/validation/schemas/amenity';
-import { useEffect, useState } from 'react';
-import { getAmenities, deleteAmenity } from '@/services/Amenities';
-import { AlertCircle, Loader2, Trash2, Search, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
-import { Input } from '@/components/atoms/Input';
-import { ScrollArea } from '@/components/atoms/ScrollArea';
-import DeleteDialog from '@/components/molecules/DeleteDialog';
+import { getAmenities, deleteAmenity } from '@/services/Amenities';
 import { format } from 'date-fns';
+import { AmenityResponse, Amenity } from '@/validation/schemas/amenity';
+import { useDialog } from '@/context/useDialog';
+import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 
-interface ViewAmenitiesDialogProps {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    onAmenityDeleted?: () => void;
-}
+const Amenities = () => {
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { openDialog } = useDialog();
 
-export const ViewAmenitiesDialog = ({ isOpen, onOpenChange, onAmenityDeleted }: ViewAmenitiesDialogProps) => {
-    const [amenities, setAmenities] = useState<Amenity[]>([]);
-    const [filteredAmenities, setFilteredAmenities] = useState<Amenity[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
+  const fetchAmenities = async () => {
+    try {
+      setLoading(true);
+      const response: AmenityResponse = await getAmenities({ page: 1, limit: 100 });
+      if (response && response.status === 200) {
+        setAmenities(response.data || []);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error: any) {
+      toast.error(error.userMessage || 'Failed to load amenities');
+      console.error(error);
+      // Set an empty data array to prevent undefined errors
+      setAmenities([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchAmenities = async () => {
+  useEffect(() => {
+    fetchAmenities();
+  }, []);
+
+  const handleAddAmenity = () => {
+    console.log('handleAddAmenity called'); // Debug log
+    openDialog('amenity', {
+      onAmenityAdded: async () => {
         try {
-            setLoading(true);
-            // We use pagination to ensure we get all amenities
-            const response = await getAmenities({ page: 1, limit: 100 });
-            setAmenities(response.data);
-            setFilteredAmenities(response.data);
-        } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to load amenities');
-        } finally {
-            setLoading(false);
+          await fetchAmenities();
+          return Promise.resolve();
+        } catch (error) {
+          console.error('Error refreshing amenities:', error);
+          return Promise.reject(error);
         }
-    };
+      }
+    });
+    console.log('openDialog called for amenity'); // Debug log
+  };
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchAmenities();
-        }
-    }, [isOpen]);
-
-    useEffect(() => {
-        if (searchQuery.trim() === '') {
-            setFilteredAmenities(amenities);
-        } else {
-            const filtered = amenities.filter(amenity =>
-                amenity.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            setFilteredAmenities(filtered);
-        }
-    }, [searchQuery, amenities]);
-
-    const handleDelete = async (id: string) => {
-        if (!id) return;
-
+  const handleEditAmenity = (amenity: Amenity) => {
+    openDialog('amenity', {
+      editData: amenity,
+      onAmenityAdded: async () => {
         try {
-            setDeleteLoading(true);
-            await deleteAmenity(id);
-            setConfirmDelete(null);
+          await fetchAmenities();
+          return Promise.resolve();
+        } catch (error) {
+          console.error('Error refreshing amenities:', error);
+          return Promise.reject(error);
+        }
+      }
+    });
+  };
+
+  const handleDeleteAmenity = (amenity: Amenity): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      openDialog('delete', {
+        title: 'Delete Amenity',
+        description: `Are you sure you want to delete "${amenity.name}"? This action cannot be undone.`,
+        onConfirm: async () => {
+          try {
+            await deleteAmenity(amenity.id);
             toast.success('Amenity deleted successfully');
-            fetchAmenities();
-            if (onAmenityDeleted) onAmenityDeleted();
-        } catch (error: any) {
+            await fetchAmenities();
+            resolve();
+          } catch (error: any) {
             toast.error(error.userMessage || 'Failed to delete amenity');
-        } finally {
-            setDeleteLoading(false);
+            reject(error);
+          }
         }
-    };
+      });
+    });
+  };
 
-    const formatDate = (dateString: string) => {
-        try {
-            return format(new Date(dateString), 'MMM dd, yyyy');
-        } catch {
-            return 'Invalid date';
-        }
-    };
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch {
+      return 'Invalid date';
+    }
+  };
 
-    return (
-        <>
-            <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>All Amenities</DialogTitle>
-                        <DialogDescription>
-                            View and manage all amenities available in your hotel.
-                        </DialogDescription>
-                    </DialogHeader>
+  const amenityColumns: TableColumn<Amenity>[] = [
+    {
+      key: 'name',
+      label: 'Name',
+    },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (item: Amenity) => formatDate(item.createdAt),
+    }
+  ];
 
-                    {/* Search bar */}
-                    <div className="relative mt-2">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                        <Input
-                            placeholder="Search amenities..."
-                            className="pl-9 w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
+  const actions = [
+    {
+      label: 'Edit',
+      onClick: (item: Amenity, e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleEditAmenity(item);
+      },
+    }
+  ];
 
-                    {loading ? (
-                        <div className="flex justify-center items-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <span className="ml-2 text-gray-600">Loading amenities...</span>
-                        </div>
-                    ) : (
-                        <ScrollArea className="h-[400px]">
-                            {filteredAmenities.length === 0 ? (
-                                <div className="py-8 flex flex-col items-center justify-center text-gray-500">
-                                    {searchQuery ? (
-                                        <>
-                                            <AlertCircle className="mb-2 h-10 w-10 text-gray-400" />
-                                            <p>No amenities match your search</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Info className="mb-2 h-10 w-10 text-gray-400" />
-                                            <p>No amenities found</p>
-                                            <Button
-                                                onClick={() => {
-                                                    onOpenChange(false);
-                                                    setTimeout(() => document.getElementById('new-amenity-button')?.click(), 100);
-                                                }}
-                                                className="mt-4"
-                                            >
-                                                Add your first amenity
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Created</TableHead>
-                                            <TableHead className="w-24 text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredAmenities.map((amenity) => (
-                                            <TableRow key={amenity.id}>
-                                                <TableCell className="font-medium">{amenity.name}</TableCell>
-                                                <TableCell className="text-gray-500">{formatDate(amenity.createdAt)}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setConfirmDelete(amenity.id)}
-                                                        className="hover:bg-red-50 hover:text-red-600"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-500" />
-                                                        <span className="sr-only ml-2">Delete</span>
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </ScrollArea>
-                    )}
-
-                    <div className="flex justify-between mt-4">
-                        <div className="text-sm text-gray-500">
-                            {!loading && `Showing ${filteredAmenities.length} of ${amenities.length} amenities`}
-                        </div>
-                        <Button variant="background" onClick={() => onOpenChange(false)}>Close</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <DeleteDialog
-                isOpen={!!confirmDelete}
-                onConfirm={() => handleDelete(confirmDelete!)}
-                onCancel={() => setConfirmDelete(null)}
-                title="Delete Amenity"
-                description="Are you sure you want to delete this amenity? This action cannot be undone."
-                loading={deleteLoading}
-            />
-        </>
-    );
+  return (
+    <div className="p-6">
+      <DataTable
+        data={amenities}
+        loading={loading}
+        columns={amenityColumns}
+        title="Amenities"
+        getRowKey={(item: Amenity) => item.id}
+        actions={actions}
+        primaryAction={{
+          label: 'Add Amenity',
+          onClick: handleAddAmenity
+        }}
+        deleteConfig={{
+          onDelete: handleDeleteAmenity,
+          getItemName: (item: Amenity | null) => item ? item.name : 'this amenity',
+        }}
+      />
+    </div>
+  );
 };
+
+export default Amenities;

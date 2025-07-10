@@ -63,19 +63,19 @@ export interface DataTableProps<T = any> {
     onClick: () => void
     icon?: ReactNode
     variant?:
-      | "default"
-      | "outline"
-      | "secondary"
-      | "destructive"
-      | "ghost"
-      | "link"
-      | "foreground"
-      | "background"
-      | "slatePrimary"
-      | "slateSecondary"
-      | "negative"
-      | "primaryOutline"
-      | "secondaryOutline"
+    | "default"
+    | "outline"
+    | "secondary"
+    | "destructive"
+    | "ghost"
+    | "link"
+    | "foreground"
+    | "background"
+    | "slatePrimary"
+    | "slateSecondary"
+    | "negative"
+    | "primaryOutline"
+    | "secondaryOutline"
     // Add permission properties
     action?: string
     subject?: string
@@ -402,10 +402,10 @@ const DataTable = <T,>({
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-            <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-            <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-              {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
-            </span>
+              <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+              <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
+              </span>
             </div>
           </div>
 
@@ -597,7 +597,7 @@ const DataTable = <T,>({
           title={deleteConfig.getDeleteTitle?.(itemToDelete!) || "Delete Item"}
           description={
             deleteConfig.getDeleteDescription?.(itemToDelete!) ||
-            `Are you sure you want to delete ${deleteConfig.getItemName?.(itemToDelete!) || "this item"}? This action cannot be undone.`
+            `Are you sure you want to delete ${deleteConfig?.getItemName?.(itemToDelete!) || "this item"}? This action cannot be undone.`
           }
         />
       )}

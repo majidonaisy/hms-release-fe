@@ -1,22 +1,34 @@
-import { useEffect, useState } from 'react';
-import type { RoomType, AddRoomTypeRequest } from '@/validation';
-import { addRoomType, deleteRoomType, getRoomTypes } from '@/services/RoomTypes';
-import DataTable, { ActionMenuItem, TableColumn } from '@/components/Templates/DataTable';
-import NewRoomTypeDialog from './NewRoomTypeDialog';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { getRoomTypes, deleteRoomType, updateRoomType, addRoomType } from '@/services/RoomTypes';
+import DataTable, { TableColumn } from '@/components/Templates/DataTable';
+import { useDialog } from '@/context/useDialog';
+import { GetRoomTypesResponse, AddRoomTypeRequest } from '@/validation/schemas/RoomType';
+
+interface RoomType {
+  id: string;
+  name: string;
+  description?: string;
+  capacity?: number;
+  baseRate?: string;
+  isActive?: boolean;
+  [key: string]: any;
+}
 
 const RoomTypes = () => {
-  const [newRoomTypeDialogOpen, setNewRoomTypeDialogOpen] = useState<boolean>(false);
-  const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const { openDialog } = useDialog();
 
   const fetchRoomTypes = async () => {
     try {
       setLoading(true);
       const response = await getRoomTypes();
-      setRoomTypes(response.data);
-    } catch (error) {
+      setRoomTypes(response.data || []);
+    } catch (error: any) {
+      toast.error(error.userMessage || 'Failed to load room types');
       console.error(error);
+      setRoomTypes([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -26,91 +38,118 @@ const RoomTypes = () => {
     fetchRoomTypes();
   }, []);
 
-  const handleDeleteRoomType = async (roomType: RoomType) => {
-    try {
-      await deleteRoomType(roomType.id);
-      await fetchRoomTypes(); // Refresh the room types list
-    } catch (error) {
-      console.error('Error deleting room type:', error);
-    }
+  const handleAddRoomType = () => {
+    openDialog('roomType', {
+      onConfirm: async (data: AddRoomTypeRequest) => {
+        try {
+          await addRoomType(data);
+          toast.success('Room type added successfully');
+          await fetchRoomTypes();
+          return Promise.resolve();
+        } catch (error: any) {
+          toast.error(error.userMessage || 'Failed to add room type');
+          return Promise.reject(error);
+        }
+      }
+    });
   };
 
-  const roomTypeColumns: TableColumn[] = [
-    { key: 'name', label: 'Name', sortable: true, className: 'font-medium text-gray-900' },
-    { key: 'maxOccupancy', label: 'Max Occupancy', sortable: true, className: 'text-gray-600' },
-    { key: 'baseRate', label: 'Base Rate', sortable: true, className: 'text-gray-600' },
+  const handleEditRoomType = (roomType: RoomType) => {
+    openDialog('roomType', {
+      editData: roomType,
+      onConfirm: async (data: AddRoomTypeRequest) => {
+        try {
+          await updateRoomType(roomType.id, data);
+          toast.success('Room type updated successfully');
+          await fetchRoomTypes();
+          return Promise.resolve();
+        } catch (error: any) {
+          toast.error(error.userMessage || 'Failed to update room type');
+          return Promise.reject(error);
+        }
+      }
+    });
+  };
+
+  const handleDeleteRoomType = (roomType: RoomType): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      openDialog('delete', {
+        title: 'Delete Room Type',
+        description: `Are you sure you want to delete ${roomType.name}? This action cannot be undone.`,
+        onConfirm: async () => {
+          try {
+            await deleteRoomType(roomType.id);
+            toast.success('Room type deleted successfully');
+            await fetchRoomTypes();
+            resolve();
+          } catch (error: any) {
+            toast.error(error.userMessage || 'Failed to delete room type');
+            reject(error);
+          }
+        }
+      });
+    });
+  };
+
+  const roomTypeColumns: TableColumn<RoomType>[] = [
     {
-      key: 'occupancy',
-      label: 'Occupancy Details',
-      render: (item) => (
-        <div className="text-gray-600">
-          <p>Adult: {item.adultOccupancy}</p>
-          <p>Child: {item.childOccupancy}</p>
+      key: 'name',
+      label: 'Name',
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      render: (item: RoomType) => (
+        <div className="max-w-[300px] truncate" title={item.description}>
+          {item.description || 'No description'}
         </div>
       ),
-      className: 'text-gray-600'
+    },
+    {
+      key: 'capacity',
+      label: 'Capacity',
+    },
+    {
+      key: 'isActive',
+      label: 'Status',
+      render: (item: RoomType) => (
+        <div className={`px-2 py-1 rounded-full text-xs inline-block ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+          }`}>
+          {item.isActive ? 'Active' : 'Inactive'}
+        </div>
+      ),
     }
   ];
 
-  const roomTypeActions: ActionMenuItem[] = [
+  const actions = [
     {
       label: 'Edit',
-      onClick: (roomType, e) => {
+      onClick: (item: RoomType, e: React.MouseEvent) => {
         e.stopPropagation();
-        setEditingRoomType(roomType as RoomType);
-        setNewRoomTypeDialogOpen(true);
-      }
+        handleEditRoomType(item);
+      },
     }
   ];
 
-  const handleCreateRoomType = async (data: AddRoomTypeRequest) => {
-    try {
-      await addRoomType(data);
-      await fetchRoomTypes(); // Refresh the room types list
-      setNewRoomTypeDialogOpen(false);
-    } catch (error: any) {
-      console.error('Error creating room type:', error);
-      throw error;
-    }
-  };
-
-  const handleDialogClose = () => {
-    setNewRoomTypeDialogOpen(false);
-    setEditingRoomType(null);
-  };
-
   return (
-    <>
+    <div className="p-6">
       <DataTable
-        data={roomTypes || []}
+        data={roomTypes}
         loading={loading}
         columns={roomTypeColumns}
         title="Room Types"
-        actions={roomTypeActions}
+        actions={actions}
         primaryAction={{
-          label: 'New Room Type',
-          onClick: () => {
-            setEditingRoomType(null);
-            setNewRoomTypeDialogOpen(true);
-          }
+          label: 'Add Room Type',
+          onClick: handleAddRoomType
         }}
-        getRowKey={roomType => roomType.id}
-        filter={{
-          searchPlaceholder: 'Search room types',
-          searchFields: ['name']
-        }}
-        emptyStateMessage="No room types found."
+        getRowKey={(item: RoomType) => item.id}
         deleteConfig={{
-          onDelete: handleDeleteRoomType,
-          getDeleteTitle: () => 'Delete Room Type',
+          onDelete: (item: RoomType) => handleDeleteRoomType(item),
+          getItemName: (item: RoomType | null) => item ? item.name : 'this item',
         }}
       />
-      <NewRoomTypeDialog
-        isOpen={newRoomTypeDialogOpen}
-        onCancel={handleDialogClose}
-        onConfirm={handleCreateRoomType}
-      />
-    </>
+    </div>
   );
 };
 

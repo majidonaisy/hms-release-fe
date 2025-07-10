@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
+import DialogContainer from '@/components/Templates/DialogContainer';
 
 interface MainLayoutProps {
     routes: any[];
@@ -13,7 +14,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [openTabs, setOpenTabs] = useState<string[]>([]); 
+    const [openTabs, setOpenTabs] = useState<string[]>([]);
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
@@ -177,6 +178,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                     </main>
                 </SidebarInset>
 
+                {/* Dialog Container for rendering dialogs */}
+                <DialogContainer />
 
             </div>
         </SidebarProvider >

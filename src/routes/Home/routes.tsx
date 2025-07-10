@@ -6,7 +6,6 @@ import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
 import NewReservation from "@/pages/Reservations/NewReservation";
-import { is } from "date-fns/locale";
 
 const RoutesList = () => {
 
