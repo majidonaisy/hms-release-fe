@@ -10,6 +10,7 @@ import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
 import { getRoomTypes } from '@/services/RoomTypes';
+import { AddRatePlanSchema, AddRatePlanApiSchema } from '@/validation/schemas/RatePlan';
 
 interface RoomType {
   id: string;
@@ -27,7 +28,7 @@ interface RoomType {
 interface RatePlanDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onRatePlanAdded?: () => void;
+  onRatePlanAdded?: () => Promise<void>;
   editData?: any;
 }
 
@@ -40,8 +41,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
     description: '',
     basePrice: 0,
     baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
-    baseAdjVal: '',
-    currencyId: 'USD',
+    baseAdjVal: 0,
+    currencyId: 'cmcx9kq150041k6zcean3uses',
     isActive: true,
     roomTypeId: '',
     isFeatured: false
@@ -72,8 +73,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
           description: editData.description || '',
           basePrice: editData.basePrice || 0,
           baseAdjType: editData.baseAdjType || 'PERCENT',
-          baseAdjVal: editData.baseAdjVal || '',
-          currencyId: editData.currencyId || 'USD',
+          baseAdjVal: editData.baseAdjVal || 0,
+          currencyId: editData.currencyId || 'cmcx9kq150041k6zcean3uses',
           isActive: editData.isActive !== undefined ? editData.isActive : true,
           roomTypeId: editData.roomTypeId || '',
           isFeatured: editData.isFeatured || false
@@ -85,8 +86,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
           description: '',
           basePrice: 0,
           baseAdjType: 'PERCENT',
-          baseAdjVal: '',
-          currencyId: 'USD',
+          baseAdjVal: 0,
+          currencyId: 'cmcx9kq150041k6zcean3uses',
           isActive: true,
           roomTypeId: '',
           isFeatured: false
@@ -98,30 +99,30 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   }, [isOpen, editData]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
+    try {
+      // Ensure numeric values are properly typed
+      const validationData = {
+        ...formData,
+        basePrice: Number(formData.basePrice),
+        baseAdjVal: Number(formData.baseAdjVal),
+      };
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      AddRatePlanSchema.parse(validationData);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const newErrors: Record<string, string> = {};
+
+      if (error.errors) {
+        error.errors.forEach((err: any) => {
+          const field = err.path[0];
+          newErrors[field] = err.message;
+        });
+      }
+
+      setErrors(newErrors);
+      return false;
     }
-
-    if (!formData.code.trim()) {
-      newErrors.code = 'Code is required';
-    }
-
-    if (formData.basePrice <= 0) {
-      newErrors.basePrice = 'Base price must be greater than 0';
-    }
-
-    if (!formData.baseAdjVal.trim()) {
-      newErrors.baseAdjVal = 'Adjustment value is required';
-    }
-
-    if (!formData.currencyId.trim()) {
-      newErrors.currencyId = 'Currency is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +134,17 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
     setIsSubmitting(true);
     try {
-      await addRatePlan(formData);
+      // Prepare data for API - ensure numeric values are properly typed
+      const formDataForApi = {
+        ...formData,
+        basePrice: Number(formData.basePrice),
+        baseAdjVal: Number(formData.baseAdjVal),
+      };
+
+      // Transform and validate for API submission (converts baseAdjVal to string)
+      const apiData = AddRatePlanApiSchema.parse(formDataForApi);
+
+      await addRatePlan(apiData);
       toast.success('Rate plan added successfully');
 
       if (onRatePlanAdded) {
@@ -147,8 +158,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
         description: '',
         basePrice: 0,
         baseAdjType: 'PERCENT',
-        baseAdjVal: '',
-        currencyId: 'USD',
+        baseAdjVal: 0,
+        currencyId: 'cmcx9kq150041k6zcean3uses',
         isActive: true,
         roomTypeId: '',
         isFeatured: false
@@ -218,8 +229,16 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               type="number"
               min="0"
               step="0.01"
-              value={formData.basePrice}
-              onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) || 0 })}
+              value={formData.basePrice === 0 ? '' : formData.basePrice}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numValue = value === '' ? 0 : parseFloat(value);
+                setFormData({
+                  ...formData,
+                  basePrice: isNaN(numValue) ? 0 : numValue
+                });
+              }}
+              placeholder="Enter base price"
               className={errors.basePrice ? "border-red-500" : ""}
             />
             {errors.basePrice && <p className="text-red-500 text-sm">{errors.basePrice}</p>}
@@ -246,8 +265,18 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             <Label htmlFor="baseAdjVal">Adjustment Value</Label>
             <Input
               id="baseAdjVal"
-              value={formData.baseAdjVal}
-              onChange={(e) => setFormData({ ...formData, baseAdjVal: e.target.value })}
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.baseAdjVal === 0 ? '' : formData.baseAdjVal}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numValue = value === '' ? 0 : parseFloat(value);
+                setFormData({
+                  ...formData,
+                  baseAdjVal: isNaN(numValue) ? 0 : numValue
+                });
+              }}
               placeholder="e.g. 10 or 50"
               className={errors.baseAdjVal ? "border-red-500" : ""}
             />

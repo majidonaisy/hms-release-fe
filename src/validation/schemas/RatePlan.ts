@@ -5,12 +5,14 @@ const RatePlanShape = z.object({
   hotelId: z.string(),
   code: z.string(),
   name: z.string(),
-  baseAdjType: z.enum(["PERCENT", "AMOUNT"]),
-  baseAdjVal: z.string(),
+  baseAdjType: z.enum(["PERCENT", "FIXED"]),
+  baseAdjVal: z.number(),
   currencyId: z.string(),
   isActive: z.boolean(),
   description: z.string().optional(),
   basePrice: z.number().default(0),
+  roomTypeId: z.string().optional(),
+  isFeatured: z.boolean().default(false),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -22,9 +24,16 @@ export const AddRatePlanSchema = z.object({
   baseAdjType: z.enum(["PERCENT", "FIXED"], {
     message: "Adjustment type must be either PERCENT or FIXED",
   }),
-  baseAdjVal: z.string().min(1, "Adjustment value is required"),
+  baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0"),
   currencyId: z.string().min(1, "Currency is required"),
+  isActive: z.boolean().default(true),
+  roomTypeId: z.string().min(1, "Room type is required"),
+  isFeatured: z.boolean().default(false),
   description: z.string().optional(),
+});
+
+export const AddRatePlanApiSchema = AddRatePlanSchema.extend({
+  baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0"), // Keep as number
 });
 
 export const GetRatePlansResponseSchema = z.object({
@@ -44,4 +53,5 @@ export const GetRatePlansResponseSchema = z.object({
 
 export type RatePlan = z.infer<typeof RatePlanShape>;
 export type AddRatePlanRequest = z.infer<typeof AddRatePlanSchema>;
+export type AddRatePlanApiRequest = z.infer<typeof AddRatePlanApiSchema>;
 export type GetRatePlansResponse = z.infer<typeof GetRatePlansResponseSchema>;

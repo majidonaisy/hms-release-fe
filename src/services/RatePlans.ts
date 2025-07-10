@@ -26,7 +26,18 @@ export const getRatePlans = async (params?: GetRatePlansParams): Promise<GetRate
   }
 };
 
-export const addRatePlan = async (data: { name: string; code: string; basePrice: number; baseAdjType: "PERCENT" | "FIXED"; baseAdjVal: string; currencyId: string; description: string }): Promise<RatePlan> => {
+export const addRatePlan = async (data: {
+  name: string;
+  code: string;
+  basePrice: number;
+  baseAdjType: "PERCENT" | "FIXED";
+  baseAdjVal: number;
+  currencyId: string;
+  description?: string;
+  isActive?: boolean;
+  roomTypeId?: string;
+  isFeatured?: boolean;
+}): Promise<RatePlan> => {
   try {
     const response = await apiClient({
       method: "POST",
@@ -69,7 +80,10 @@ export const updateRatePlan = async (
     baseAdjType: "PERCENT" | "FIXED";
     baseAdjVal: string;
     currencyId: string;
-    description: string;
+    description?: string;
+    isActive?: boolean;
+    roomTypeId?: string;
+    isFeatured?: boolean;
   }
 ): Promise<RatePlan> => {
   try {
