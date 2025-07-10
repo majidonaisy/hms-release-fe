@@ -89,8 +89,25 @@ const RoomTypes = () => {
       ),
     },
     {
-      key: 'capacity',
-      label: 'Capacity',
+      key: 'occupancy',
+      label: 'Occupancy',
+      render: (item: RoomType) => (
+        <div className="text-sm">
+          <div className="font-medium">Max: {item.maxOccupancy}</div>
+          <div className="text-gray-600">
+            Adults: {item.adultOccupancy} | Children: {item.childOccupancy}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'baseRate',
+      label: 'Base Rate',
+      render: (item: RoomType) => (
+        <div className="font-medium">
+          ${item.baseRate}
+        </div>
+      ),
     }
   ];
 

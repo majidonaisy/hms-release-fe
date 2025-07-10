@@ -103,11 +103,14 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     useEffect(() => {
         const handleGetPermissions = async () => {
             try {
+                setIsLoading(true);
                 const response = await getPermissions();
                 setPermissions(response.data);
             } catch (error) {
                 console.error('Failed to fetch permissions:', error);
                 toast.error('Failed to load permissions');
+            } finally {
+                setIsLoading(false);
             }
         };
         handleGetPermissions();
@@ -140,6 +143,21 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 
         loadRoleData();
     }, [isEditing, editingRole, isOpen]);
+
+    if(isLoading){
+        return (
+            <Dialog open={isOpen} onOpenChange={handleCancel}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader className="flex flex-row items-center justify-between">
+                        <DialogTitle className="text-xl font-semibold">
+                            {isEditing ? 'Edit Role' : 'New Role'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <Skeleton className='h-10 w-full' />
+                </DialogContent>
+            </Dialog>
+        );  
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>
