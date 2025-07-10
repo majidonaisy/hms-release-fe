@@ -55,3 +55,21 @@ export const getReservations = async (startDate?: Date, endDate?: Date, paginati
     };
   }
 };
+
+export const checkIn = async (reservationId: string, deposit: number): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: 'POST',
+      endpoint: `${ENDPOINTS.Reservations.CheckIn}/reservationId=${reservationId}`,
+      baseURL,
+      data: deposit
+    });
+    return response
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

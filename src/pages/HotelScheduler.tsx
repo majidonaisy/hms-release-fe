@@ -12,6 +12,7 @@ import { Room } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
+import CheckInCheckoutDialog from "./Reservations/CheckInCheckOutDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -39,10 +40,12 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     open: boolean;
     reservationId?: string;
   }>({ open: false });
-
   const weekStart = useMemo(() => startOfWeek(currentDate, { weekStartsOn: 1 }), [currentDate]);
   const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
   const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const [checkInCheckOutDialog, setCheckInCheckOutDialog] = useState(false);
+  const [reservationId, setReservationId] = useState('');
+  console.log(reservationId)
 
   // Get Rooms
   useEffect(() => {
@@ -70,8 +73,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               resourceId: room.id,
               guestName: reservation.name,
               bookingId: reservation.id,
-              start: resv.checkIn,
-              end: resv.checkOut,
+              start: new Date(resv.checkIn),
+              end: new Date(resv.checkOut),
               status: String(resv.status),
               rate: reservation.baseRate,
               specialRequests: reservation.description,
@@ -344,9 +347,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowStart: event.gridRowStart,
                         gridRowEnd: event.gridRowEnd,
                       }}
+                      onClick={() => {setCheckInCheckOutDialog(true); setReservationId(event.id)}}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
-                      <div className="truncate text-xs opacity-75">{event.bookingId}</div>
+                      <div className="truncate text-xs opacity-75">{event.status}</div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -387,6 +391,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={reservationId}/>
     </TooltipProvider>
   );
 };
