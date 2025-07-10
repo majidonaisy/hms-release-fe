@@ -299,7 +299,7 @@ const NewTeamMember = () => {
           <Button
             type="button"
             variant='background'
-            className='text-white px-8'
+            className='px-8'
             onClick={handleSaveDraft}
           >
             Save Draft

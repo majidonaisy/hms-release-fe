@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useLocation, Link, useNavigate, Outlet } from 'react-router-dom';
+import { useLocation, Link, Outlet } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
+import NewReservationDialog from '@/pages/Reservations/NewReservationDialog';
 import DialogContainer from '@/components/Templates/DialogContainer';
 
 interface MainLayoutProps {
@@ -13,8 +14,8 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
-    const navigate = useNavigate();
     const [openTabs, setOpenTabs] = useState<string[]>([]);
+    const [openReservationDialog, setOpenReservationDialog] = useState(false);
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
@@ -162,7 +163,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                             <div className="flex items-center gap-3">
                                 <Button
                                     variant='primaryOutline'
-                                    onClick={() => navigate('/new-reservation')}
+                                    onClick={() => setOpenReservationDialog(true)}
                                     className='h-7'
                                 >
                                     <Plus size={18} className="mr-2" />
@@ -177,10 +178,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <Outlet />
                     </main>
                 </SidebarInset>
-
-                {/* Dialog Container for rendering dialogs */}
-                <DialogContainer />
-
+                <NewReservationDialog open={openReservationDialog} setOpen={setOpenReservationDialog} />
             </div>
         </SidebarProvider >
     );

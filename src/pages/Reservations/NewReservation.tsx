@@ -341,7 +341,7 @@ const NewReservation = () => {
                     <Button
                         type="button"
                         variant='background'
-                        className='text-white px-8'
+                        className='px-8'
                     >
                         Save Draft
                     </Button>

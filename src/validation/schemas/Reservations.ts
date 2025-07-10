@@ -20,7 +20,20 @@ export const ReservationResponseShape = z.object({
         roomTypeId: z.string(),
         photos: z.array(z.any()).optional(),
         hotelId: z.string(),
-        reservations: z.array(z.any()).optional(),
+        reservations: z.array(z.object({
+            id: z.string(),
+            checkIn: z.date(),
+            checkOut: z.date(),
+            status: z.string,
+            guestId: z.string(),
+            hotelId: z.string(),
+            ratePlanId: z.string(),
+            price: z.string(),
+            groupBookingId: z.string(),
+            chargeRouting: z.string(),
+            createdAt: z.date(),
+            updatedAt: z.date()
+        })).optional(),
     })),
 });
 
@@ -31,6 +44,17 @@ export const AddReservationRequestSchema = z.object({
     checkOut: z.date(),
     ratePlanId: z.string(),
 });
+
+export const AddGroupReservationRequestSchema = z.object({
+    checkIn: z.date(),
+    checkOut: z.date(),
+    guestsAndRooms: z.record(
+        z.string().min(1),
+        z.array(z.string().min(1)).min(1)
+    ),
+    groupProfileId: z.string,
+    ratePlanId: z.string
+})
 
 export const ReservationResponseSchema = z.object({
     status: z.number(),
