@@ -26,15 +26,10 @@ export const AddRatePlanSchema = z.object({
   }),
   baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0"),
   currencyId: z.string().min(1, "Currency is required"),
-  isActive: z.boolean().default(true),
-  roomTypeId: z.string().min(1, "Room type is required"),
-  isFeatured: z.boolean().default(false),
-  description: z.string().optional(),
 });
 
-export const AddRatePlanApiSchema = AddRatePlanSchema.extend({
-  baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0"), // Keep as number
-});
+// No need for separate API schema since we're keeping everything as numbers
+export const AddRatePlanApiSchema = AddRatePlanSchema;
 
 export const GetRatePlansResponseSchema = z.object({
   status: z.number(),

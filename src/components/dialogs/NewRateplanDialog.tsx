@@ -4,93 +4,52 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { Textarea } from '@/components/atoms/Textarea';
-import { Switch } from '@/components/atoms/Switch';
 import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
-import { getRoomTypes } from '@/services/RoomTypes';
-import { AddRatePlanSchema, AddRatePlanApiSchema } from '@/validation/schemas/RatePlan';
-
-interface RoomType {
-  id: string;
-  name: string;
-  description?: string;
-  maxOccupancy: number;
-  adultOccupancy: number;
-  childOccupancy: number;
-  baseRate: string;
-  hotelId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { AddRatePlanSchema, AddRatePlanRequest } from '@/validation/schemas/RatePlan';
 
 interface RatePlanDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onRatePlanAdded?: () => Promise<void>;
-  editData?: any;
+  editData?: AddRatePlanRequest;
 }
 
 const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: RatePlanDialogProps) => {
   const isEditMode = !!editData;
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AddRatePlanRequest>({
     name: '',
     code: '',
-    description: '',
     basePrice: 0,
     baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
     baseAdjVal: 0,
     currencyId: 'cmcx9kq150041k6zcean3uses',
-    isActive: true,
-    roomTypeId: '',
-    isFeatured: false
   });
 
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const fetchRoomTypes = async () => {
-    try {
-      const response = await getRoomTypes();
-      setRoomTypes(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch room types:', error);
-      toast.error('Failed to load room types');
-    }
-  };
-
   useEffect(() => {
     if (isOpen) {
-      fetchRoomTypes();
-
       if (editData) {
         setFormData({
           name: editData.name || '',
           code: editData.code || '',
-          description: editData.description || '',
           basePrice: editData.basePrice || 0,
           baseAdjType: editData.baseAdjType || 'PERCENT',
           baseAdjVal: editData.baseAdjVal || 0,
           currencyId: editData.currencyId || 'cmcx9kq150041k6zcean3uses',
-          isActive: editData.isActive !== undefined ? editData.isActive : true,
-          roomTypeId: editData.roomTypeId || '',
-          isFeatured: editData.isFeatured || false
         });
       } else {
         setFormData({
           name: '',
           code: '',
-          description: '',
           basePrice: 0,
           baseAdjType: 'PERCENT',
           baseAdjVal: 0,
           currencyId: 'cmcx9kq150041k6zcean3uses',
-          isActive: true,
-          roomTypeId: '',
-          isFeatured: false
         });
       }
 
@@ -135,14 +94,14 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
     setIsSubmitting(true);
     try {
       // Prepare data for API - ensure numeric values are properly typed
-      const formDataForApi = {
-        ...formData,
+      const apiData: AddRatePlanRequest = {
+        name: formData.name,
+        code: formData.code,
         basePrice: Number(formData.basePrice),
+        baseAdjType: formData.baseAdjType,
         baseAdjVal: Number(formData.baseAdjVal),
+        currencyId: formData.currencyId,
       };
-
-      // Transform and validate for API submission (converts baseAdjVal to string)
-      const apiData = AddRatePlanApiSchema.parse(formDataForApi);
 
       await addRatePlan(apiData);
       toast.success('Rate plan added successfully');
@@ -155,14 +114,10 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       setFormData({
         name: '',
         code: '',
-        description: '',
         basePrice: 0,
         baseAdjType: 'PERCENT',
         baseAdjVal: 0,
         currencyId: 'cmcx9kq150041k6zcean3uses',
-        isActive: true,
-        roomTypeId: '',
-        isFeatured: false
       });
 
       onOpenChange(false);
@@ -209,17 +164,6 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               className={errors.code ? "border-red-500" : ""}
             />
             {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe this rate plan"
-              rows={3}
-            />
           </div>
 
           <div className="space-y-2">
@@ -293,44 +237,6 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               className={errors.currencyId ? "border-red-500" : ""}
             />
             {errors.currencyId && <p className="text-red-500 text-sm">{errors.currencyId}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="roomTypeId">Room Type</Label>
-            <Select
-              value={formData.roomTypeId}
-              onValueChange={(value) => setFormData({ ...formData, roomTypeId: value })}
-            >
-              <SelectTrigger className={errors.roomTypeId ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select a room type" />
-              </SelectTrigger>
-              <SelectContent>
-                {roomTypes.map((roomType) => (
-                  <SelectItem key={roomType.id} value={roomType.id}>
-                    {roomType.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.roomTypeId && <p className="text-red-500 text-sm">{errors.roomTypeId}</p>}
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="isActive">Active</Label>
-            <Switch
-              id="isActive"
-              checked={formData.isActive}
-              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="isFeatured">Featured</Label>
-            <Switch
-              id="isFeatured"
-              checked={formData.isFeatured}
-              onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
-            />
           </div>
 
           {errors.form && (

@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { GetRatePlansResponse, RatePlan } from "@/validation/schemas/RatePlan";
+import { GetRatePlansResponse, RatePlan, AddRatePlanRequest } from "@/validation/schemas/RatePlan";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 interface GetRatePlansParams {
@@ -26,18 +26,7 @@ export const getRatePlans = async (params?: GetRatePlansParams): Promise<GetRate
   }
 };
 
-export const addRatePlan = async (data: {
-  name: string;
-  code: string;
-  basePrice: number;
-  baseAdjType: "PERCENT" | "FIXED";
-  baseAdjVal: number;
-  currencyId: string;
-  description?: string;
-  isActive?: boolean;
-  roomTypeId?: string;
-  isFeatured?: boolean;
-}): Promise<RatePlan> => {
+export const addRatePlan = async (data: AddRatePlanRequest): Promise<RatePlan> => {
   try {
     const response = await apiClient({
       method: "POST",
