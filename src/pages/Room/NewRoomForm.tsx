@@ -417,7 +417,6 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
           <Button
             type="button"
             variant='background'
-            className='text-white'
             onClick={handleSaveDraft}
             disabled={isSubmitting || isLoading}
           >

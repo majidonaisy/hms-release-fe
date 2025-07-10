@@ -313,7 +313,7 @@ const NewGuest = () => {
                         <Button
                             type="button"
                             variant='background'
-                            className='text-white px-8'
+                            className='px-8'
                         >
                             Save Draft
                         </Button>
@@ -347,7 +347,7 @@ const NewGuest = () => {
                             Would you like to create a reservation for this guest now or later?
                         </DialogDescription>
                         <DialogFooter>
-                            <Button onClick={() => { setGuestCreatedDialog(false); navigate('/guests-profile') }} variant='background' className='text-white'>
+                            <Button onClick={() => { setGuestCreatedDialog(false); navigate('/guests-profile') }} variant='background'>
                                 Maybe Later
                             </Button>
                             <Button onClick={() => navigate('/new-reservation')}>

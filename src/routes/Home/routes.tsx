@@ -6,6 +6,7 @@ import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
 import NewReservation from "@/pages/Reservations/NewReservation";
+import NewIndividualReservation from "@/pages/Reservations/NewIndividualReservation";
 
 const RoutesList = () => {
 
@@ -135,6 +136,13 @@ const RoutesList = () => {
             title: "Reservations",
             icon: <Plus className="size-5" />,
             component: NewReservation,
+            isShown: false
+        },
+        {
+            path: '/new-individual-reservation',
+            title: "Reservations",
+            icon: <Plus className="size-5" />,
+            component: NewIndividualReservation,
             isShown: false
         }
     ].map((route) =>

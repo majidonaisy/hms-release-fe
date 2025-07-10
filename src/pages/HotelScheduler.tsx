@@ -1,186 +1,157 @@
-"use client"
-
 import type React from "react"
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { format, addDays, startOfWeek, differenceInDays, isToday } from "date-fns"
-import { ChevronLeft, ChevronRight, Paintbrush } from "lucide-react"
-import type { Room, Reservation } from "../types/reservation"
-import { sampleRooms, sampleReservations } from "../data/data"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../components/atoms/Button"
 import { Input } from "../components/atoms/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/molecules/Select"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../components/atoms/Tooltip"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../components/molecules/AlertDialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "../components/molecules/AlertDialog"
 import { ScrollArea } from "@/components/atoms/ScrollArea"
-import { useOutletContext } from "react-router-dom"
+import { Room } from "@/validation"
+import { getRooms } from "@/services/Rooms"
+import { getReservations } from "@/services/Reservation"
+import { ReservationResponse } from "@/validation/schemas/Reservations"
 
 interface HotelReservationCalendarProps {
-  modalContext?: {
-    openReservationModal: (data: {
-      room?: Room
-      reservation?: Reservation
-      dateRange?: { start: Date; end: Date }
-    }) => void
-  }
-  pageTitle?: string
+  pageTitle?: string;
+}
+
+type UIReservation = {
+  id: string
+  resourceId: string
+  guestName: string
+  bookingId: string
+  start: Date
+  end: Date
+  status: string
+  rate: string
+  specialRequests: string
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
-  const [rooms] = useState<Room[]>(sampleRooms)
-  const [reservations, setReservations] = useState<Reservation[]>(sampleReservations)
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [reservations, setReservations] = useState<UIReservation[]>([])
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean
-    reservationId?: string
-  }>({ open: false })
+    open: boolean;
+    reservationId?: string;
+  }>({ open: false });
 
-  // Get week dates - consistently 7 days only
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
-  const weekEnd = addDays(weekStart, 6) // 7 days total (0-6 = 7 days)
-  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const weekStart = useMemo(() => startOfWeek(currentDate, { weekStartsOn: 1 }), [currentDate]);
+  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
+  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  const modalContext = useOutletContext<{
-    openReservationModal: (data: {
-      room?: Room
-      reservation?: Reservation
-      dateRange?: { start: Date; end: Date }
-    }) => void
-  }>()
+  // Get Rooms
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await getRooms();
+        setRooms(response.data);
+      } catch (err) {
+        console.error("Failed to fetch rooms:", err);
+      }
+    };
+    fetchRooms();
+  }, []);
 
-  // Group rooms by type
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const response: ReservationResponse = await getReservations(weekStart, weekEnd);
+        const apiReservations = response.data;
+
+        const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
+          reservation.Room.flatMap((room) =>
+            (room.reservations ?? []).map((resv) => ({
+              id: resv.id,
+              resourceId: room.id,
+              guestName: reservation.name,
+              bookingId: reservation.id,
+              start: resv.checkIn,
+              end: resv.checkOut,
+              status: String(resv.status),
+              rate: reservation.baseRate,
+              specialRequests: reservation.description,
+            }))
+          )
+        );
+
+        setReservations(flattened)
+      } catch (err) {
+        console.error("Failed to fetch reservations:", err);
+      }
+    };
+
+    fetchReservations();
+  }, [weekStart, weekEnd]);
+
   const roomsByType = useMemo(() => {
-    const grouped = rooms.reduce(
-      (acc, room) => {
-        if (!acc[room.type]) {
-          acc[room.type] = []
-        }
-        acc[room.type].push(room)
-        return acc
-      },
-      {} as Record<string, Room[]>,
-    )
-    return grouped
-  }, [rooms])
+    const grouped: Record<string, Room[]> = {};
+    rooms.forEach((room) => {
+      const typeName = room.roomType?.name ?? "Unknown";
+      if (!grouped[typeName]) grouped[typeName] = [];
+      grouped[typeName].push(room);
+    });
+    return grouped;
+  }, [rooms]);
 
-  // Create flattened room list with type headers for grid positioning
   const flattenedRooms = useMemo(() => {
-    const flattened: (Room | { type: "header"; name: string })[] = []
+    const flattened: (Room | { type: "header"; name: string })[] = [];
     Object.entries(roomsByType).forEach(([type, typeRooms]) => {
-      flattened.push({ type: "header", name: type })
-      flattened.push(...typeRooms)
-    })
-    return flattened
-  }, [roomsByType])
+      flattened.push({ type: "header", name: type });
+      flattened.push(...typeRooms);
+    });
+    return flattened;
+  }, [roomsByType]);
 
-  // Filter reservations
   const filteredReservations = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0) // Start of today
-
     return reservations.filter((reservation) => {
-      // Existing filters
       const matchesSearch =
         !searchTerm ||
         reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase())
+        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus
+      const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
 
-      // Date range filtering - only show reservations that overlap with the 7-day week
-      const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart
+      const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
 
-      return matchesSearch && matchesStatus && overlapsWithWeek
-    })
-  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd])
+      return matchesSearch && matchesStatus && overlapsWithWeek;
+    });
+  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd]);
 
-  // Convert reservations to grid-positioned events - CONSTRAINED TO 7 DAYS
+  // Map reservations to grid
   const gridEvents = useMemo(() => {
     return filteredReservations.map((reservation) => {
-      // Calculate the visible portion of the reservation within the current week
-      const reservationStart = new Date(reservation.start)
-      const reservationEnd = new Date(reservation.end)
+      const visibleStart = reservation.start > weekStart ? reservation.start : weekStart;
+      const visibleEnd = reservation.end < weekEnd ? reservation.end : weekEnd;
 
-      // Constrain the reservation display to only the visible 7-day week
-      const visibleStart = reservationStart > weekStart ? reservationStart : weekStart
-      const visibleEnd = reservationEnd < weekEnd ? reservationEnd : weekEnd
+      const startDayIndex = differenceInDays(visibleStart, weekStart);
+      const endDayIndex = differenceInDays(visibleEnd, weekStart);
 
-      // Calculate day indices within the week (0-6)
-      const startDayIndex = differenceInDays(visibleStart, weekStart)
-      const endDayIndex = differenceInDays(visibleEnd, weekStart)
+      const gridStart = Math.max(0, Math.min(startDayIndex, 6)) + 2;
+      const gridEnd = Math.max(gridStart, Math.min(endDayIndex, 6) + 3);
 
-      // Ensure indices are within bounds (0-6 for 7 days)
-      const constrainedStartIndex = Math.max(0, Math.min(startDayIndex, 6))
-      const constrainedEndIndex = Math.max(constrainedStartIndex, Math.min(endDayIndex, 6))
-
-      // For reservations that end on a date, we need to include that day
-      // Grid columns are 1-indexed and we need +2 offset for room column
-      const gridStart = constrainedStartIndex + 2
-      const gridEnd = constrainedEndIndex + 3 // +3 because we want to include the end day
-
-      // Find the actual room in the flattened array (skip headers)
-      const roomGridIndex = flattenedRooms.findIndex((item) => "id" in item && item.id === reservation.resourceId)
+      const roomGridIndex = flattenedRooms.findIndex(
+        (item) => "id" in item && item.id === reservation.resourceId
+      );
 
       return {
         ...reservation,
         gridColumnStart: gridStart,
         gridColumnEnd: gridEnd,
-        gridRowStart: roomGridIndex + 1, // +1 because grid is 1-indexed
+        gridRowStart: roomGridIndex + 1,
         gridRowEnd: roomGridIndex + 2,
-        // Add debug info to help track the mapping
-        _debug: {
-          originalStart: format(reservationStart, "MMM dd"),
-          originalEnd: format(reservationEnd, "MMM dd"),
-          visibleStart: format(visibleStart, "MMM dd"),
-          visibleEnd: format(visibleEnd, "MMM dd"),
-          startIndex: constrainedStartIndex,
-          endIndex: constrainedEndIndex,
-          gridStart,
-          gridEnd,
-        },
-      }
-    })
-  }, [filteredReservations, flattenedRooms, weekStart, weekEnd])
-
-  const handleCellClick = useCallback(
-    (date: Date, room: Room) => {
-      if (modalContext) {
-        modalContext.openReservationModal({
-          room,
-          dateRange: { start: date, end: addDays(date, 1) },
-        })
-      }
-    },
-    [modalContext],
-  )
-
-  const handleReservationClick = useCallback(
-    (reservation: Reservation) => {
-      const room = rooms.find((r) => r.id === reservation.resourceId)
-      if (room && modalContext) {
-        modalContext.openReservationModal({
-          reservation,
-          room,
-        })
-      }
-    },
-    [rooms, modalContext],
-  )
+      };
+    });
+  }, [filteredReservations, flattenedRooms, weekStart, weekEnd]);
 
   const handleDeleteReservation = useCallback((reservationId: string) => {
-    setReservations((prev) => prev.filter((res) => res.id !== reservationId))
-    setDeleteDialog({ open: false })
-  }, [])
+    setReservations((prev) => prev.filter((res) => res.id !== reservationId));
+    setDeleteDialog({ open: false });
+  }, []);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -189,9 +160,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       "checked-in": "bg-chart-3/20 border-l-4 border-chart-3",
       "checked-out": "bg-chart-4/20 border-l-4 border-chart-4",
       blocked: "bg-chart-5/20 border-l-4 border-chart-5",
-    }
-    return colors[status as keyof typeof colors] || colors.reserved
-  }
+    };
+    return colors[status.toLowerCase() as keyof typeof colors] || colors.reserved;
+  };
 
   return (
     <TooltipProvider>
@@ -202,7 +173,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
             <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           </div>
 
-          {/* Controls */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex gap-2 text-sm w-full">
               <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
@@ -247,7 +217,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </div>
         </div>
 
-        {/* Calendar Header - Rooms and Dates */}
+        {/* Calendar Header */}
         <div className="bg-white border-b border-gray-300 mb-5">
           <div
             className="grid"
@@ -256,12 +226,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               gridTemplateRows: `auto auto auto`,
             }}
           >
-            {/* Rooms header */}
             <div className="border-x border-gray-300 p-4 flex items-center" style={{ gridColumn: 1, gridRow: "1 / 4" }}>
               <span className="font-semibold">Rooms</span>
             </div>
 
-            {/* Month navigation - spans all date columns */}
             <div
               className="border-b border-r border-gray-300 p-2 flex items-center justify-start gap-2"
               style={{ gridColumn: `2 / ${weekDates.length + 2}`, gridRow: 1 }}
@@ -283,41 +251,34 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               </Button>
             </div>
 
-            {/* Day names row - all 7 days */}
             {weekDates.map((date, index) => {
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6
               return (
                 <div
                   key={`day-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${
-                    isToday(date) ? "bg-blue-50 text-blue-700" : isWeekend ? "bg-hms-accent/15" : ""
-                  }`}
+                  className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${isToday(date) ? "bg-blue-50 text-blue-700" : ""
+                    }`}
                   style={{ gridColumn: index + 2, gridRow: 2 }}
                 >
                   {format(date, "EEE").toUpperCase()}
                 </div>
-              )
+              );
             })}
 
-            {/* Date numbers row - all 7 days */}
             {weekDates.map((date, index) => {
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6
               return (
                 <div
                   key={`date-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-lg font-semibold ${
-                    isToday(date) ? "bg-blue-50 text-blue-700" : isWeekend ? "bg-hms-accent/15" : ""
-                  }`}
+                  className={`border-r border-gray-300 text-start px-2 text-lg font-semibold ${isToday(date) ? "bg-blue-50 text-blue-700" : ""
+                    }`}
                   style={{ gridColumn: index + 2, gridRow: 3 }}
                 >
                   {format(date, "d")}
                 </div>
-              )
+              );
             })}
           </div>
         </div>
 
-        {/* Calendar Grid - Rooms and Reservations */}
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-[calc(100vh-280px)]">
             <div
@@ -329,15 +290,13 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                   .join(" "),
               }}
             >
-              {/* Room Labels and Type Headers */}
               {flattenedRooms.map((item, index) => (
                 <div
                   key={`room-${index}`}
-                  className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${
-                    "type" in item && item.type === "header"
-                      ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
-                      : "bg-gray-50 border-r p-1"
-                  }`}
+                  className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
+                    ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
+                    : "bg-gray-50 border-r p-1"
+                    }`}
                   style={{
                     gridColumn: 1,
                     gridRow: index + 1,
@@ -347,65 +306,44 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                     <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
                   ) : (
                     <div className="flex items-center gap-1">
-                      {"needsHousekeeping" in item && item.needsHousekeeping && (
-                        <div className="">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Paintbrush className="p-1  rounded-full border border-green-500 bg-green-500 text-white" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Needs housekeeping</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      )}
-                      <div className="font-semibold text-sm">{item.name}</div>
+                      <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
                     </div>
                   )}
                 </div>
               ))}
 
-              {/* Calendar Cells - exactly 7 days for each row, matching the header */}
               {flattenedRooms.map((item, roomIndex) =>
                 weekDates.map((date, dateIndex) => {
-                  const isWeekend = date.getDay() === 0 || date.getDay() === 6
                   return (
                     <div
                       key={`cell-${roomIndex}-${date.toISOString()}`}
-                      className={`border-b border-gray-200 transition-colors ${
-                        "type" in item && item.type === "header"
-                          ? "bg-hms-accent/15 cursor-default"
-                          : `hover:bg-blue-50 cursor-pointer border-r ${
-                              isToday(date) ? "bg-blue-50" : isWeekend ? "bg-hms-accent/15" : "bg-white"
-                            }`
-                      }`}
+                      className={`border-b border-gray-200 transition-colors ${"type" in item && item.type === "header"
+                        ? "bg-hms-accent/15 cursor-default"
+                        : `border-r ${isToday(date) ? "bg-blue-50" : "bg-white"
+                        }`
+                        }`}
                       style={{
                         gridColumn: dateIndex + 2,
                         gridRow: roomIndex + 1,
                       }}
-                      onClick={() => {
-                        if ("id" in item) {
-                          handleCellClick(date, item)
-                        }
-                      }}
                     />
-                  )
-                }),
+                  );
+                })
               )}
 
-              {/* Events - positioned correctly on actual room rows, constrained to 7 days */}
               {gridEvents.map((event) => (
                 <Tooltip key={event.id}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(event.status)}`}
+                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
+                        event.status
+                      )}`}
                       style={{
                         gridColumnStart: event.gridColumnStart,
                         gridColumnEnd: event.gridColumnEnd,
                         gridRowStart: event.gridRowStart,
                         gridRowEnd: event.gridRowEnd,
                       }}
-                      onClick={() => handleReservationClick(event)}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
                       <div className="truncate text-xs opacity-75">{event.bookingId}</div>
@@ -418,7 +356,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
                       </div>
                       <div className="text-sm">${event.rate}/night</div>
-                      {event.specialRequests && <div className="text-sm text-gray-600">{event.specialRequests}</div>}
+                      {event.specialRequests && (
+                        <div className="text-sm text-gray-600">{event.specialRequests}</div>
+                      )}
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -448,7 +388,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         </AlertDialog>
       </div>
     </TooltipProvider>
-  )
-}
+  );
+};
 
-export default HotelReservationCalendar
+export default HotelReservationCalendar;
