@@ -19,9 +19,8 @@ const DialogContainer: React.FC = () => {
         return (
           <NewRoomTypeDialog
             isOpen={isOpen}
-            onOpenChange={closeDialog}
+            onCancel={closeDialog}
             onConfirm={(dialogProps as any).onConfirm}
-            editData={(dialogProps as any).editData}
           />
         );
       case 'amenity':

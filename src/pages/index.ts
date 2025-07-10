@@ -20,8 +20,7 @@ export { default as GuestProfileView } from "./Guests/GuestExpanded";
 
 // Service management
 export { default as Maintenance } from "./Maintenance/Maintenance";
-// ts-ignore
-export { default as Housekeeping } from "./Housekeeping/Housekeeping";
+export type { default as Housekeeping } from "./Housekeeping/Housekeeping";
 
 // Reservations
 export { default as NewReservation } from "./Reservations/NewReservation";
