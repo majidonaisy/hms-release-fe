@@ -1,0 +1,22 @@
+import { apiClient } from "@/api/base";
+import { ENDPOINTS } from "@/api/endpoints";
+import {  GetCurrenciesResponse } from "@/validation/schemas/Currency";
+
+const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+
+export const getAllCurrencies = async () => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Currency.GetAll,
+      baseURL,
+    });
+    return response as GetCurrenciesResponse;
+  } catch (error:any) {
+    const errorMessage = error.response?.data?.message || "Login failed";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

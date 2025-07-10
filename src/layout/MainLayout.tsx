@@ -6,6 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import NewReservationDialog from '@/pages/Reservations/NewReservationDialog';
+import DialogContainer from '@/components/Templates/DialogContainer';
 
 interface MainLayoutProps {
     routes: any[];

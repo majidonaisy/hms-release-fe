@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { AddRoleRequest, Role, RoleResponse } from '@/validation/schemas/Roles';
 import { addRole, deleteRole, getRoles } from '@/services/Role';
 import DataTable, { ActionMenuItem, TableColumn } from '@/components/Templates/DataTable';
-import NewRoleDialog from './NewRoleDialog';
+import NewRoleDialog from '@/components/dialogs/NewRoleDialog';
 
 const Roles = () => {
     const [newRoleDialogOpen, setNewRoleDialogOpen] = useState<boolean>(false);
     const [editingRole, setEditingRole] = useState<Role | null>(null);
     const [roles, setRoles] = useState<RoleResponse['data']>();
-
     const fetchRoles = async () => {
         try {
             const response = await getRoles();
@@ -66,11 +65,13 @@ const Roles = () => {
     const handleDialogClose = () => {
         setNewRoleDialogOpen(false);
         setEditingRole(null);
-        fetchRoles(); // Refresh roles when dialog closes (in case of updates)
+        fetchRoles(); 
     };
+
 
     return (
         <>
+
             <DataTable
                 data={roles || []}
                 loading={!roles}
@@ -93,6 +94,8 @@ const Roles = () => {
                 deleteConfig={{
                     onDelete: handleDeleteRole,
                     getDeleteTitle: () => 'Delete Role',
+                    getDeleteDescription: (item: Role | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this role? This action cannot be undone.',
+                    getItemName: (item: Role | null) => item ? item.name : 'this role',
                 }}
             />
             <NewRoleDialog

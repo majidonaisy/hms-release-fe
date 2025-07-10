@@ -23,6 +23,7 @@ export const RoleByIdResponseShape = z.object({
 
 export const AddRoleRequestSchema = z.object({
     name: z.string({ error: "Role name is required" }).min(1, "Role name cannot be empty"),
+    hotelId: z.string({ error: "Hotel ID is required" }).min(1, "Hotel ID cannot be empty"),
     permissionIds: z.array(z.string()),
 });
 

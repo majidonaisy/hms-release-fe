@@ -1,5 +1,5 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles } from "lucide-react";
+import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, Housekeeping, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -110,13 +110,7 @@ const RoutesList = () => {
                 },
             ]
         },
-        {
-            path: '/roles-permissions',
-            title: "Roles",
-            icon: <ChartColumnBig className="size-5" />,
-            component: Roles,
-            isShown: true
-        },
+
         {
             path: '/maintenance',
             title: "Maintenance",
@@ -131,6 +125,7 @@ const RoutesList = () => {
             component: Housekeeping,
             isShown: true
         },
+
         {
             path: '/new-reservation',
             title: "Reservations",
@@ -144,6 +139,45 @@ const RoutesList = () => {
             icon: <Plus className="size-5" />,
             component: NewIndividualReservation,
             isShown: false
+        },
+        {
+            path: '/dashboard',
+            title: "Admin Dashboard",
+            icon: <LayoutDashboard className="size-5" />,
+            component: AdminDashboard,
+            isShown: true,
+            subRoutes: [
+                {
+                    path: '/roles-permissions',
+                    title: "Roles",
+                    icon: <ChartColumnBig className="size-5" />,
+                    component: Roles,
+                    isAuthenticated: true,
+                    isShown: false
+                },
+                {
+                    path: '/amenities',
+                    title: "Amenities",
+                    icon: <Coffee className="size-5" />,
+                    component: Amenities,
+                    isShown: false
+                },
+                {
+                    path: '/rate-plans',
+                    title: "Rate Plans",
+                    icon: <DollarSign className="size-5" />,
+                    component: RatePlans,
+                    isAuthenticated: true,
+                    isShown: false
+                },
+                {
+                    path: '/roomTypes',
+                    title: "Room Types",
+                    component: RoomTypes,
+                    isAuthenticated: true,
+                    isShown: false
+                },
+            ]
         }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes

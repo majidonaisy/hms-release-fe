@@ -26,7 +26,8 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 }) => {
     const [formData, setFormData] = useState<AddRoleRequest>({
         name: '',
-        permissionIds: []
+        permissionIds: [],
+        hotelId: 'cmcx9kq150041k6zcean3uses' 
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isRoleLoading, setIsRoleLoading] = useState(false);
@@ -47,7 +48,6 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         try {
             const validatedData = AddRoleRequestSchema.parse(formData);
             setIsLoading(true);
-
             if (isEditing && editingRole) {
                 await updateRole(editingRole.id, validatedData as UpdateRoleRequest);
                 toast("Success!", {
@@ -62,7 +62,8 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 
             setFormData({
                 name: '',
-                permissionIds: []
+                permissionIds: [],
+                hotelId: 'cmcx9kq150041k6zcean3uses'
             });
             onCancel();
         } catch (error: any) {
@@ -86,7 +87,8 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 
         setFormData({
             name: '',
-            permissionIds: []
+            permissionIds: [],
+            hotelId: 'cmcx9kq150041k6zcean3uses'
         });
         onCancel();
     };
@@ -103,11 +105,14 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     useEffect(() => {
         const handleGetPermissions = async () => {
             try {
+                setIsLoading(true);
                 const response = await getPermissions();
                 setPermissions(response.data);
             } catch (error) {
                 console.error('Failed to fetch permissions:', error);
                 toast.error('Failed to load permissions');
+            } finally {
+                setIsLoading(false);
             }
         };
         handleGetPermissions();
@@ -122,7 +127,8 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                     const roleData = response.data;
                     setFormData({
                         name: roleData.name,
-                        permissionIds: roleData.permissions.map(p => p.id)
+                        permissionIds: roleData.permissions.map(p => p.id),
+                        hotelId: roleData.hotelId || 'cmcx9kq150041k6zcean3uses'
                     });
                 } catch (error) {
                     console.error('Failed to fetch role data:', error);
@@ -133,13 +139,29 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
             } else if (!isEditing && isOpen) {
                 setFormData({
                     name: '',
-                    permissionIds: []
+                    permissionIds: [],
+                    hotelId: 'cmcx9kq150041k6zcean3uses'
                 });
             }
         };
 
         loadRoleData();
     }, [isEditing, editingRole, isOpen]);
+
+    if(isLoading){
+        return (
+            <Dialog open={isOpen} onOpenChange={handleCancel}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader className="flex flex-row items-center justify-between">
+                        <DialogTitle className="text-xl font-semibold">
+                            {isEditing ? 'Edit Role' : 'New Role'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <Skeleton className='h-10 w-full' />
+                </DialogContent>
+            </Dialog>
+        );  
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>

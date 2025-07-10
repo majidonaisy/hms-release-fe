@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
 import { deleteRoom, getRooms } from '@/services/Rooms';
-import { AddRoomTypeRequest, Room } from '@/validation';
+import { AddRoomTypeRequest, Pagination, Room } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from './NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
@@ -12,17 +12,36 @@ import { Plus } from 'lucide-react';
 const Rooms = () => {
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(8); // Default page size
     const [loading, setLoading] = useState(false);
     const [sortBy, _setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [pagination, setPagination] = useState<{
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+        hasNext: boolean;
+        hasPrevious: boolean;
+    } | null>(null);
 
     useEffect(() => {
         const fetchRooms = async () => {
             try {
                 setLoading(true);
-                const response = await getRooms();
+                const response = await getRooms({
+                    page: currentPage,
+                    limit: pageSize
+                });
                 setRooms(response.data);
+
+                // Set pagination if available in response
+                if (response.pagination) {
+                    setPagination(response.pagination);
+                } else {
+                    setPagination(null);
+                }
             } catch (error) {
                 console.error('Error occurred:', error);
             } finally {
@@ -31,7 +50,7 @@ const Rooms = () => {
         }
 
         fetchRooms();
-    }, [currentPage, sortBy]);
+    }, [currentPage, pageSize, sortBy]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -91,8 +110,29 @@ const Rooms = () => {
     ];
 
     const handleDeleteRoom = async (room: Room) => {
-        await deleteRoom(room.id);
-        setRooms(rooms.filter(r => r.id !== room.id));
+        try {
+            await deleteRoom(room.id);
+            // Refresh rooms with current pagination after delete
+            const response = await getRooms({
+                page: currentPage,
+                limit: pageSize
+            });
+            setRooms(response.data);
+
+            // Update pagination
+            if (response.pagination) {
+                setPagination(response.pagination);
+                // If we deleted the last item on a page, go back to previous page
+                if (response.data.length === 0 && currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                }
+            } else {
+                setPagination(null);
+            }
+        } catch (error) {
+            console.error('Error deleting room:', error);
+            toast.error('Failed to delete room');
+        }
     };
 
     const handleRoomTypeConfirm = async (data: AddRoomTypeRequest) => {
@@ -137,13 +177,14 @@ const Rooms = () => {
                     searchPlaceholder: "Search rooms...",
                     searchFields: ['roomNumber', 'status', 'roomType.name']
                 }}
-                pagination={{
-                    currentPage,
-                    totalPages: Math.ceil(50 / 10),
+                pagination={pagination ? {
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalItems: pagination.totalItems,
                     onPageChange: setCurrentPage,
                     showPreviousNext: true,
                     maxVisiblePages: 7
-                }}
+                } : undefined}
                 deleteConfig={{
                     onDelete: handleDeleteRoom,
                     getDeleteTitle: () => 'Delete Room',
