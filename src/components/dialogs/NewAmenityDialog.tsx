@@ -19,7 +19,7 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Reset form when dialog opens or edit data changes
   useEffect(() => {
     if (isOpen) {
@@ -27,15 +27,15 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
       setError('');
     }
   }, [isOpen, editData]);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
       setError('Amenity name is required');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       if (isEditMode && editData) {
@@ -45,11 +45,15 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
         await addAmenity({ name });
         toast.success('Amenity added successfully');
       }
-      
+
       if (onAmenityAdded) {
-        onAmenityAdded();
+        await onAmenityAdded();
       }
-      
+
+      // Reset form
+      setName('');
+      setError('');
+
       onOpenChange(false);
     } catch (error: any) {
       setError(error.userMessage || 'An error occurred');
@@ -57,19 +61,19 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Amenity' : 'Add New Amenity'}</DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? 'Update the amenity details below.' 
+            {isEditMode
+              ? 'Update the amenity details below.'
               : 'Enter the name of the new amenity you want to add.'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -81,7 +85,7 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
                 placeholder="e.g. Free WiFi"
                 className={error ? "border-red-500" : ""}
               />
-              
+
               {error && (
                 <div className="text-red-500 text-sm flex items-center mt-1">
                   <AlertCircle className="h-4 w-4 mr-1" />
@@ -90,7 +94,7 @@ const AmenityDialog = ({ isOpen, onOpenChange, onAmenityAdded, editData }: Ameni
               )}
             </div>
           </div>
-          
+
           <DialogFooter className="mt-4">
             <Button
               variant="background"

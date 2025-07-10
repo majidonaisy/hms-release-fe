@@ -11,6 +11,19 @@ import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
 import { getRoomTypes } from '@/services/RoomTypes';
 
+interface RoomType {
+  id: string;
+  name: string;
+  description?: string;
+  maxOccupancy: number;
+  adultOccupancy: number;
+  childOccupancy: number;
+  baseRate: string;
+  hotelId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface RatePlanDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -20,20 +33,24 @@ interface RatePlanDialogProps {
 
 const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: RatePlanDialogProps) => {
   const isEditMode = !!editData;
-  
+
   const [formData, setFormData] = useState({
     name: '',
+    code: '',
     description: '',
     basePrice: 0,
+    baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
+    baseAdjVal: '',
+    currencyId: 'USD',
     isActive: true,
     roomTypeId: '',
     isFeatured: false
   });
-  
-  const [roomTypes, setRoomTypes] = useState([]);
+
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const fetchRoomTypes = async () => {
     try {
       const response = await getRoomTypes();
@@ -43,16 +60,20 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       toast.error('Failed to load room types');
     }
   };
-  
+
   useEffect(() => {
     if (isOpen) {
       fetchRoomTypes();
-      
+
       if (editData) {
         setFormData({
           name: editData.name || '',
+          code: editData.code || '',
           description: editData.description || '',
           basePrice: editData.basePrice || 0,
+          baseAdjType: editData.baseAdjType || 'PERCENT',
+          baseAdjVal: editData.baseAdjVal || '',
+          currencyId: editData.currencyId || 'USD',
           isActive: editData.isActive !== undefined ? editData.isActive : true,
           roomTypeId: editData.roomTypeId || '',
           isFeatured: editData.isFeatured || false
@@ -60,53 +81,79 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       } else {
         setFormData({
           name: '',
+          code: '',
           description: '',
           basePrice: 0,
+          baseAdjType: 'PERCENT',
+          baseAdjVal: '',
+          currencyId: 'USD',
           isActive: true,
           roomTypeId: '',
           isFeatured: false
         });
       }
-      
+
       setErrors({});
     }
   }, [isOpen, editData]);
-  
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
+    if (!formData.code.trim()) {
+      newErrors.code = 'Code is required';
+    }
+
     if (formData.basePrice <= 0) {
       newErrors.basePrice = 'Base price must be greater than 0';
     }
-    
-    if (!formData.roomTypeId) {
-      newErrors.roomTypeId = 'Please select a room type';
+
+    if (!formData.baseAdjVal.trim()) {
+      newErrors.baseAdjVal = 'Adjustment value is required';
     }
-    
+
+    if (!formData.currencyId.trim()) {
+      newErrors.currencyId = 'Currency is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       await addRatePlan(formData);
       toast.success('Rate plan added successfully');
-      
+
       if (onRatePlanAdded) {
-        onRatePlanAdded();
+        await onRatePlanAdded();
       }
-      
+
+      // Reset form
+      setFormData({
+        name: '',
+        code: '',
+        description: '',
+        basePrice: 0,
+        baseAdjType: 'PERCENT',
+        baseAdjVal: '',
+        currencyId: 'USD',
+        isActive: true,
+        roomTypeId: '',
+        isFeatured: false
+      });
+
       onOpenChange(false);
     } catch (error: any) {
       const errorMessage = error.userMessage || 'An error occurred';
@@ -115,19 +162,19 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Edit Rate Plan' : 'Add Rate Plan'}</DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? 'Update the details for this rate plan.' 
+            {isEditMode
+              ? 'Update the details for this rate plan.'
               : 'Create a new rate plan for your hotel rooms.'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
@@ -140,7 +187,19 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             />
             {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
           </div>
-          
+
+          <div className="space-y-2">
+            <Label htmlFor="code">Code</Label>
+            <Input
+              id="code"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+              placeholder="e.g. WS2024"
+              className={errors.code ? "border-red-500" : ""}
+            />
+            {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -151,7 +210,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               rows={3}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="basePrice">Base Price</Label>
             <Input
@@ -165,7 +224,48 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             />
             {errors.basePrice && <p className="text-red-500 text-sm">{errors.basePrice}</p>}
           </div>
-          
+
+          <div className="space-y-2">
+            <Label htmlFor="baseAdjType">Adjustment Type</Label>
+            <Select
+              value={formData.baseAdjType}
+              onValueChange={(value: 'PERCENT' | 'FIXED') => setFormData({ ...formData, baseAdjType: value })}
+            >
+              <SelectTrigger className={errors.baseAdjType ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select adjustment type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PERCENT">Percentage</SelectItem>
+                <SelectItem value="FIXED">Fixed Amount</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.baseAdjType && <p className="text-red-500 text-sm">{errors.baseAdjType}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="baseAdjVal">Adjustment Value</Label>
+            <Input
+              id="baseAdjVal"
+              value={formData.baseAdjVal}
+              onChange={(e) => setFormData({ ...formData, baseAdjVal: e.target.value })}
+              placeholder="e.g. 10 or 50"
+              className={errors.baseAdjVal ? "border-red-500" : ""}
+            />
+            {errors.baseAdjVal && <p className="text-red-500 text-sm">{errors.baseAdjVal}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="currencyId">Currency</Label>
+            <Input
+              id="currencyId"
+              value={formData.currencyId}
+              onChange={(e) => setFormData({ ...formData, currencyId: e.target.value })}
+              placeholder="e.g. USD, EUR"
+              className={errors.currencyId ? "border-red-500" : ""}
+            />
+            {errors.currencyId && <p className="text-red-500 text-sm">{errors.currencyId}</p>}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="roomTypeId">Room Type</Label>
             <Select
@@ -185,7 +285,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             </Select>
             {errors.roomTypeId && <p className="text-red-500 text-sm">{errors.roomTypeId}</p>}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="isActive">Active</Label>
             <Switch
@@ -194,7 +294,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="isFeatured">Featured</Label>
             <Switch
@@ -203,14 +303,14 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               onCheckedChange={(checked) => setFormData({ ...formData, isFeatured: checked })}
             />
           </div>
-          
+
           {errors.form && (
             <div className="bg-red-50 p-3 rounded-md text-red-600 flex items-center text-sm">
               <AlertCircle className="h-4 w-4 mr-1" />
               {errors.form}
             </div>
           )}
-          
+
           <DialogFooter className="mt-4">
             <Button
               variant="background"
