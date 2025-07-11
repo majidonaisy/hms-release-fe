@@ -53,8 +53,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     <SidebarMenuButton asChild isActive={isActive} className="flex-1">
                                         <Link to={fullPath} className="flex items-center">
                                             {typeof route.icon === 'function' ?
-                                                <route.icon className="!size-4" /> :
-                                                <span className="!size-4">{route.icon}</span>
+                                                <route.icon className="h-4 w-4 shrink-0" /> : 
+                                                <span className="h-4 w-4 shrink-0 flex items-center justify-center">{route.icon}</span>
                                             }
                                             <span className={`group-data-[collapsible=icon]:hidden text-lg ml-2 ${isActive ? 'font-bold' : 'font-semibold'}`}>
                                                 {route.title || route.path}
@@ -78,10 +78,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     asChild
                                     isActive={isActive}
                                 >
-                                    <Link to={fullPath}>
+                                        <Link to={fullPath} className="flex items-center justify-start">
                                         {typeof route.icon === 'function' ?
-                                            <route.icon className="!size-4" /> :
-                                            <span className="!size-4">{route.icon}</span>
+                                                <route.icon className="shrink-0" /> : // Remove !size-4
+                                                <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>
                                         }
                                         <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-bold' : 'font-semibold'}`}>
                                             {route.title || route.path}
