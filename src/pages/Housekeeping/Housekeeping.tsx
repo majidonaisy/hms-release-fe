@@ -187,31 +187,44 @@ const Housekeeping = () => {
         setEditingTask(null);
     };
 
-    const handleStatusChange = (taskId: string, newStatus: Housekeeping['status']) => {
-        if (newStatus === 'IN_PROGRESS') {
-            handleStartTask(taskId);
-        } else if (newStatus === 'COMPLETED') {
-            handleCompleteTask(taskId);
-        }
-    };
+    const handleStatusChange = async (taskId: string, newStatus: Housekeeping['status']) => {
+        // Store the current task state for potential rollback
+        const currentTask = housekeepingTasks.find(task => task.id === taskId);
+        const previousStatus = currentTask?.status;
 
-    const handleStartTask = async (taskId: string) => {
-        try {
-            await startHousekeepingTask(taskId);
-            toast.success('Housekeeping task started successfully');
-            fetchHousekeepingTasks();
-        } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to start task');
+        if (!currentTask || !previousStatus) {
+            toast.error('Task not found');
+            return;
         }
-    };
 
-    const handleCompleteTask = async (taskId: string) => {
+        // Optimistic update - update the state immediately
+        setHousekeepingTasks(prev =>
+            prev.map(task =>
+                task.id === taskId
+                    ? { ...task, status: newStatus }
+                    : task
+            )
+        );
+
         try {
-            await completeHousekeepingTask(taskId);
-            toast.success('Housekeeping task completed successfully');
-            fetchHousekeepingTasks();
+            if (newStatus === 'IN_PROGRESS') {
+                await startHousekeepingTask(taskId);
+                toast.success('Housekeeping task started successfully');
+            } else if (newStatus === 'COMPLETED') {
+                await completeHousekeepingTask(taskId);
+                toast.success('Housekeeping task completed successfully');
+            }
         } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to complete task');
+            // Revert the optimistic update using the stored previous status
+            setHousekeepingTasks(prev =>
+                prev.map(task =>
+                    task.id === taskId
+                        ? { ...task, status: previousStatus }
+                        : task
+                )
+            );
+
+            toast.error(error.userMessage || `Failed to update task status`);
         }
     };
 
