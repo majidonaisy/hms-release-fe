@@ -41,3 +41,22 @@ export const addUser = async (
     };
   }
 };
+
+
+export const refreshToken = async (refreshToken: string): Promise<LoginResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Auth.RefreshToken,
+      baseURL,
+      data: { refreshToken }
+    });
+    return response as any;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to refresh token";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

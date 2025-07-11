@@ -13,20 +13,17 @@ export const PermissionsSchema = z.object({
 export const LoginResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
-  accessToken: z.object({
-    token: z.string(),
-    permissions: z.array(PermissionsSchema),
-  }),
   data: z.object({
-    user: z.object({
-      id: z.string(),
-      email: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      roleId: z.string(),
-    }),
+    permissions: z.array(PermissionsSchema).optional(),
     accessToken: z.string(),
     refreshToken: z.string(),
+    // user: z.object({
+    //   id: z.string(),
+    //   email: z.string(),
+    //   firstName: z.string(),
+    //   lastName: z.string(),
+    //   roleId: z.string(),
+    // }),
   }),
 });
 

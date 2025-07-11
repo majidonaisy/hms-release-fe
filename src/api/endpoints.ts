@@ -2,6 +2,7 @@ export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
     AddUser: "auth/add-user",
+    RefreshToken: "auth/refresh",
   },
   RoomType: {
     Add: "roomtype/add",

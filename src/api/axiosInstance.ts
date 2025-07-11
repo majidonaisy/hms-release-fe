@@ -1,6 +1,7 @@
 import axios from "axios";
 import { store } from "@/redux/store";
 import { logout } from "@/redux/slices/authSlice";
+import { refreshToken as rf} from "@/services/Auth";
 
 export const createAxiosInstance = (baseURL: string) => {
   const instance = axios.create({
@@ -54,13 +55,19 @@ export const createAxiosInstance = (baseURL: string) => {
         method: response.config.method?.toUpperCase(),
         data: response.data,
         headers: response.headers,
-        // Include request details for context
         requestData: response.config.data,
         requestParams: response.config.params,
       });
       return response;
     },
     (error) => {
+      const state = store.getState();
+    const { refreshToken } = state.auth;
+
+      if (error.response?.status === 401) {
+        if(!refreshToken) return ;
+         rf(refreshToken); 
+      }
       // Log error response details
       console.error("Response Error:", {
         url: error.config?.url,
