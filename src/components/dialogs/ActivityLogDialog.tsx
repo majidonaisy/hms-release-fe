@@ -115,10 +115,10 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
                                         }
                                     </div>
 
-                                    <div className="space-y-3 ml-2">
+                                    <div className="space-y-2 ">
                                         {group.logs.map((activity: ActivityLogEntry, logIndex: number) => (
-                                            <div key={logIndex} className="flex gap-3">
-                                                <DotLine className="flex-shrink-0" />
+                                            <div key={logIndex} className="flex gap-5 items-start">
+                                                <DotLine className="-mt-5 mr-20" />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start">
                                                         <p className="text-sm text-gray-900 flex-1 pr-4">
