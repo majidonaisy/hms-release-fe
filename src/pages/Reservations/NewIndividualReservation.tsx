@@ -110,8 +110,7 @@ export default function NewIndividualReservation() {
         );
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setLoading(true);
         try {
             await addReservation(formData);
@@ -374,7 +373,7 @@ export default function NewIndividualReservation() {
                                 Previous Step
                             </Button>
                             <Button
-                                onClick={() => handleSubmit}
+                                onClick={handleSubmit}
                                 className="h-7 px-8"
                                 disabled={formData.roomIds.length === 0 || loading}
                             >

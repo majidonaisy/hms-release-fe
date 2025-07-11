@@ -24,7 +24,15 @@ export const ReservationResponseShape = z.object({
             id: z.string(),
             checkIn: z.date(),
             checkOut: z.date(),
-            status: z.string,
+            status: z.enum([
+                'DRAFT',
+                'CONFIRMED',
+                'CHECKED_IN',
+                'CHECKED_OUT',
+                'CANCELLED',
+                'NO_SHOW',
+                'HELD'
+            ]),
             guestId: z.string(),
             hotelId: z.string(),
             ratePlanId: z.string(),

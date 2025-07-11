@@ -1,5 +1,3 @@
-import { Currency } from "lucide-react";
-
 export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
@@ -38,7 +36,8 @@ export const ENDPOINTS = {
   Reservations: {
     Add: "reservation/add",
     Update: "reservation/update/{id}",
-    CheckIn: "reservation/check-in/{id}",
+    CheckIn: "reservation/check-in",
+    CheckOut: "reservation/check-out",
     Get: "reservation/get-reservation",
     AddGroupReservation: "reservation/create"
   },

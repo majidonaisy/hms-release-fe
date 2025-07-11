@@ -1,23 +1,24 @@
 import type React from "react"
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { format, addDays, startOfWeek, differenceInDays, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../components/atoms/Button"
 import { Input } from "../components/atoms/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/molecules/Select"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../components/atoms/Tooltip"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "../components/molecules/AlertDialog"
 import { ScrollArea } from "@/components/atoms/ScrollArea"
 import { Room } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
+import CheckInCheckoutDialog from "./Reservations/CheckInCheckOutDialog"
+import CheckOutDialog from "./Reservations/CheckOutDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
 }
 
-type UIReservation = {
+export type UIReservation = {
   id: string
   resourceId: string
   guestName: string
@@ -35,15 +36,13 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean;
-    reservationId?: string;
-  }>({ open: false });
-
   const weekStart = useMemo(() => startOfWeek(currentDate, { weekStartsOn: 1 }), [currentDate]);
   const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
   const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
+  const [checkInCheckOutDialog, setCheckInCheckOutDialog] = useState(false);
+  const [checkOutDialog, setCheckOutDialog] = useState(false);
+  const [dialogReservation, setDialogReservation] = useState<UIReservation | null>(null)
+  console.log('dialogReservation', dialogReservation)
   // Get Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -70,8 +69,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               resourceId: room.id,
               guestName: reservation.name,
               bookingId: reservation.id,
-              start: resv.checkIn,
-              end: resv.checkOut,
+              start: new Date(resv.checkIn),
+              end: new Date(resv.checkOut),
               status: String(resv.status),
               rate: reservation.baseRate,
               specialRequests: reservation.description,
@@ -147,11 +146,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       };
     });
   }, [filteredReservations, flattenedRooms, weekStart, weekEnd]);
-
-  const handleDeleteReservation = useCallback((reservationId: string) => {
-    setReservations((prev) => prev.filter((res) => res.id !== reservationId));
-    setDeleteDialog({ open: false });
-  }, []);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -344,9 +338,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowStart: event.gridRowStart,
                         gridRowEnd: event.gridRowEnd,
                       }}
+                      onClick={() => { console.log(event.status); event.status == 'CHECKED_IN' ? setCheckOutDialog(true) : setCheckInCheckOutDialog(true); setDialogReservation(event) }}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
-                      <div className="truncate text-xs opacity-75">{event.bookingId}</div>
+                      <div className="truncate text-xs opacity-75">{event.status}</div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -366,27 +361,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
             </div>
           </ScrollArea>
         </div>
-
-        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open })}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Reservation</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this reservation? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deleteDialog.reservationId && handleDeleteReservation(deleteDialog.reservationId)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+      <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
+      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
     </TooltipProvider>
   );
 };
