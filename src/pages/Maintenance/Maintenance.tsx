@@ -10,9 +10,9 @@ import Pagination from '@/components/atoms/Pagination';
 import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
+import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
-import { start } from 'repl';
 
 const Maintenance = () => {
     const [searchText, setSearchText] = useState('');
@@ -28,6 +28,8 @@ const Maintenance = () => {
     const [requestToDelete, setRequestToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [activityLogOpen, setActivityLogOpen] = useState(false);
+    const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
@@ -142,6 +144,64 @@ const Maintenance = () => {
     const handleDeleteCancel = () => {
         setDeleteDialogOpen(false);
         setRequestToDelete(null);
+    };
+
+    const handleActivityLogClick = (requestId: string) => {
+        setSelectedRequestId(requestId);
+        setActivityLogOpen(true);
+    };
+
+    const handleActivityLogClose = () => {
+        setActivityLogOpen(false);
+        setSelectedRequestId(null);
+    };
+
+    // Mock activity log data - replace this with actual API call
+    const getMockActivityLog = (_requestId: string): ActivityLogEntry[] => {
+        return [
+            {
+                id: '1',
+                date: '2025-06-21',
+                time: '3:27 am',
+                description: 'Status changed from "Working On" to "Completed"',
+                author: 'Rana K.'
+            },
+            {
+                id: '2',
+                date: '2025-06-20',
+                time: '5:36 am',
+                description: 'Edited',
+                author: 'Ali R.'
+            },
+            {
+                id: '3',
+                date: '2025-06-18',
+                time: '8:10 am',
+                description: 'Created',
+                author: 'Sara H.'
+            },
+            {
+                id: '4',
+                date: '2025-06-18',
+                time: '2:15 pm',
+                description: 'Priority changed from "Low" to "High"',
+                author: 'John D.'
+            },
+            {
+                id: '5',
+                date: '2025-06-17',
+                time: '10:30 am',
+                description: 'Assigned to maintenance team',
+                author: 'Admin'
+            },
+            {
+                id: '6',
+                date: '2025-06-17',
+                time: '9:45 am',
+                description: 'Photos uploaded for inspection',
+                author: 'Mike T.'
+            }
+        ];
     };
 
     const handleNewMaintenanceConfirm = async (data: any) => {
@@ -380,6 +440,12 @@ const Maintenance = () => {
                                                 >
                                                     Edit
                                                 </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer"
+                                                    onClick={() => handleActivityLogClick(request.id)}
+                                                >
+                                                    Activity Log
+                                                </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 {request.status === 'PENDING' && (
                                                     <DropdownMenuItem
@@ -454,6 +520,14 @@ const Maintenance = () => {
                 loading={deleteLoading}
                 title="Delete Maintenance Request"
                 description={`Are you sure you want to delete "${requestToDelete?.title}"? This action cannot be undone.`}
+            />
+
+            {/* Activity Log Dialog */}
+            <ActivityLogDialog
+                isOpen={activityLogOpen}
+                onClose={handleActivityLogClose}
+                title="Maintenance activity log"
+                activities={selectedRequestId ? getMockActivityLog(selectedRequestId) : []}
             />
         </div>
     );
