@@ -24,7 +24,7 @@ export const AddRatePlanSchema = z.object({
   baseAdjType: z.enum(["PERCENT", "FIXED"], {
     message: "Adjustment type must be either PERCENT or FIXED",
   }),
-  baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0"),
+  baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0").max(999,"Adjustment value must be less than 999"),
   currencyId: z.string().min(1, "Currency is required"),
 });
 

@@ -76,13 +76,14 @@ export const createAxiosInstance = (baseURL: string) => {
         requestData: response.config.data,
         requestParams: response.config.params,
       });
+
       return response;
+      // Log error response details
     },
     async (error) => {
       const originalRequest = error.config;
       const state = store.getState();
       const { refreshToken } = state.auth;
-
       // Log error response details
       console.error("Response Error:", {
         url: error.config?.url,

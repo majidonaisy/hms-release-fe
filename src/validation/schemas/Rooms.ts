@@ -35,7 +35,7 @@ export const RoomShape = z.object({
 });
 
 // Pagination schema
-export const PaginationSchema = z.object({
+ const PaginationSchema = z.object({
   totalItems: z.number(),
   totalPages: z.number(),
   currentPage: z.number(),
@@ -128,4 +128,3 @@ export type GetRoomsResponse = z.infer<typeof GetRoomsResponseSchema>;
 export type UpdateRoomRequest = z.infer<typeof UpdateRoomRequestSchema>;
 export type UpdateRoomResponse = z.infer<typeof UpdateRoomResponseSchema>;
 export type GetRoomsByRoomType = z.infer<typeof GetRoomsByRoomTypeSchema>;
-export type Pagination = z.infer<typeof PaginationSchema>;

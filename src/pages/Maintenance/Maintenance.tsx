@@ -14,7 +14,7 @@ import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/Activi
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 
-const Maintenance = () => {
+const MaintenancePage = () => {
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [typeFilter, setTypeFilter] = useState('ALL');
@@ -108,6 +108,7 @@ const Maintenance = () => {
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
         e.stopPropagation();
         const maintenanceToEdit = maintenanceRequests.find(req => req.id === requestId);
+        console.log('maintenanceToEdit', maintenanceToEdit)
         if (maintenanceToEdit) {
             setEditingMaintenance(maintenanceToEdit);
             setIsEditMode(true);
@@ -509,7 +510,7 @@ const Maintenance = () => {
                     roomId: editingMaintenance.roomId,
                     description: editingMaintenance.description,
                     priority: editingMaintenance.priority,
-                    assignedTo: editingMaintenance.assignedTo || '',
+                    assignedTo: editingMaintenance.assignedTo || editingMaintenance.user?.id || '',
                     photos: editingMaintenance.photos || [],
                     repeatMaintenance: false,
                     frequency: '',
@@ -539,4 +540,4 @@ const Maintenance = () => {
     );
 };
 
-export default Maintenance;
+export default MaintenancePage;
