@@ -1,7 +1,25 @@
 import axios from "axios";
 import { store } from "@/redux/store";
-import { logout } from "@/redux/slices/authSlice";
-import { refreshToken as rf} from "@/services/Auth";
+import { logout, setTokens } from "@/redux/slices/authSlice";
+import { refreshToken as rf } from "@/services/Auth";
+
+// Track if we're currently refreshing to avoid multiple refresh calls
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 export const createAxiosInstance = (baseURL: string) => {
   const instance = axios.create({
@@ -60,14 +78,11 @@ export const createAxiosInstance = (baseURL: string) => {
       });
       return response;
     },
-    (error) => {
+    async (error) => {
+      const originalRequest = error.config;
       const state = store.getState();
-    const { refreshToken } = state.auth;
+      const { refreshToken } = state.auth;
 
-      if (error.response?.status === 401) {
-        if(!refreshToken) return ;
-         rf(refreshToken); 
-      }
       // Log error response details
       console.error("Response Error:", {
         url: error.config?.url,
@@ -76,17 +91,76 @@ export const createAxiosInstance = (baseURL: string) => {
         statusText: error.response?.statusText,
         data: error.response?.data,
         headers: error.response?.headers,
-        // Include request details for context
         requestData: error.config?.data,
         requestParams: error.config?.params,
         message: error.message,
       });
 
-      // Handle specific error cases
-      if (error.response?.status === 401) {
-        // Handle unauthorized access
-        store.dispatch(logout());
+      // Handle 401 Unauthorized with refresh token logic
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        // If no refresh token, logout immediately
+        if (!refreshToken) {
+          console.log("No refresh token available, logging out");
+          store.dispatch(logout());
+          return Promise.reject(error);
+        }
+
+        // If already refreshing, queue this request
+        if (isRefreshing) {
+          console.log("Already refreshing, queueing request");
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              return instance(originalRequest);
+            })
+            .catch((err) => {
+              return Promise.reject(err);
+            });
+        }
+
+        // Mark request as retry and start refreshing
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+          console.log("Attempting to refresh token...");
+
+          // Call refresh token service
+          const refreshResponse = await rf(refreshToken);
+
+          console.log("Token refreshed successfully");
+
+          // Update tokens in Redux store (accessing data property)
+          store.dispatch(
+            setTokens({
+              accessToken: refreshResponse.data.accessToken,
+              refreshToken: refreshResponse.data.refreshToken || refreshToken,
+            })
+          );
+
+          // Update original request with new token
+          originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
+
+          // Process all queued requests
+          processQueue(null, refreshResponse.data.accessToken);
+
+          // Retry the original request
+          return instance(originalRequest);
+        } catch (refreshError) {
+          console.error("Token refresh failed:", refreshError);
+
+          // Process queue with error and logout
+          processQueue(refreshError, null);
+          store.dispatch(logout());
+          return Promise.reject(refreshError);
+        } finally {
+          // Reset refreshing state
+          isRefreshing = false;
+        }
       }
+
       return Promise.reject(error);
     }
   );

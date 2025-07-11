@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { deleteRoom, getRooms } from '@/services/Rooms';
 import { AddRoomTypeRequest, Pagination, Room } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
-import NewRoomTypeDialog from './NewRoomTypeDialog';
+import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';

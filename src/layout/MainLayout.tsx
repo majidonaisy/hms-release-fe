@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
-import NewReservationDialog from '@/pages/Reservations/NewReservationDialog';
+import NewReservationDialog from '@/components/dialogs/NewReservationDialog';
 import DialogContainer from '@/components/Templates/DialogContainer';
 
 interface MainLayoutProps {
