@@ -10,8 +10,9 @@ import Pagination from '@/components/atoms/Pagination';
 import { toast } from 'sonner';
 import NewMaintenanceDialog from './NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
-import { addMaintenance, deleteMaintenance, getMaintenances } from '@/services/Maintenance';
+import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
+import { start } from 'repl';
 
 const Maintenance = () => {
     const [searchText, setSearchText] = useState('');
@@ -184,15 +185,41 @@ const Maintenance = () => {
         setEditingMaintenance(null);
     };
 
-    const handleStatusChange = (requestId: string, newStatus: MaintenanceType['status']) => {
-        setMaintenanceRequests(prev =>
-            prev.map(request =>
-                request.id === requestId
-                    ? { ...request, status: newStatus }
-                    : request
-            )
-        );
-        toast.success('Status updated successfully');
+    const handleStatusChange = async (requestId: string) => {
+        try {
+            await startMaintenance(requestId);
+            setMaintenanceRequests(prev =>
+                prev.map(request =>
+                    request.id === requestId
+                        ? { ...request, status: 'IN_PROGRESS' }
+                        : request
+                )
+            );
+            toast.success('Status updated successfully');
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            toast.error('Failed to update status');
+            return;
+
+        }
+    };
+    const handleStatusComplete = async (requestId: string) => {
+        try {
+            await completeMaintenance(requestId);
+            setMaintenanceRequests(prev =>
+                prev.map(request =>
+                    request.id === requestId
+                        ? { ...request, status: 'COMPLETED' }
+                        : request
+                )
+            );
+            toast.success('Status updated successfully');
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            toast.error('Failed to update status');
+            return;
+
+        }
     };
 
     // Define fetchMaintenanceRequests within the useEffect to avoid dependency issues
@@ -357,7 +384,7 @@ const Maintenance = () => {
                                                 {request.status === 'PENDING' && (
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(request.id, 'IN_PROGRESS')}
+                                                        onClick={() => handleStatusChange(request.id)}
                                                     >
                                                         Start Work
                                                     </DropdownMenuItem>
@@ -365,7 +392,7 @@ const Maintenance = () => {
                                                 {request.status === 'IN_PROGRESS' && (
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(request.id, 'COMPLETED')}
+                                                        onClick={() => handleStatusComplete(request.id)}
                                                     >
                                                         Mark Complete
                                                     </DropdownMenuItem>
