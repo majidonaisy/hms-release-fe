@@ -5,7 +5,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
   accessToken: string | null;
-  // refreshToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   permissions: Permissions[];
   // user: User | null;
@@ -13,7 +13,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   accessToken: null,
-  // refreshToken: null,
+  refreshToken: null,
   isAuthenticated: false,
   permissions: [], 
   // user: null,
@@ -28,13 +28,13 @@ export const authSlice = createSlice({
       action: PayloadAction<{
         accessToken: string;
         permissions?: Permissions[]; 
-        // refreshToken?: string;
+        refreshToken?: string;
         // user?: User;
       }>
     ) => {
       state.accessToken = action.payload.accessToken;
       state.permissions = action.payload.permissions || [];
-      // state.refreshToken = action.payload.refreshToken || null;
+      state.refreshToken = action.payload.refreshToken || null;
       // state.user = action.payload.user || null;
       state.isAuthenticated = true;
      
@@ -42,7 +42,7 @@ export const authSlice = createSlice({
     logout: (state) => {
       state.accessToken = null;
       state.permissions = [];
-      // state.refreshToken = null;
+      state.refreshToken = null;
       // state.user = null;
       state.isAuthenticated = false;
     },
