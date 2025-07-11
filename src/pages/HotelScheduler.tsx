@@ -11,8 +11,8 @@ import { Room } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
-import CheckInCheckoutDialog from "./Reservations/CheckInCheckOutDialog"
-import CheckOutDialog from "./Reservations/CheckOutDialog"
+import CheckOutDialog from "../components/dialogs/CheckOutDialog"
+import CheckInCheckoutDialog from "@/components/dialogs/CheckInCheckOutDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;

@@ -5,7 +5,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Filter, Search, ChevronDown, EllipsisVertical } from "lucide-react";
 import React, { useState } from "react";
 import Pagination from "@/components/atoms/Pagination";
-import { guestsData } from "../../data/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 
 const CurrentGuestList = () => {
@@ -20,11 +19,7 @@ const CurrentGuestList = () => {
         setCurrentPage(page);
     };
 
-    const filteredGuests = guestsData.filter(guest =>
-        guest.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        guest.username.toLowerCase().includes(searchText.toLowerCase()) ||
-        guest.roomNumber.includes(searchText)
-    );
+
 
     const handleEditClick = (e: React.MouseEvent, guestId: number): void => {
         e.stopPropagation();
@@ -47,7 +42,7 @@ const CurrentGuestList = () => {
     return (
         <>
             <div className="p-6 bg-gray-50 min-h-screen">
-                {/* Header Section */}
+                Header Section
                 <div className="mb-6">
                     {/* Current Guests Title with Count */}
                     <div className="flex items-center gap-2 mb-4">
@@ -120,8 +115,8 @@ const CurrentGuestList = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {['individual', 'corporate', 'travel agency'].map((groupType) => {
-                                const guestsOfType = filteredGuests.filter((guest) => guest.type === groupType);
+                            {/* {['individual', 'corporate', 'travel agency'].map((groupType) => {
+                                const guestsOfType = [filteredGuests].filter((guest) => guest.type === groupType);
                                 if (guestsOfType.length === 0) return null;
 
                                 return guestsOfType.map((guest, index) => (
@@ -178,7 +173,7 @@ const CurrentGuestList = () => {
                                         </TableCell>
                                     </TableRow>
                                 ));
-                            })}
+                            })} */}
                         </TableBody>
                     </Table>
 

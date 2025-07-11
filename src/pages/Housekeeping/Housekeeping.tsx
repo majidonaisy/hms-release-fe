@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import Pagination from '@/components/atoms/Pagination';
 import { toast } from 'sonner';
-import NewHousekeepingDialog from './NewHousekeepingDialog';
+import NewHousekeepingDialog from '../../components/dialogs/NewHousekeepingDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 import HousekeepingSkeleton from '@/components/Templates/HousekeepingSkeleton';
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';

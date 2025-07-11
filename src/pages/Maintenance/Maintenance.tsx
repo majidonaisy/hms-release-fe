@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/atoms/DropdownMenu';
 import Pagination from '@/components/atoms/Pagination';
 import { toast } from 'sonner';
-import NewMaintenanceDialog from './NewMaintenanceDialog';
+import NewMaintenanceDialog from '../../components/dialogs/NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';

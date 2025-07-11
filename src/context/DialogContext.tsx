@@ -16,7 +16,6 @@ export const DialogProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     const closeDialog = () => {
         setIsOpen(false);
-        // Reset dialog type and props after animation completes
         setTimeout(() => {
             setDialogType(null);
             setDialogProps({});
