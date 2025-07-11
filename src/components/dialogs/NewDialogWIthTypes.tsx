@@ -5,12 +5,24 @@ import GroupReservation from '@/assets/GroupReservation.svg'
 import IndividualReservation from '@/assets/IndividualReservation.svg'
 import { useNavigate } from "react-router-dom"
 
-const NewReservationDialog = ({
+const NewDialogsWithTypes = ({
     open,
-    setOpen
+    setOpen,
+    title,
+    description,
+    textOne,
+    textTwo,
+    individualRoute,
+    groupRoute,
 }: {
     open: boolean
     setOpen: (open: boolean) => void
+    title: string
+    description: string,
+    textOne: string,
+    textTwo: string,
+    individualRoute: string;
+    groupRoute: string;
 }) => {
     const navigate = useNavigate();
 
@@ -18,13 +30,13 @@ const NewReservationDialog = ({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="md:min-w-3xl px-5">
                 <DialogHeader>
-                    <DialogTitle>New Reservation</DialogTitle>
+                    <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <DialogDescription>
-                    Select Reservation Type
+                    {description}
                 </DialogDescription>
                 <div className="grid md:grid-cols-2 gap-5 px-10">
-                    <Card className="bg-hms-primary/15 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={() => { setOpen(false); navigate('/new-individual-reservation') }}>
+                    <Card className="bg-hms-primary/15 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={() => { setOpen(false); navigate(individualRoute) }}>
                         <CardHeader>
                             <div className="flex justify-center">
                                 <img src={IndividualReservation} />
@@ -34,10 +46,10 @@ const NewReservationDialog = ({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="px-1">
-                            Book a room for one guest
+                            {textOne}
                         </CardContent>
                     </Card>
-                    <Card className="bg-hms-primary/15 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer">
+                    <Card className="bg-hms-primary/15 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={() => { setOpen(false); navigate(groupRoute) }}>
                         <CardHeader>
                             <div className="flex justify-center">
                                 <img src={GroupReservation} />
@@ -47,7 +59,7 @@ const NewReservationDialog = ({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="px-1">
-                            Book multiple rooms under a single reservation
+                            {textTwo}
                         </CardContent>
                     </Card>
                 </div>
@@ -56,4 +68,4 @@ const NewReservationDialog = ({
     )
 }
 
-export default NewReservationDialog
+export default NewDialogsWithTypes

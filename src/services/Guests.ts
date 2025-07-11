@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGuestRequest, AddGuestResponse, GetGuestByIdResponse, GetGuestsResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
+import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGuestByIdResponse, GetGuestsResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
 const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
@@ -94,3 +94,21 @@ export const deleteGuest = async (id: string): Promise<void> => {
     };
   }
 };
+
+export const addGroupProfile = async (data: AddGroupProfileRequest): Promise<AddGroupProfileResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Guest.AddGroupProfile,
+      baseURL,
+      data,
+    });
+    return response as AddGroupProfileResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to add group profile";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

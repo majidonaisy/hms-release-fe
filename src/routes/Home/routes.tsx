@@ -7,6 +7,7 @@ import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
 import NewReservation from "@/pages/Reservations/NewReservation";
 import NewIndividualReservation from "@/pages/Reservations/NewIndividualReservation";
+import NewGroupProfile from "@/pages/Guests/NewGroupProfile";
 
 const RoutesList = () => {
 
@@ -52,10 +53,18 @@ const RoutesList = () => {
             isShown: true,
             subRoutes: [
                 {
-                    path: "/guests-profile/new",
+                    path: "/guests-profile/new-individual",
                     title: "New Guest",
                     icon: <Plus />,
                     component: NewGuest,
+                    isAuthenticated: true,
+                    isShown: false,
+                },
+                {
+                    path: "/guests-profile/new-group",
+                    title: "New Group Profile",
+                    icon: <Plus />,
+                    component: NewGroupProfile,
                     isAuthenticated: true,
                     isShown: false,
                 },
