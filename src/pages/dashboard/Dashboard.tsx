@@ -7,16 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardCard } from '@/components/Templates/DashboardCard';
 import { toast } from 'sonner';
 import { useDialog } from '@/context/useDialog';
-import {
-    GetRoomTypesResponse,
-    AddRoomTypeRequest
-} from '@/validation/schemas/RoomType';
+import { GetRoomTypesResponse, AddRoomTypeRequest } from '@/validation/schemas/RoomType';
 import { AmenityResponse } from '@/validation/schemas/amenity';
 import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
-import {
-    AddRoleRequest,
-    RoleResponse
-} from '@/validation/schemas/Roles';
+import { AddRoleRequest, RoleResponse } from '@/validation/schemas/Roles';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -194,7 +188,7 @@ const Dashboard = () => {
                     title="Amenities"
                     description="Set the services and features available in guest rooms."
                     totalItems={amenities.data?.length || 0}
-                    imageSrc="https://images.unsplash.com/photo-1600629677883-abc09ccfc4c9?q=80&w=1974"
+                    imageSrc="https://images.unsplash.com/photo-1597817109745-c418f4875230?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     imageAlt="Hotel Amenities"
                     onCreateClick={handleAmenityDialog}
                     onViewClick={() => navigate('/amenities')}
