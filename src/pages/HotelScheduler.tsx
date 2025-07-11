@@ -60,7 +60,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     const fetchReservations = async () => {
       try {
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
-        const apiReservations = response.data;
+        const apiReservations = response.data.reservations;
 
         const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
           reservation.Room.flatMap((room) =>

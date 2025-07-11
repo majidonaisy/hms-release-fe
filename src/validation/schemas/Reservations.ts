@@ -1,48 +1,44 @@
 import { z } from "zod/v4";
 
 export const ReservationResponseShape = z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string(),
-    maxOccupancy: z.number(),
-    adultOccupancy: z.number(),
-    childOccupancy: z.number(),
-    baseRate: z.string(),
-    hotelId: z.string(),
-    createdAt: z.string().transform((val) => new Date(val)),
-    updatedAt: z.string().transform((val) => new Date(val)),
-    Room: z.array(z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+    reservations: z.array(z.object({
         id: z.string(),
-        roomNumber: z.string(),
-        status: z.string(),
-        floor: z.number(),
+        name: z.string(),
         description: z.string(),
-        roomTypeId: z.string(),
-        photos: z.array(z.any()).optional(),
+        maxOccupancy: z.number(),
+        adultOccupancy: z.number(),
+        childOccupancy: z.number(),
+        baseRate: z.string(),
         hotelId: z.string(),
-        reservations: z.array(z.object({
+        createdAt: z.date(),
+        updatedAt: z.date(),
+        Room: z.array(z.object({
             id: z.string(),
-            checkIn: z.date(),
-            checkOut: z.date(),
-            status: z.enum([
-                'DRAFT',
-                'CONFIRMED',
-                'CHECKED_IN',
-                'CHECKED_OUT',
-                'CANCELLED',
-                'NO_SHOW',
-                'HELD'
-            ]),
-            guestId: z.string(),
+            roomNumber: z.string(),
+            status: z.enum(["AVAILABLE", "OCCUPIED", "MAINTENANCE", "DIRTY", "CLEANING", "RESERVED", "OUT_OF_SERVICE"]),
+            floor: z.number(),
+            description: z.string(),
+            roomTypeId: z.string(),
+            photos: z.array(z.any()),
             hotelId: z.string(),
-            ratePlanId: z.string(),
-            price: z.string(),
-            groupBookingId: z.string(),
-            chargeRouting: z.string(),
-            createdAt: z.date(),
-            updatedAt: z.date()
-        })).optional(),
-    })),
+            reservations: z.array(z.object({
+                id: z.string(),
+                checkIn: z.date(),
+                checkOut: z.date(),
+                status: z.enum(["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"]),
+                guestId: z.string(),
+                hotelId: z.string(),
+                ratePlanId: z.string(),
+                price: z.string(),
+                groupBookingId: z.string(),
+                chargeRouting: z.enum(["OWN_FOLIO", "MASTER_FOLIO", "SPLIT"]),
+                createdAt: z.date(),
+                updatedAt: z.date()
+            }))
+        }))
+    }))
 });
 
 export const AddReservationRequestSchema = z.object({
@@ -67,7 +63,7 @@ export const AddGroupReservationRequestSchema = z.object({
 export const ReservationResponseSchema = z.object({
     status: z.number(),
     message: z.string(),
-    data: z.array(ReservationResponseShape),
+    data: ReservationResponseShape,
 });
 
 export const UpdateReservationRequestSchema = z.object({
