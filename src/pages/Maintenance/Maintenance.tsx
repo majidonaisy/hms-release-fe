@@ -108,6 +108,7 @@ const MaintenancePage = () => {
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
         e.stopPropagation();
         const maintenanceToEdit = maintenanceRequests.find(req => req.id === requestId);
+        console.log('maintenanceToEdit', maintenanceToEdit)
         if (maintenanceToEdit) {
             setEditingMaintenance(maintenanceToEdit);
             setIsEditMode(true);
@@ -509,7 +510,7 @@ const MaintenancePage = () => {
                     roomId: editingMaintenance.roomId,
                     description: editingMaintenance.description,
                     priority: editingMaintenance.priority,
-                    assignedTo: editingMaintenance.assignedTo || '',
+                    assignedTo: editingMaintenance.assignedTo || editingMaintenance.user?.id || '',
                     photos: editingMaintenance.photos || [],
                     repeatMaintenance: false,
                     frequency: '',
