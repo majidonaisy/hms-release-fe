@@ -7,6 +7,7 @@ import { store, persistor } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Toaster } from './components/molecules/Sonner';
 import { DialogProvider } from './context/DialogContext';
+import DialogContainer from './components/Templates/DialogContainer';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Router>
               <HomeRoutes />
               <Toaster/>
+              <DialogContainer />
             </Router>
             </DialogProvider>
           </RoleProvider>
