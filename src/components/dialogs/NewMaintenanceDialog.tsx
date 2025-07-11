@@ -230,7 +230,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             fetchEmployees()
         ]);
     }, []);
-
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

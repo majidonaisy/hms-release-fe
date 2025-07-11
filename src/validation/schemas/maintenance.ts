@@ -155,7 +155,6 @@ export type UpdateMaintenanceResponse = z.infer<typeof UpdateMaintenanceResponse
 export type StartMaintenanceResponse = z.infer<typeof StartMaintenanceResponseSchema>;
 export type CompleteMaintenanceResponse = z.infer<typeof CompleteMaintenanceResponseSchema>;
 export type DeleteMaintenanceResponse = z.infer<typeof DeleteMaintenanceResponseSchema>;
-export type Pagination = z.infer<typeof PaginationSchema>;
 
 // Form data type for your NewMaintenanceDialog
 export const MaintenanceFormDataSchema = z.object({

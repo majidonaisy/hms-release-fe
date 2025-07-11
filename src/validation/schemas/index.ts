@@ -6,3 +6,4 @@ export * from "./Guests";
 export * from "./RatePlan";
 export * from "./Reservations";
 export * from "./housekeeping";
+export * from "./maintenance";

@@ -14,7 +14,7 @@ import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/Activi
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 
-const Maintenance = () => {
+const MaintenancePage = () => {
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [typeFilter, setTypeFilter] = useState('ALL');
@@ -539,4 +539,4 @@ const Maintenance = () => {
     );
 };
 
-export default Maintenance;
+export default MaintenancePage;

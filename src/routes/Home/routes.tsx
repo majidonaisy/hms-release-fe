@@ -1,4 +1,4 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, Maintenance, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
+import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
 import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
@@ -8,6 +8,7 @@ import GuestProfileView from "@/pages/Guests/GuestExpanded";
 import NewReservation from "@/pages/Reservations/NewReservation";
 import NewIndividualReservation from "@/pages/Reservations/NewIndividualReservation";
 import HousekeepingPage from "@/pages/Housekeeping/Housekeeping";
+import MaintenancePage from "@/pages/Maintenance/Maintenance";
 
 const RoutesList = () => {
 
@@ -116,7 +117,7 @@ const RoutesList = () => {
             path: '/maintenance',
             title: "Maintenance",
             icon: <Wrench className="size-5" />,
-            component: Maintenance,
+            component: MaintenancePage,
             isShown: true
         },
         {
