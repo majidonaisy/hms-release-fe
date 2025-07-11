@@ -23,7 +23,7 @@ interface HousekeepingFormData {
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
-const Housekeeping = () => {
+const HousekeepingPage = () => {
     const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [priorityFilter, setPriorityFilter] = useState('ALL');
@@ -471,4 +471,4 @@ const Housekeeping = () => {
     );
 };
 
-export default Housekeeping;
+export default HousekeepingPage;

@@ -55,7 +55,7 @@ export const AddHousekeepingResponseSchema = z.object({
 });
 
 // Pagination schema
-export const PaginationSchema = z.object({
+const PaginationSchema = z.object({
   totalItems: z.number(),
   totalPages: z.number(),
   currentPage: z.number(),

@@ -31,7 +31,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string|number>>({});
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(false);
 
@@ -80,15 +80,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
   const validate = () => {
     try {
-      // Ensure numeric values are properly typed
-      const validationData = {
-        ...formData,
-        basePrice: Number(formData.basePrice),
-        baseAdjVal: Number(formData.baseAdjVal),
-      };
-
-      AddRatePlanSchema.parse(validationData);
-      setErrors({});
+      const validationData = AddRatePlanSchema.parse(formData);
+      setErrors(validationData || {});
       return true;
     } catch (error: any) {
       const newErrors: Record<string, string> = {};
