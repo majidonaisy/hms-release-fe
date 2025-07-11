@@ -5,8 +5,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
-import NewReservationDialog from '@/components/dialogs/NewReservationDialog';
-import DialogContainer from '@/components/Templates/DialogContainer';
+import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
 
 interface MainLayoutProps {
     routes: any[];
@@ -53,7 +52,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     <SidebarMenuButton asChild isActive={isActive} className="flex-1">
                                         <Link to={fullPath} className="flex items-center">
                                             {typeof route.icon === 'function' ?
-                                                <route.icon className="h-4 w-4 shrink-0" /> : 
+                                                <route.icon className="h-4 w-4 shrink-0" /> :
                                                 <span className="h-4 w-4 shrink-0 flex items-center justify-center">{route.icon}</span>
                                             }
                                             <span className={`group-data-[collapsible=icon]:hidden text-lg ml-2 ${isActive ? 'font-bold' : 'font-semibold'}`}>
@@ -78,10 +77,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     asChild
                                     isActive={isActive}
                                 >
-                                        <Link to={fullPath} className="flex items-center justify-start">
+                                    <Link to={fullPath} className="flex items-center justify-start">
                                         {typeof route.icon === 'function' ?
-                                                <route.icon className="shrink-0" /> : // Remove !size-4
-                                                <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>
+                                            <route.icon className="shrink-0" /> : // Remove !size-4
+                                            <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>
                                         }
                                         <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-bold' : 'font-semibold'}`}>
                                             {route.title || route.path}
@@ -178,7 +177,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <Outlet />
                     </main>
                 </SidebarInset>
-                <NewReservationDialog open={openReservationDialog} setOpen={setOpenReservationDialog} />
+                <NewDialogsWithTypes
+                    open={openReservationDialog}
+                    setOpen={setOpenReservationDialog}
+                    description='Select Reservation Type'
+                    textOne='Book a room for one guest or party'
+                    textTwo='Book multiple rooms under a single reservation'
+                    title='New Reservation'
+                    groupRoute=''
+                    individualRoute='/new-individual-reservation'
+                />
             </div>
         </SidebarProvider >
     );

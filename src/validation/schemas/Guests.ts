@@ -74,6 +74,35 @@ export const UpdateGuestResponseSchema = z.object({
   data: GuestShape,
 });
 
+export const AddGroupProfileRequestSchema = z.object({
+  name: z.string(),
+  legalName: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  primaryContact: z.object({
+    name: z.string(),
+    email: z.string(),
+    phone: z.string(),
+  }),
+  address: z.object({
+    city: z.string(),
+    country: z.string(),
+  }),
+  billingAddress: z.object({
+    city: z.string(),
+    country: z.string()
+  }),
+  businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+  specialRequirements: z.string(),
+  isVip: z.boolean(),
+  notes: z.string(),
+})
+
+export const AddGroupProfileResponseSchema = z.object({
+  status: z.number(),
+  message: z.string()
+})
+
 export type Guest = z.infer<typeof GuestShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
@@ -81,3 +110,5 @@ export type GetGuestsResponse = z.infer<typeof GetGuestsResponseSchema>;
 export type GetGuestByIdResponse = z.infer<typeof GetGuestByIdResponseSchema>;
 export type UpdateGuestRequest = z.infer<typeof UpdateGuestRequestSchema>;
 export type UpdateGuestResponse = z.infer<typeof UpdateGuestResponseSchema>;
+export type AddGroupProfileRequest = z.infer<typeof AddGroupProfileRequestSchema>
+export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileRequestSchema>

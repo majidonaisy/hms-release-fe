@@ -4,7 +4,7 @@ import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
-import { CalendarIcon, Check, X } from "lucide-react"
+import { CalendarIcon, Check, ChevronLeft, X } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
@@ -419,7 +419,10 @@ export default function NewIndividualReservation() {
 
     return (
         <div className="p-5">
-            <h1 className="text-2xl font-semibold mb-8">New Reservation</h1>
+            <div className="flex gap-2 items-center mb-8">
+                <ChevronLeft onClick={() => navigate(-1)}/>
+                <h1 className="text-2xl font-semibold">New Reservation</h1>
+            </div>
 
             <div className="space-y-2">
                 {steps.map((step, index) => (
