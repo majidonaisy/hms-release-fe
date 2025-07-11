@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/Organisms/Dialog';
 import { X, Search } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
+import DotLine from '../atoms/dotLine';
 
 export interface ActivityLogEntry {
     id: string;
@@ -84,10 +85,10 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
     const groupedActivities = groupActivitiesByDate(activities);
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose} >
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0" showCloseButton={false}>
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-6 bg-white" showCloseButton={false}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 pb-4 border-b border-dashed border-hms-primary">
+                <div className="flex items-center justify-between pb-4 border-b border-dashed border-hms-primary mb-6">
                     <h2 className="text-lg font-semibold text-hms-primary">{title}</h2>
                     <Button
                         variant="ghost"
@@ -99,8 +100,8 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
                     </Button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 pt-0 max-h-[60vh] overflow-y-auto">
+                {/* Content with dashed border */}
+                <div className=" rounded-lg p-4 max-h-[500px] overflow-y-auto">
                     {activities.length > 0 ? (
                         <div className="space-y-6">
                             {groupedActivities.map((group, groupIndex: number) => (
@@ -114,19 +115,11 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
                                         }
                                     </div>
 
-                                    <div className="space-y-4 ml-4">
+                                    <div className="space-y-3 ml-2">
                                         {group.logs.map((activity: ActivityLogEntry, logIndex: number) => (
-                                            <div key={logIndex} className="flex items-start gap-4 relative">
-                                                {/* Timeline dot and line */}
-                                                <div className="flex flex-col items-center">
-                                                    <div className='w-2 h-2 rounded-full bg-hms-primary flex-shrink-0'></div>
-                                                    {logIndex < group.logs.length - 1 && (
-                                                        <div className="w-px h-8 bg-hms-primary mt-1"></div>
-                                                    )}
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="flex-1 min-w-0 pb-2">
+                                            <div key={logIndex} className="flex gap-3">
+                                                <DotLine className="flex-shrink-0" />
+                                                <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start">
                                                         <p className="text-sm text-gray-900 flex-1 pr-4">
                                                             {activity.description}
@@ -159,7 +152,7 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
                             )}
                         </div>
                     ) : (
-                        <div className="text-center text-gray-500 py-12">
+                        <div className="text-center text-gray-500 py-8">
                             <div className="w-12 h-12 bg-hms-primary/15 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Search className="h-5 w-5 text-gray-400" />
                             </div>

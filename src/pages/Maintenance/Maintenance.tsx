@@ -440,6 +440,7 @@ const Maintenance = () => {
                                                 >
                                                     Edit
                                                 </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="cursor-pointer"
                                                     onClick={() => handleActivityLogClick(request.id)}
@@ -448,22 +449,27 @@ const Maintenance = () => {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 {request.status === 'PENDING' && (
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() => handleStatusChange(request.id)}
-                                                    >
-                                                        Start Work
-                                                    </DropdownMenuItem>
+                                                    <>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() => handleStatusChange(request.id)}
+                                                        >
+                                                            Start Work
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                    </>
                                                 )}
                                                 {request.status === 'IN_PROGRESS' && (
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() => handleStatusComplete(request.id)}
-                                                    >
-                                                        Mark Complete
-                                                    </DropdownMenuItem>
+                                                    <>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() => handleStatusComplete(request.id)}
+                                                        >
+                                                            Mark Complete
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                    </>
                                                 )}
-                                                <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="cursor-pointer text-red-600"
                                                     onClick={(e) => handleDeleteClick(e, request)}
