@@ -10,6 +10,7 @@ import Pagination from '@/components/atoms/Pagination';
 import { toast } from 'sonner';
 import NewHousekeepingDialog from '../../components/dialogs/NewHousekeepingDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
+import ActivityLogDialog, { type ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import HousekeepingSkeleton from '@/components/Templates/HousekeepingSkeleton';
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';
 import { type Housekeeping } from '@/validation';
@@ -37,6 +38,8 @@ const HousekeepingPage = () => {
     const [taskToDelete, setTaskToDelete] = useState<{ id: string; title: string } | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [activityLogOpen, setActivityLogOpen] = useState(false);
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
@@ -142,6 +145,64 @@ const HousekeepingPage = () => {
     const handleDeleteCancel = () => {
         setDeleteDialogOpen(false);
         setTaskToDelete(null);
+    };
+
+    const handleActivityLogClick = (taskId: string) => {
+        setSelectedTaskId(taskId);
+        setActivityLogOpen(true);
+    };
+
+    const handleActivityLogClose = () => {
+        setActivityLogOpen(false);
+        setSelectedTaskId(null);
+    };
+
+    // Mock activity log data - replace this with actual API call
+    const getMockActivityLog = (_taskId: string): ActivityLogEntry[] => {
+        return [
+            {
+                id: '1',
+                date: '2025-06-21',
+                time: '3:27 am',
+                description: 'Status changed from "Pending" to "Completed"',
+                author: 'Rana K.'
+            },
+            {
+                id: '2',
+                date: '2025-06-20',
+                time: '5:36 am',
+                description: 'Task started and status changed to "In Progress"',
+                author: 'Ali R.'
+            },
+            {
+                id: '3',
+                date: '2025-06-18',
+                time: '8:10 am',
+                description: 'Housekeeping task created',
+                author: 'Sara H.'
+            },
+            {
+                id: '4',
+                date: '2025-06-18',
+                time: '2:15 pm',
+                description: 'Priority changed from "Low" to "High"',
+                author: 'John D.'
+            },
+            {
+                id: '5',
+                date: '2025-06-17',
+                time: '10:30 am',
+                description: 'Task assigned to housekeeping staff',
+                author: 'Admin'
+            },
+            {
+                id: '6',
+                date: '2025-06-17',
+                time: '9:45 am',
+                description: 'Room inspection completed',
+                author: 'Mike T.'
+            }
+        ];
     };
 
     const handleNewTaskConfirm = async (data: HousekeepingFormData) => {
@@ -388,7 +449,7 @@ const HousekeepingPage = () => {
                                             <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
                                                 <DropdownMenuItem
                                                     className="cursor-pointer"
-                                                    onClick={() => {/* To be implemented */ }}
+                                                    onClick={() => handleActivityLogClick(task.id)}
                                                 >
                                                     Activity Log
                                                 </DropdownMenuItem>
@@ -466,6 +527,14 @@ const HousekeepingPage = () => {
                 loading={deleteLoading}
                 title="Delete Housekeeping Task"
                 description={`Are you sure you want to delete "${taskToDelete?.title}"? This action cannot be undone.`}
+            />
+
+            {/* Activity Log Dialog */}
+            <ActivityLogDialog
+                isOpen={activityLogOpen}
+                onClose={handleActivityLogClose}
+                title="Housekeeping activity log"
+                activities={selectedTaskId ? getMockActivityLog(selectedTaskId) : []}
             />
         </div>
     );
