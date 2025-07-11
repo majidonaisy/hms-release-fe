@@ -60,13 +60,30 @@ export const checkIn = async (reservationId: string, deposit: number): Promise<a
   try {
     const response = await apiClient({
       method: 'POST',
-      endpoint: `${ENDPOINTS.Reservations.CheckIn}/reservationId=${reservationId}`,
+      endpoint: `${ENDPOINTS.Reservations.CheckIn}/${reservationId}`,
       baseURL,
-      data: deposit
+      data: { deposit }
     });
     return response
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    const errorMessage = error.response?.data?.message || "Failed to check in";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const checkOut = async (reservationId: string): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: 'POST',
+      endpoint: `${ENDPOINTS.Reservations.CheckOut}/${reservationId}`,
+      baseURL
+    });
+    return response
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to check out";
     throw {
       userMessage: errorMessage,
       originalError: error,

@@ -4,11 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/O
 import { Button } from '@/components/atoms/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { Separator } from '@/components/atoms/Separator';
 import { ScrollArea } from '@/components/atoms/ScrollArea';
-import { checkIn } from '@/services/Reservation';
-import { UIReservation } from '../HotelScheduler';
+import { checkOut } from '@/services/Reservation';
 
 interface BillingItem {
     description: string;
@@ -19,20 +17,17 @@ interface CheckInCheckoutDialogProps {
     open: boolean;
     setOpen: (open: boolean) => void;
     reservationId?: string;
-    reservationData?: UIReservation | null;
-    onCheckInComplete?: () => void;
+    onCheckOutComplete?: () => void;
     onError?: (error: string) => void;
 }
 
-const CheckInCheckoutDialog = ({
+const CheckOutDialog = ({
     open,
     setOpen,
     reservationId,
-    reservationData,
-    onCheckInComplete,
+    onCheckOutComplete,
     onError,
 }: CheckInCheckoutDialogProps) => {
-    const [deposit, setDeposit] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const billingItems: BillingItem[] = [
@@ -49,30 +44,23 @@ const CheckInCheckoutDialog = ({
     // Reset form when dialog opens
     useEffect(() => {
         if (open) {
-            setDeposit('');
             setIsLoading(false);
         }
     }, [open]);
 
     const handleCheckIn = async () => {
-        if (!deposit) {
-            onError?.('Please select a deposit amount');
-            return;
-        }
-        
         setIsLoading(true);
 
         try {
-            const depositAmount = parseFloat(deposit);
             const targetReservationId = reservationId || '';
 
-            const response = await checkIn(targetReservationId, depositAmount);
+            const response = await checkOut(targetReservationId);
 
             // Handle successful check-in
             console.log('Check-in successful:', response);
 
             // Call success callback
-            onCheckInComplete?.();
+            onCheckOutComplete?.();
 
             // Close dialog
             setOpen(false);
@@ -112,32 +100,13 @@ const CheckInCheckoutDialog = ({
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <Label className="text-gray-600">Guest Name</Label>
-                                    <p className="font-medium">{reservationData?.guestName}</p>
+                                    {/* <p className="font-medium">{reservationData?.guestName}</p> */}
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            {/* Deposit */}
-                            <div className="space-y-2">
-                                <Label htmlFor="deposit" className="text-sm font-medium">Deposit *</Label>
-                                <Select value={deposit} onValueChange={setDeposit} disabled={isLoading}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select deposit amount" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="100">$100</SelectItem>
-                                        <SelectItem value="200">$200</SelectItem>
-                                        <SelectItem value="300">$300</SelectItem>
-                                        <SelectItem value="500">$500</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Billing Summary */}
                         <div className="space-y-4">
                             <Card className='bg-hms-accent/15 border-none'>
                                 <CardHeader>
@@ -201,7 +170,7 @@ const CheckInCheckoutDialog = ({
                     <Button
                         onClick={handleCheckIn}
                         className="px-20"
-                        disabled={isLoading || !deposit}
+                        disabled={isLoading}
                     >
                         {isLoading ? (
                             <>
@@ -209,7 +178,7 @@ const CheckInCheckoutDialog = ({
                                 Processing...
                             </>
                         ) : (
-                            'Confirm Check-In'
+                            'Confirm Check-Out'
                         )}
                     </Button>
                 </div>
@@ -218,4 +187,4 @@ const CheckInCheckoutDialog = ({
     );
 };
 
-export default CheckInCheckoutDialog;
+export default CheckOutDialog;
