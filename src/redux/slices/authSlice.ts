@@ -1,8 +1,6 @@
 import { Permissions } from "@/validation";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-
-
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
@@ -15,7 +13,7 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
-  permissions: [], 
+  permissions: [],
   // user: null,
 };
 
@@ -27,7 +25,7 @@ export const authSlice = createSlice({
       state,
       action: PayloadAction<{
         accessToken: string;
-        permissions?: Permissions[]; 
+        permissions?: Permissions[];
         refreshToken?: string;
         // user?: User;
       }>
@@ -37,7 +35,6 @@ export const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
       // state.user = action.payload.user || null;
       state.isAuthenticated = true;
-     
     },
     logout: (state) => {
       state.accessToken = null;
@@ -49,8 +46,14 @@ export const authSlice = createSlice({
     updateAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
     },
+    setTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken?: string }>) => {
+      state.accessToken = action.payload.accessToken;
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
+      }
+    },
   },
 });
 
-export const { login, logout, updateAccessToken } = authSlice.actions;
+export const { login, logout, updateAccessToken, setTokens } = authSlice.actions;
 export default authSlice.reducer;
