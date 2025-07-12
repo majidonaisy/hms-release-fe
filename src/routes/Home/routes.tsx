@@ -17,7 +17,7 @@ const RoutesList = () => {
         {
             path: "/home",
             title: "Dashboard",
-            icon: <Home className="size-5" />,
+            icon: <Home className=" " />,
             component: Dashboard,
             isAuthenticated: true,
             isShown: true,
@@ -25,7 +25,7 @@ const RoutesList = () => {
         {
             path: "/rooms",
             title: "Rooms",
-            icon: <DoorOpen className="size-5" />,
+            icon: <DoorOpen className=" " />,
             component: Rooms,
             isAuthenticated: true,
             isShown: true,
@@ -43,14 +43,14 @@ const RoutesList = () => {
         {
             path: '/current-guests',
             title: "Current Guests",
-            icon: <Users className="size-5" />,
+            icon: <Users className=" " />,
             component: CurrentGuestList,
             isShown: true
         },
         {
             path: '/guests-profile',
             title: "Guests Profile",
-            icon: <Users className="size-5" />,
+            icon: <Users className=" " />,
             component: GuestProfile,
             isShown: true,
             subRoutes: [
@@ -92,14 +92,14 @@ const RoutesList = () => {
         {
             path: '/calendar',
             title: "Calendar",
-            icon: <Calendar className="size-5" />,
+            icon: <Calendar className=" " />,
             component: HotelReservationCalendar,
             isShown: true
         },
         {
             path: '/team-members',
             title: "Team Members",
-            icon: <Users className="size-5" />,
+            icon: <Users className=" " />,
             component: TeamMembers,
             isShown: true,
             subRoutes: [
@@ -125,14 +125,14 @@ const RoutesList = () => {
         {
             path: '/maintenance',
             title: "Maintenance",
-            icon: <Wrench className="size-5" />,
+            icon: <Wrench className=" " />,
             component: MaintenancePage,
             isShown: true
         },
         {
             path: '/housekeeping',
             title: "Housekeeping",
-            icon: <Sparkles className="size-5" />,
+            icon: <Sparkles className=" " />,
             component: HousekeepingPage,
             isShown: true
         },
@@ -140,28 +140,28 @@ const RoutesList = () => {
         {
             path: '/new-reservation',
             title: "Reservations",
-            icon: <Plus className="size-5" />,
+            icon: <Plus className=" " />,
             component: NewReservation,
             isShown: false
         },
         {
             path: '/new-individual-reservation',
             title: "Reservations",
-            icon: <Plus className="size-5" />,
+            icon: <Plus className=" " />,
             component: NewIndividualReservation,
             isShown: false
         },
         {
             path: '/dashboard',
             title: "Admin Dashboard",
-            icon: <LayoutDashboard className="size-5" />,
+            icon: <LayoutDashboard className=" " />,
             component: AdminDashboard,
             isShown: true,
             subRoutes: [
                 {
                     path: '/roles-permissions',
                     title: "Roles",
-                    icon: <ChartColumnBig className="size-5" />,
+                    icon: <ChartColumnBig className=" " />,
                     component: Roles,
                     isAuthenticated: true,
                     isShown: false
@@ -169,14 +169,14 @@ const RoutesList = () => {
                 {
                     path: '/amenities',
                     title: "Amenities",
-                    icon: <Coffee className="size-5" />,
+                    icon: <Coffee className=" " />,
                     component: Amenities,
                     isShown: false
                 },
                 {
                     path: '/rate-plans',
                     title: "Rate Plans",
-                    icon: <DollarSign className="size-5" />,
+                    icon: <DollarSign className=" " />,
                     component: RatePlans,
                     isAuthenticated: true,
                     isShown: false

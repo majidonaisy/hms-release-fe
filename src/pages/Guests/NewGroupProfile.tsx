@@ -2,7 +2,7 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { Check, ChevronLeft } from 'lucide-react';
+import { Check, ChevronLeft, Trash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AddGroupProfileRequest, GetGuestsResponse } from '@/validation';
@@ -10,8 +10,8 @@ import { addGroupProfile, getGuests } from '@/services/Guests';
 import { toast } from 'sonner';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import { Switch } from '@/components/atoms/Switch';
-import { Card, CardContent } from '@/components/Organisms/Card';
-import { Avatar } from '@/components/atoms/Avatar';
+import { Card, CardContent, CardFooter } from '@/components/Organisms/Card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 
 const NewGroupProfile = () => {
     const navigate = useNavigate();
@@ -48,6 +48,7 @@ const NewGroupProfile = () => {
         { value: "OTHER", label: "Other" }
     ];
     const [guests, setGuests] = useState<GetGuestsResponse["data"]>([])
+    const [linkedGuests, setLinkedGuests] = useState<GetGuestsResponse["data"]>([])
 
     useEffect(() => {
         const handleGetGuests = async () => {
@@ -304,16 +305,40 @@ const NewGroupProfile = () => {
 
 
                     <div className='px-5 space-y-4'>
-                        <h2 className='font-bold text-lg'>Link Guests</h2>
+                        <h2 className='font-bold text-lg'>Linked Guests</h2>
 
                         <Card className='bg-hms-accent/15 border-none'>
                             <CardContent className='space-y-4'>
-                                {guests.map((guest) => (
-                                    <div className='bg-white p-1'>
-                                        <Avatar></Avatar>
-                                        {guest.firstName} {guest.lastName}
-                                    </div>
-                                ))}
+                                {linkedGuests.length > 0 ? (
+                                    linkedGuests.map((guest, index) => (
+                                        <div key={index} className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <Avatar>
+                                                    <AvatarImage />
+                                                    <AvatarFallback>
+                                                        {guest.firstName.charAt(0)} {guest.lastName.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="text-sm font-medium leading-none">{guest.firstName} {guest.lastName}</p>
+                                                    <p className="text-sm text-muted-foreground">{guest.email}</p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                // onClick={() => handleRemoveLinkedGuest(guest.id)}
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center">No linked guests</p>
+                                )}
+                                <CardFooter>
+                                    <Button variant='link'>fhdsjhfkjd</Button>
+                                </CardFooter>
                             </CardContent>
                         </Card>
                     </div>

@@ -156,9 +156,11 @@ export default function NewIndividualReservation() {
             }
         };
 
-        handleGetRooms();
-        handleGetGuests();
-        handleGetRatePlans();
+        Promise.all([
+            handleGetRooms(),
+            handleGetGuests(),
+            handleGetRatePlans()
+        ])
     }, []);
 
     const availableRooms = getAvailableRooms();
@@ -420,7 +422,7 @@ export default function NewIndividualReservation() {
     return (
         <div className="p-5">
             <div className="flex gap-2 items-center mb-8">
-                <ChevronLeft onClick={() => navigate(-1)}/>
+                <ChevronLeft onClick={() => navigate(-1)} />
                 <h1 className="text-2xl font-semibold">New Reservation</h1>
             </div>
 

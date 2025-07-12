@@ -38,9 +38,10 @@ const GuestProfile = () => {
                 setLoading(false)
             }
         }
-
-        handleGetGuests()
-        handleGetRoomTypes()
+        Promise.all([
+            handleGetGuests(),
+            handleGetRoomTypes()
+        ])
     }, [])
 
     const roomTypeMap = roomTypes.reduce(
