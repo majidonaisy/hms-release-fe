@@ -100,7 +100,80 @@ export const AddGroupProfileRequestSchema = z.object({
 
 export const AddGroupProfileResponseSchema = z.object({
   status: z.number(),
-  message: z.string()
+  message: z.string(),
+  data: z.object({
+    id: z.string(),
+    AddGroupProfileRequestSchema,
+    hotelId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+  })
+});
+
+export const LinkGuestsToGroupResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.object({
+    id: z.string(),
+    name: z.string(),
+    legalName: z.string(),
+    email: z.string(),
+    phone: z.string(),
+    primaryContact: z.object({
+      name: z.string(),
+      email: z.string(),
+      phone: z.string(),
+    }),
+    address: z.object({
+      city: z.string(),
+      country: z.string(),
+    }),
+    billingAddress: z.object({
+      city: z.string(),
+      country: z.string()
+    }),
+    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+    specialRequirements: z.string(),
+    isVip: z.boolean(),
+    notes: z.string(),
+    hotelId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+  })
+});
+
+export const GetGroupProfilesResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    legalName: z.string(),
+    email: z.string(),
+    phone: z.string(),
+    primaryContact: z.object({
+      name: z.string(),
+      email: z.string(),
+      phone: z.string(),
+    }),
+    address: z.object({
+      city: z.string(),
+      country: z.string(),
+    }),
+    billingAddress: z.object({
+      city: z.string(),
+      country: z.string()
+    }),
+    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+    specialRequirements: z.string(),
+    isVip: z.boolean(),
+    notes: z.string(),
+    hotelId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+  }))
 })
 
 export type Guest = z.infer<typeof GuestShape>;
@@ -111,4 +184,6 @@ export type GetGuestByIdResponse = z.infer<typeof GetGuestByIdResponseSchema>;
 export type UpdateGuestRequest = z.infer<typeof UpdateGuestRequestSchema>;
 export type UpdateGuestResponse = z.infer<typeof UpdateGuestResponseSchema>;
 export type AddGroupProfileRequest = z.infer<typeof AddGroupProfileRequestSchema>
-export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileRequestSchema>
+export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileResponseSchema>
+export type LinkGuestsToGroupResponse = z.infer<typeof LinkGuestsToGroupResponseSchema>
+export type GetGroupProfilesResponse = z.infer<typeof GetGroupProfilesResponseSchema>

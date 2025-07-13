@@ -2,16 +2,16 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { Check, ChevronLeft } from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AddGroupProfileRequest, GetGuestsResponse } from '@/validation';
-import { addGroupProfile, getGuests } from '@/services/Guests';
+import { addGroupProfile, getGuests, linkGuestsToGroup } from '@/services/Guests';
 import { toast } from 'sonner';
-import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import { Switch } from '@/components/atoms/Switch';
-import { Card, CardContent } from '@/components/Organisms/Card';
-import { Avatar } from '@/components/atoms/Avatar';
+import { Card, CardContent, CardFooter } from '@/components/Organisms/Card';
+import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
+import { GuestSelectionDialog } from '@/components/dialogs/AddGuestDialog';
 
 const NewGroupProfile = () => {
     const navigate = useNavigate();
@@ -39,7 +39,7 @@ const NewGroupProfile = () => {
         },
         specialRequirements: '',
     });
-    const [guestCreatedDialog, setGuestCreatedDialog] = useState(false);
+    const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
     const businessTypeOptions = [
         { value: "CORPORATE", label: "Corporate" },
         { value: "TRAVEL_AGENCY", label: "Travel Agency" },
@@ -48,6 +48,8 @@ const NewGroupProfile = () => {
         { value: "OTHER", label: "Other" }
     ];
     const [guests, setGuests] = useState<GetGuestsResponse["data"]>([])
+    const [linkedGuests, setLinkedGuests] = useState<GetGuestsResponse["data"]>([])
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const handleGetGuests = async () => {
@@ -90,19 +92,56 @@ const NewGroupProfile = () => {
         e.preventDefault();
         setLoading(true);
         try {
+            const response = await addGroupProfile(formData);
 
-            await addGroupProfile(formData);
-            toast("Success!", {
-                description: "Guest was created successfully.",
-            })
-            setGuestCreatedDialog(true)
+            const groupId = response.data?.id;
+            setCreatedGroupId(groupId);
+
+            if (linkedGuests.length > 0 && groupId) {
+                const guestIds = linkedGuests.map(guest => guest.id);
+                try {
+                    await linkGuestsToGroup(guestIds, groupId);
+                    toast("Success!", {
+                        description: "Group profile created and guests linked successfully.",
+                    });
+                } catch (linkError) {
+                    console.error("Failed to link guests:", linkError);
+                    toast("Partial Success", {
+                        description: "Group profile created but failed to link some guests.",
+                    });
+                }
+            } else {
+                toast("Success!", {
+                    description: "Group profile created successfully.",
+                });
+            }
+
         } catch (error) {
             toast("Error!", {
-                description: "Failed to submit form.",
-            })
+                description: "Failed to create group profile.",
+            });
             console.error("Failed to submit form:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGuestSelect = async (selectedGuests: GetGuestsResponse["data"]) => {
+        setLinkedGuests(selectedGuests);
+
+        if (createdGroupId) {
+            try {
+                const guestIds = selectedGuests.map(guest => guest.id);
+                await linkGuestsToGroup(guestIds, createdGroupId);
+                toast("Success!", {
+                    description: "Guests linked to group successfully.",
+                });
+            } catch (error) {
+                console.error("Failed to link guests:", error);
+                toast("Error!", {
+                    description: "Failed to link guests to group.",
+                });
+            }
         }
     };
 
@@ -178,7 +217,7 @@ const NewGroupProfile = () => {
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='abc@example.com'
                             />
                         </div>
 
@@ -188,7 +227,7 @@ const NewGroupProfile = () => {
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='1234567890'
                                 type='number'
                             />
                         </div>
@@ -202,7 +241,7 @@ const NewGroupProfile = () => {
                                     value={formData.address.country}
                                     onChange={(e) => handleNestedInputChange('address', 'country', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='USA'
                                 />
 
                                 <Label>State</Label>
@@ -210,7 +249,7 @@ const NewGroupProfile = () => {
                                     value={formData.address.city}
                                     onChange={(e) => handleNestedInputChange('address', 'city', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='New York'
                                 />
                             </div>
                         </div>
@@ -224,7 +263,7 @@ const NewGroupProfile = () => {
                                     value={formData.billingAddress.country}
                                     onChange={(e) => handleNestedInputChange('billingAddress', 'country', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='USA'
                                 />
 
                                 <Label>City</Label>
@@ -232,7 +271,7 @@ const NewGroupProfile = () => {
                                     value={formData.billingAddress.city}
                                     onChange={(e) => handleNestedInputChange('billingAddress', 'city', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='New York'
                                 />
                             </div>
                         </div>
@@ -245,7 +284,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.name}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'name', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='John Doe'
                             />
                         </div>
 
@@ -255,7 +294,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.email}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'email', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='john.doe@example.com'
                             />
                         </div>
 
@@ -265,7 +304,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.phone}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'phone', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='1234567890'
                                 type='number'
                             />
                         </div>
@@ -287,7 +326,7 @@ const NewGroupProfile = () => {
                                 value={formData.specialRequirements}
                                 onChange={(e) => handleInputChange('specialRequirements', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='Special requirements for the group'
                             />
                         </div>
 
@@ -297,23 +336,45 @@ const NewGroupProfile = () => {
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='Additional notes about the group'
                             />
                         </div>
                     </div>
 
 
                     <div className='px-5 space-y-4'>
-                        <h2 className='font-bold text-lg'>Link Guests</h2>
+                        <h2 className='font-bold text-lg'>Linked Guests:</h2>
 
                         <Card className='bg-hms-accent/15 border-none'>
                             <CardContent className='space-y-4'>
-                                {guests.map((guest) => (
-                                    <div className='bg-white p-1'>
-                                        <Avatar></Avatar>
-                                        {guest.firstName} {guest.lastName}
-                                    </div>
-                                ))}
+                                {linkedGuests.length > 0 ? (
+                                    linkedGuests.map((guest) => (
+                                        <div key={guest.id} className="flex items-center justify-between p-2 bg-white rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarFallback className="text-sm">
+                                                        {guest.firstName.charAt(0)}{guest.lastName.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-medium text-sm">{guest.firstName} {guest.lastName}</p>
+                                                    <p className="text-xs">{guest.email}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="defaultLint" size="icon" onClick={() => {
+                                                const updatedGuests = linkedGuests.filter(g => g.id !== guest.id)
+                                                setLinkedGuests(updatedGuests)
+                                            }}>
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center">No linked guests</p>
+                                )}
+                                <CardFooter className='flex justify-center'>
+                                    <Button type="button" variant='defaultLint' onClick={() => setDialogOpen(true)}>+ Add a Guest</Button>
+                                </CardFooter>
                             </CardContent>
                         </Card>
                     </div>
@@ -339,28 +400,13 @@ const NewGroupProfile = () => {
                     </div>
                 </form>
 
-                <Dialog open={guestCreatedDialog} onOpenChange={() => setGuestCreatedDialog(false)}>
-                    <DialogContent className='w-fit flex flex-col items-center text-center'>
-                        <DialogHeader>
-                            <DialogTitle className="flex flex-col items-center gap-2">
-                                <Check className="bg-green-500 text-white rounded-full p-1 w-6 h-6" />
-                                The guest profile has been created
-                            </DialogTitle>
-
-                        </DialogHeader>
-                        <DialogDescription>
-                            Would you like to create a reservation for this guest now or later?
-                        </DialogDescription>
-                        <DialogFooter>
-                            <Button onClick={() => { setGuestCreatedDialog(false); navigate('/guests-profile') }} variant='background'>
-                                Maybe Later
-                            </Button>
-                            <Button onClick={() => navigate('/new-reservation')}>
-                                Create Reservation
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <GuestSelectionDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onGuestSelect={handleGuestSelect}
+                    onNewGuestProfile={() => navigate('/guests-profile/new-individual')}
+                    guestsData={guests}
+                />
             </div >
         </>
     );
