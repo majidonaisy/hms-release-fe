@@ -184,8 +184,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                     textOne='Book a room for one guest or party'
                     textTwo='Book multiple rooms under a single reservation'
                     title='New Reservation'
-                    groupRoute=''
-                    individualRoute='/new-individual-reservation'
+                    groupRoute='/new-reservation/new-group-reservation'
+                    individualRoute='/new-reservation/new-individual-reservation'
                 />
             </div>
         </SidebarProvider >

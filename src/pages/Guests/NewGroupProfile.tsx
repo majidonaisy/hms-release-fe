@@ -217,7 +217,7 @@ const NewGroupProfile = () => {
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='abc@example.com'
                             />
                         </div>
 
@@ -227,7 +227,7 @@ const NewGroupProfile = () => {
                                 value={formData.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='1234567890'
                                 type='number'
                             />
                         </div>
@@ -241,7 +241,7 @@ const NewGroupProfile = () => {
                                     value={formData.address.country}
                                     onChange={(e) => handleNestedInputChange('address', 'country', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='USA'
                                 />
 
                                 <Label>State</Label>
@@ -249,7 +249,7 @@ const NewGroupProfile = () => {
                                     value={formData.address.city}
                                     onChange={(e) => handleNestedInputChange('address', 'city', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='New York'
                                 />
                             </div>
                         </div>
@@ -263,7 +263,7 @@ const NewGroupProfile = () => {
                                     value={formData.billingAddress.country}
                                     onChange={(e) => handleNestedInputChange('billingAddress', 'country', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='USA'
                                 />
 
                                 <Label>City</Label>
@@ -271,7 +271,7 @@ const NewGroupProfile = () => {
                                     value={formData.billingAddress.city}
                                     onChange={(e) => handleNestedInputChange('billingAddress', 'city', e.target.value)}
                                     className='border border-slate-300'
-                                    placeholder='ABC Corporation Ltd.'
+                                    placeholder='New York'
                                 />
                             </div>
                         </div>
@@ -284,7 +284,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.name}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'name', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='John Doe'
                             />
                         </div>
 
@@ -294,7 +294,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.email}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'email', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='john.doe@example.com'
                             />
                         </div>
 
@@ -304,7 +304,7 @@ const NewGroupProfile = () => {
                                 value={formData.primaryContact.phone}
                                 onChange={(e) => handleNestedInputChange('primaryContact', 'phone', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='1234567890'
                                 type='number'
                             />
                         </div>
@@ -326,7 +326,7 @@ const NewGroupProfile = () => {
                                 value={formData.specialRequirements}
                                 onChange={(e) => handleInputChange('specialRequirements', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='Special requirements for the group'
                             />
                         </div>
 
@@ -336,7 +336,7 @@ const NewGroupProfile = () => {
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
                                 className='border border-slate-300'
-                                placeholder='ABC Corporation Ltd.'
+                                placeholder='Additional notes about the group'
                             />
                         </div>
                     </div>

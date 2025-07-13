@@ -141,6 +141,39 @@ export const LinkGuestsToGroupResponseSchema = z.object({
     updatedAt: z.date(),
     status: z.enum(["ACTIVE", "INACTIVE"]),
   })
+});
+
+export const GetGroupProfilesResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    legalName: z.string(),
+    email: z.string(),
+    phone: z.string(),
+    primaryContact: z.object({
+      name: z.string(),
+      email: z.string(),
+      phone: z.string(),
+    }),
+    address: z.object({
+      city: z.string(),
+      country: z.string(),
+    }),
+    billingAddress: z.object({
+      city: z.string(),
+      country: z.string()
+    }),
+    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+    specialRequirements: z.string(),
+    isVip: z.boolean(),
+    notes: z.string(),
+    hotelId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+  }))
 })
 
 export type Guest = z.infer<typeof GuestShape>;
@@ -153,3 +186,4 @@ export type UpdateGuestResponse = z.infer<typeof UpdateGuestResponseSchema>;
 export type AddGroupProfileRequest = z.infer<typeof AddGroupProfileRequestSchema>
 export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileResponseSchema>
 export type LinkGuestsToGroupResponse = z.infer<typeof LinkGuestsToGroupResponseSchema>
+export type GetGroupProfilesResponse = z.infer<typeof GetGroupProfilesResponseSchema>

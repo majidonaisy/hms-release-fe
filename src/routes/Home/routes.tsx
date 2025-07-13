@@ -10,6 +10,8 @@ import NewIndividualReservation from "@/pages/Reservations/NewIndividualReservat
 import NewGroupProfile from "@/pages/Guests/NewGroupProfile";
 import HousekeepingPage from "@/pages/Housekeeping/Housekeeping";
 import MaintenancePage from "@/pages/Maintenance/Maintenance";
+import { sub } from "date-fns";
+import NewGroupReservation from "@/pages/Reservations/NewGroupReservation";
 
 const RoutesList = () => {
 
@@ -142,14 +144,24 @@ const RoutesList = () => {
             title: "Reservations",
             icon: <Plus className=" " />,
             component: NewReservation,
-            isShown: false
-        },
-        {
-            path: '/new-individual-reservation',
-            title: "Reservations",
-            icon: <Plus className=" " />,
-            component: NewIndividualReservation,
-            isShown: false
+            isShown: false,
+            subRoutes: [
+                {
+                    path: "/new-reservation/new-group-reservation",
+                    title: "New Group Reservation",
+                    icon: <Plus />,
+                    component: NewGroupReservation,
+                    isAuthenticated: true,
+                    isShown: false,
+                },
+                {
+                    path: '/new-reservation/new-individual-reservation',
+                    title: "Reservations",
+                    icon: <Plus className=" " />,
+                    component: NewIndividualReservation,
+                    isShown: false
+                },
+            ]
         },
         {
             path: '/dashboard',

@@ -99,6 +99,7 @@ export const CheckOutResponse = z.object({
 
 export type Reservation = z.infer<typeof ReservationResponseShape>
 export type AddReservationRequest = z.infer<typeof AddReservationRequestSchema>;
+export type AddGroupReservationRequest = z.infer<typeof AddGroupReservationRequestSchema>;
 export type ReservationResponse = z.infer<typeof ReservationResponseSchema>;
 export type UpdateReservationRequest = z.infer<typeof UpdateReservationRequestSchema>;
 export type CheckInRequest = z.infer<typeof CheckInRequest>;
