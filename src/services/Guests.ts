@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGuestByIdResponse, GetGuestsResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
+import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGuestByIdResponse, GetGuestsResponse, LinkGuestsToGroupResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
 const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
@@ -112,3 +112,21 @@ export const addGroupProfile = async (data: AddGroupProfileRequest): Promise<Add
     };
   }
 }
+
+export const linkGuestsToGroup = async (guestIds: string[], groupId: string): Promise<LinkGuestsToGroupResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: `${ENDPOINTS.Guest.LinkGuestsToGroup}/${groupId}`,
+      baseURL,
+      data: { guestIds },
+    });
+    return response as LinkGuestsToGroupResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to link guests to group";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

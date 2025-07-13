@@ -18,10 +18,12 @@ const buttonVariants = cva(
                     "bg-slate-200 text-secondary-foreground shadow-sm hover:bg-secondary/80",
                 negative:
                     "bg-primary text-primary-foreground hover:bg-primary-foreground hover:text-primary border hover:border-primary",
-                primaryOutline: 
+                primaryOutline:
                     "border border-hms-primary text-hms-primary hover:bg-hms-primary hover:text-white shadow-xs hover:shadow-sm focus-visible:ring-2 focus-visible:ring-hms-primary/20 dark:focus-visible:ring-hms-primary/40 dark:bg-hms-primary/10 dark:text-hms-primary",
-                secondaryOutline: 
+                secondaryOutline:
                     "border border-hms-accent text-hms-accent hover:bg-hms-primary hover:text-white shadow-xs hover:shadow-sm focus-visible:ring-2 focus-visible:ring-hms-primary/20 dark:focus-visible:ring-hms-primary/40 dark:bg-hms-primary/10 dark:text-hms-primary",
+                defaultLint:
+                    "text-hms-primary cursor-pointer hover:text-hms-primary/70 transition-all duration-200 ",
                 default:
                     "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
                 destructive:

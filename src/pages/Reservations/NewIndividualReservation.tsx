@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { getGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
 import { addReservation } from "@/services/Reservation"
+import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
@@ -61,6 +62,7 @@ export default function NewIndividualReservation() {
             return updatedFormData;
         });
     };
+    const [openGuestDialog, setOpenGuestDialog] = useState(false);
 
     const handleRoomSelection = async (roomId: string) => {
         if (!formData.roomIds?.includes(roomId)) {
@@ -176,7 +178,7 @@ export default function NewIndividualReservation() {
                             <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
                                 <div className="flex justify-between">
                                     <Label>Guest Name</Label>
-                                    <Button variant='background' className="h-7" onClick={() => navigate('/guests-profile/new')}>New Guest Profile</Button>
+                                    <Button variant='background' className="h-7" onClick={() => setOpenGuestDialog(true)}>New Guest Profile</Button>
                                 </div>
                                 <Select
                                     value={formData.guestId}
@@ -463,6 +465,16 @@ export default function NewIndividualReservation() {
                     </div>
                 ))}
             </div>
+            <NewDialogsWithTypes
+                open={openGuestDialog}
+                setOpen={setOpenGuestDialog}
+                description='Select Guest Type'
+                textOne='For personal bookings and solo travelers.'
+                textTwo='For company accounts and business reservations.'
+                title='New Guest'
+                groupRoute='/guests-profile/new-group'
+                individualRoute='/guests-profile/new-individual'
+            />
         </div>
     )
 }

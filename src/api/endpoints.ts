@@ -26,7 +26,8 @@ export const ENDPOINTS = {
     GetById: "guest/get",
     Update: "guest/update",
     Delete: "guest/delete",
-    AddGroupProfile: "group-profile/add"
+    AddGroupProfile: "group-profile/add",
+    LinkGuestsToGroup: "group-profile/link"
   },
   RatePlan: {
     Add: "ratePlan/add",
