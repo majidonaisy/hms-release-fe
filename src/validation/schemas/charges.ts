@@ -4,23 +4,16 @@ import { z } from "zod";
 export const ChargeItemShape = z.object({
   id: z.string(),
   name: z.string(),
-  amount: z.number(),
+  quantity: z.number(),
   selected: z.boolean().default(false),
 });
 
 // Add Charge Request
 export const AddChargeRequestSchema = z.object({
   reservationId: z.string().min(1, "Reservation ID is required"),
-  items: z
-    .array(
-      z.object({
-        id: z.string(),
-        amount: z.number().min(0.01, "Amount must be greater than 0"),
-      })
-    )
-    .min(1, "At least one charge item is required"),
-  paymentMethod: z.string().min(1, "Payment method is required"),
-  notes: z.string().optional(),
+  quantity: z.number().min(0.01, "Total quantity must be greater than 0"),
+  itemType: z.string().min(1, "Payment method is required"),
+  description: z.string().optional(),
 });
 
 // Add Charge Response
@@ -30,9 +23,9 @@ export const AddChargeResponseSchema = z.object({
   data: z.object({
     id: z.string(),
     reservationId: z.string(),
-    totalAmount: z.number(),
-    paymentMethod: z.string(),
-    notes: z.string().optional(),
+    quantity: z.number(),
+    itemType: z.string(),
+    description: z.string().optional(),
     createdAt: z.string(),
   }),
 });
@@ -46,9 +39,9 @@ export const GetChargesResponseSchema = z.object({
       id: z.string(),
       reservationId: z.string(),
       itemName: z.string(),
-      amount: z.number(),
-      paymentMethod: z.string(),
-      notes: z.string().optional(),
+      quantity: z.number(),
+      itemType: z.string(),
+      description: z.string().optional(),
       createdAt: z.string(),
     })
   ),
@@ -75,9 +68,9 @@ export const GetAvailableChargeItemsResponseSchema = z.object({
 export const PaymentConfirmationRequestSchema = z.object({
   reservationId: z.string().min(1, "Reservation ID is required"),
   chargeIds: z.array(z.string()).min(1, "At least one charge is required"),
-  paymentMethod: z.string().min(1, "Payment method is required"),
-  totalAmount: z.number().min(0.01, "Total amount must be greater than 0"),
-  notes: z.string().optional(),
+  itemType: z.string().min(1, "Payment method is required"),
+  quantity: z.number().min(0.01, "Total quantity must be greater than 0"),
+  description: z.string().optional(),
 });
 
 // Type exports

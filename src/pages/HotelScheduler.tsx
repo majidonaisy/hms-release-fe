@@ -344,7 +344,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowEnd: event.gridRowEnd,
                       }}
                       onClick={() => {
-                        console.log(event.status); setChooseOptionDialog(true);
+                        console.log(event,"event"); setChooseOptionDialog(true);
                         setDialogReservation(event);
                       }}
                     >

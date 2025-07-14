@@ -116,17 +116,17 @@ const ChooseReservationOptionDialog = ({
                     </Card>
 
                     {/* Add Charge Card (New Simplified) */}
-                    <Card className="bg-green-100 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={() => { setOpen(false); addCharge(); }}>
+                    <Card className="bg-hms-primary/15 text-center gap-1 transition-transform duration-300 hover:scale-105 cursor-pointer" onClick={() => { setOpen(false); addCharge(); }}>
                         <CardHeader>
                             <div className="flex justify-center">
-                                <Plus className="h-12 w-12 text-green-600" />
+                                <Plus className="h-12 w-12 " />
                             </div>
-                            <CardTitle className="text-xl font-bold text-green-700">
+                            <CardTitle className="text-xl font-bold">
                                 Add Charge
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="px-1">
-                            <span className="text-green-600">Add a single charge with custom amount</span>
+                            <span className="">Add a single charge with custom amount</span>
                         </CardContent>
                     </Card>
 
