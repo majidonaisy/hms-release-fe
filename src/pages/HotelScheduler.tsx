@@ -13,6 +13,7 @@ import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
 import CheckInCheckoutDialog from "@/components/dialogs/CheckInCheckOutDialog"
+import ChooseReservationOptionDialog from "@/components/dialogs/ChooseReservationOptionDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -42,7 +43,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [checkInCheckOutDialog, setCheckInCheckOutDialog] = useState(false);
   const [checkOutDialog, setCheckOutDialog] = useState(false);
   const [dialogReservation, setDialogReservation] = useState<UIReservation | null>(null)
-  console.log('dialogReservation', dialogReservation)
+  const [chooseOptionDialog, setChooseOptionDialog] = useState(false);
   // Get Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -338,7 +339,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowStart: event.gridRowStart,
                         gridRowEnd: event.gridRowEnd,
                       }}
-                      onClick={() => { console.log(event.status); event.status == 'CHECKED_IN' ? setCheckOutDialog(true) : setCheckInCheckOutDialog(true); setDialogReservation(event) }}
+                      onClick={() => {
+                        console.log(event.status); setChooseOptionDialog(true);
+                        setDialogReservation(event);
+                      }}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
                       <div className="truncate text-xs opacity-75">{event.status}</div>
@@ -364,6 +368,18 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       </div>
       <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
+      <ChooseReservationOptionDialog
+        open={chooseOptionDialog}
+        setOpen={setChooseOptionDialog}
+        title="Reservation Actions"
+        description="Choose an action to perform for this reservation"
+        checkIn={() => setCheckInCheckOutDialog(true)}
+        checkOut={() => setCheckOutDialog(true)}
+        addChargesRoute={`/add-charges/${dialogReservation?.id}`}
+        editReservationRoute={`/edit-reservation/${dialogReservation?.id}`}
+        isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked-in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
+        isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked-out'}
+      />
     </TooltipProvider>
   );
 };
