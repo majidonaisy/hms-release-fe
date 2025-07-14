@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGroupReservationRequest, AddReservationRequest, ReservationResponse } from "@/validation/schemas/Reservations";
+import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, ReservationResponse } from "@/validation/schemas/Reservations";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
@@ -100,6 +100,27 @@ export const checkOut = async (reservationId: string): Promise<any> => {
       baseURL
     });
     return response
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to check out";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Promise<GetNightPriceResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Reservations.GetNightPrice,
+      baseURL,
+      params: {
+        ratePlanId: ratePlanId,
+        roomTypeId: roomTypeId
+      }
+    })
+    return response as GetNightPriceResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to check out";
     throw {
