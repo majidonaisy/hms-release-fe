@@ -39,32 +39,33 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
     const [isLoading, setIsLoading] = useState(false);
     const [itemType, setItemType] = useState('');
     const [amount, setAmount] = useState('');
+    const [unitPrice, setUnitPrice] = useState('');
     const [description, setDescription] = useState('');
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [loadingCurrencies, setLoadingCurrencies] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState('USD'); // Default to USD
 
-const itemTypes = [
-    { value: 'ROOM_CHARGE', label: 'Room Charge' },
-    { value: 'FOOD_BEVERAGE', label: 'Food & Beverage' },
-    { value: 'TELEPHONE', label: 'Telephone' },
-    { value: 'LAUNDRY', label: 'Laundry' },
-    { value: 'SPA', label: 'Spa' },
-    { value: 'MINIBAR', label: 'Minibar' },
-    { value: 'PARKING', label: 'Parking' },
-    { value: 'WIFI', label: 'WiFi' },
-    { value: 'TAX', label: 'Tax' },
-    { value: 'CITY_TAX', label: 'City Tax' },
-    { value: 'SERVICE_CHARGE', label: 'Service Charge' },
-    { value: 'INCIDENTAL', label: 'Incidental' },
-    { value: 'PAYMENT_CASH', label: 'Payment Cash' },
-    { value: 'PAYMENT_CARD', label: 'Payment Card' },
-    { value: 'PAYMENT_TRANSFER', label: 'Payment Transfer' },
-    { value: 'ADJUSTMENT_CREDIT', label: 'Adjustment Credit' },
-    { value: 'ADJUSTMENT_DEBIT', label: 'Adjustment Debit' },
-    { value: 'COMP', label: 'Complimentary' },
-    { value: 'VOID', label: 'Void' }
-];
+    const itemTypes = [
+        { value: 'ROOM_CHARGE', label: 'Room Charge' },
+        { value: 'FOOD_BEVERAGE', label: 'Food & Beverage' },
+        { value: 'TELEPHONE', label: 'Telephone' },
+        { value: 'LAUNDRY', label: 'Laundry' },
+        { value: 'SPA', label: 'Spa' },
+        { value: 'MINIBAR', label: 'Minibar' },
+        { value: 'PARKING', label: 'Parking' },
+        { value: 'WIFI', label: 'WiFi' },
+        { value: 'TAX', label: 'Tax' },
+        { value: 'CITY_TAX', label: 'City Tax' },
+        { value: 'SERVICE_CHARGE', label: 'Service Charge' },
+        { value: 'INCIDENTAL', label: 'Incidental' },
+        { value: 'PAYMENT_CASH', label: 'Payment Cash' },
+        { value: 'PAYMENT_CARD', label: 'Payment Card' },
+        { value: 'PAYMENT_TRANSFER', label: 'Payment Transfer' },
+        { value: 'ADJUSTMENT_CREDIT', label: 'Adjustment Credit' },
+        { value: 'ADJUSTMENT_DEBIT', label: 'Adjustment Debit' },
+        { value: 'COMP', label: 'Complimentary' },
+        { value: 'VOID', label: 'Void' }
+    ];
 
     const handleConfirmPayment = async () => {
         if (!reservationId) {
@@ -78,7 +79,12 @@ const itemTypes = [
         }
 
         if (!amount || parseFloat(amount) <= 0) {
-            toast.error('Please enter a valid amount');
+            toast.error('Please enter a valid quantity');
+            return;
+        }
+
+        if (!unitPrice || parseFloat(unitPrice) <= 0) {
+            toast.error('Please enter a valid unit price');
             return;
         }
 
@@ -87,11 +93,12 @@ const itemTypes = [
         try {
             const chargeRequest: AddChargeRequest = {
                 reservationId,
-                quantity: parseInt(amount),
+                quantity: parseFloat(amount),
+                unitPrice: parseFloat(unitPrice),
                 itemType,
                 description: description || undefined,
             };
-
+            console.log('chargeRequest', chargeRequest)
             await addCharges(chargeRequest);
 
             toast.success('Charge added successfully');
@@ -99,7 +106,9 @@ const itemTypes = [
             // Reset form
             setItemType('');
             setAmount('');
+            setUnitPrice('');
             setDescription('');
+            setSelectedCurrency('USD');
             setOpen(false);
         } catch (error: any) {
             console.error('Failed to add charge:', error);
@@ -112,12 +121,15 @@ const itemTypes = [
     const handleCancel = () => {
         setItemType('');
         setAmount('');
+        setUnitPrice('');
         setDescription('');
+        setSelectedCurrency('USD');
         setOpen(false);
     };
 
-    const fetchCurrencies = async() => {
+    const fetchCurrencies = async () => {
         try {
+            setLoadingCurrencies(true);
             const response = await getAllCurrencies();
             setCurrencies(response.data);
 
@@ -129,7 +141,9 @@ const itemTypes = [
             }
         } catch (error) {
             console.error('Error fetching currencies:', error);
-            return [];
+            toast.error('Failed to load currencies');
+        } finally {
+            setLoadingCurrencies(false);
         }
     }
 
@@ -145,10 +159,10 @@ const itemTypes = [
                         <DialogTitle className="text-xl font-semibold">Add Charge</DialogTitle>
                         <span className="text-gray-500 text-sm">June 21, 2025</span>
                     </div>
-                    
+
                 </DialogHeader>
 
-                <div className="space-y-6">
+                <div className="space-y-2">
                     {/* Reservation Summary */}
                     <div className=" border-blue-300 rounded-lg p-4 bg-hms-primary/15">
                         <h3 className="font-semibold text-lg mb-3">Reservation Summary</h3>
@@ -194,7 +208,7 @@ const itemTypes = [
                     </div>
 
                     {/* Charge Type */}
-                    <div className=" border-blue-300 rounded-lg p-4">
+                    <div className=" border-blue-300 rounded-lg ">
                         <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
                         <Select value={itemType} onValueChange={setItemType}>
                             <SelectTrigger className="mt-2">
@@ -211,17 +225,32 @@ const itemTypes = [
                     </div>
 
                     {/* Amount */}
-                    <div className=" border-blue-300 rounded-lg p-4">
-                        <Label htmlFor="amount" className="text-base font-semibold">Amount</Label>
-                        <div className="flex mt-2">
+                    <div className=" border-blue-300 rounded-lg ">
+                        <Label htmlFor="amount" className="text-base font-semibold">Quantity</Label>
+                        <Input
+                            id="amount"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="e.g. 2"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="mt-2"
+                        />
+                    </div>
+
+                    {/* Unit Price */}
+                    <div className=" border-blue-300 rounded-lg ">
+                        <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
+                        <div className="flex mt-2 gap-2">
                             <Input
-                                id="amount"
+                                id="unitPrice"
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                placeholder="e.g. 150"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="e.g. 150.00"
+                                value={unitPrice}
+                                onChange={(e) => setUnitPrice(e.target.value)}
                                 className="flex-1"
                             />
                             <div className="w-32">
@@ -231,7 +260,7 @@ const itemTypes = [
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loadingCurrencies ? (
-                                            <div className="flex items-center justify-center p-4">
+                                            <div className="flex items-center justify-center ">
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                 <span>Loading...</span>
                                             </div>
@@ -256,7 +285,7 @@ const itemTypes = [
                     </div>
 
                     {/* description */}
-                    <div className=" border-blue-300 rounded-lg p-4">
+                    <div className=" border-blue-300 rounded-lg ">
                         <Label htmlFor="description" className="text-base font-semibold">description</Label>
                         <Textarea
                             id="description"
@@ -268,15 +297,23 @@ const itemTypes = [
                         />
                     </div>
 
-                    {/* Confirm Payment Button */}
-                    <div className="flex justify-center mt-6">
-                    <Button
-                        onClick={handleConfirmPayment}
-                        disabled={isLoading}
-                        className="self-align-center py-3 text-lg font-medium"
-                    >
-                        {isLoading ? 'Processing...' : 'Confirm Payment'}
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex justify-center gap-4 mt-6">
+                        <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            disabled={isLoading}
+                            className="py-3 text-lg font-medium"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleConfirmPayment}
+                            disabled={isLoading}
+                            className="py-3 text-lg font-medium"
+                        >
+                            {isLoading ? 'Processing...' : 'Confirm Charge'}
+                        </Button>
                     </div>
                 </div>
             </DialogContent>

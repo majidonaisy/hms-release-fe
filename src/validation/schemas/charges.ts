@@ -12,6 +12,7 @@ export const ChargeItemShape = z.object({
 export const AddChargeRequestSchema = z.object({
   reservationId: z.string().min(1, "Reservation ID is required"),
   quantity: z.number().min(0.01, "Total quantity must be greater than 0"),
+  unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
   itemType: z.string().min(1, "Payment method is required"),
   description: z.string().optional(),
 });
@@ -24,6 +25,7 @@ export const AddChargeResponseSchema = z.object({
     id: z.string(),
     reservationId: z.string(),
     quantity: z.number(),
+    unitPrice: z.number(),
     itemType: z.string(),
     description: z.string().optional(),
     createdAt: z.string(),
@@ -40,6 +42,7 @@ export const GetChargesResponseSchema = z.object({
       reservationId: z.string(),
       itemName: z.string(),
       quantity: z.number(),
+      unitPrice: z.number(),
       itemType: z.string(),
       description: z.string().optional(),
       createdAt: z.string(),
@@ -70,6 +73,7 @@ export const PaymentConfirmationRequestSchema = z.object({
   chargeIds: z.array(z.string()).min(1, "At least one charge is required"),
   itemType: z.string().min(1, "Payment method is required"),
   quantity: z.number().min(0.01, "Total quantity must be greater than 0"),
+  unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
   description: z.string().optional(),
 });
 
