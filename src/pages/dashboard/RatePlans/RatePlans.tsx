@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { getRatePlans, deleteRatePlan } from '@/services/RatePlans';
 import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
-import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
 
 interface RatePlan {
   id: string;

@@ -258,7 +258,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
                   </div>
                 ) : currencies.length > 0 ? (
                   currencies.map((currency) => (
-                    <SelectItem key={currency.id} value={currency.id}>
+                    <SelectItem key={currency.id} value={currency.code}>
                       <div className="flex items-center justify-between w-full">
                         <span className="font-medium">{currency.code}</span>
                         <span className="text-gray-500 ml-2">{currency.name}</span>
