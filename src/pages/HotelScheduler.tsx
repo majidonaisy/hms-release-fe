@@ -14,6 +14,8 @@ import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
 import CheckInCheckoutDialog from "@/components/dialogs/CheckInCheckOutDialog"
 import ChooseReservationOptionDialog from "@/components/dialogs/ChooseReservationOptionDialog"
+import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
+import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -44,6 +46,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [checkOutDialog, setCheckOutDialog] = useState(false);
   const [dialogReservation, setDialogReservation] = useState<UIReservation | null>(null)
   const [chooseOptionDialog, setChooseOptionDialog] = useState(false);
+  const [addChargesDialog, setAddChargesDialog] = useState(false);
+  const [addChargeDialog, setAddChargeDialog] = useState(false);
   // Get Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -368,6 +372,32 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       </div>
       <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
+      <AddChargesDialog
+        open={addChargesDialog}
+        setOpen={setAddChargesDialog}
+        reservationId={dialogReservation?.id}
+        reservationData={dialogReservation}
+      />
+      <AddChargeDialog
+        open={addChargeDialog}
+        setOpen={setAddChargeDialog}
+        reservationId={dialogReservation?.id}
+        reservationData={{
+          guestName: dialogReservation?.guestName || '',
+          reservationId: dialogReservation?.id || '',
+          roomType: 'Standard Room', // You can extract this from your data
+          roomNumber: 'Room 101', // You can extract this from your data
+          guestCount: {
+            adults: 2,
+            children: 0,
+          },
+          stayDates: {
+            checkIn: dialogReservation?.start ? format(dialogReservation.start, 'yyyy-MM-dd') : '',
+            checkOut: dialogReservation?.end ? format(dialogReservation.end, 'yyyy-MM-dd') : '',
+          },
+          bookingSource: 'Direct',
+        }}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -375,8 +405,12 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         description="Choose an action to perform for this reservation"
         checkIn={() => setCheckInCheckOutDialog(true)}
         checkOut={() => setCheckOutDialog(true)}
-        addChargesRoute={`/add-charges/${dialogReservation?.id}`}
-        editReservationRoute={`/edit-reservation/${dialogReservation?.id}`}
+        addCharges={() => setAddChargesDialog(true)}
+        addCharge={() => setAddChargeDialog(true)}
+        editReservation={() => {
+          // TODO: Implement edit reservation functionality
+          console.log('Edit reservation clicked');
+        }}
         isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked-in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
         isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked-out'}
       />

@@ -7,3 +7,4 @@ export * from "./RatePlan";
 export * from "./Reservations";
 export * from "./housekeeping";
 export * from "./maintenance";
+export * from "./charges";
