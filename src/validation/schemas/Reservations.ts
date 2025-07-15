@@ -67,10 +67,10 @@ export const ReservationResponseSchema = z.object({
 });
 
 export const UpdateReservationRequestSchema = z.object({
-    checkInDate: z.date(),
-    checkOutDate: z.date(),
-    numberOfGuests: z.number(),
-    specialRequests: z.string()
+    checkIn: z.date(),
+    checkOut: z.date(),
+    roomIds: z.array(z.string()),
+    ratePlanId: z.string(),
 });
 
 export const CheckInRequest = z.object({

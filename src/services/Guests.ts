@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, LinkGuestsToGroupResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
+import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, GroupProfileResponse, LinkGuestsToGroupResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
 const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
@@ -78,6 +78,23 @@ export const getGuestById = async (id: string): Promise<GetGuestByIdResponse> =>
     };
   }
 };
+
+export const getGroupProfileById = async (id: string): Promise<GroupProfileResponse> => {
+  try {
+    const response = await apiClient({
+      method: 'GET',
+      endpoint: `${ENDPOINTS.Guest.GetGroupProfileById}/${id}`,
+      baseURL,
+    })
+    return response as GroupProfileResponse
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to link guests to group";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
 
 export const updateGuest = async (id: string, data: UpdateGuestRequest): Promise<UpdateGuestResponse> => {
   try {

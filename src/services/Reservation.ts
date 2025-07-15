@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, ReservationResponse } from "@/validation/schemas/Reservations";
+import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
@@ -128,4 +128,22 @@ export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Pro
       originalError: error,
     };
   }
-}
+};
+
+export const updateReservation = async (data: UpdateReservationRequest): Promise<ReservationResponse> => {
+  try {
+    const response = await apiClient({
+      method: "PUT",
+      endpoint: ENDPOINTS.Reservations.Update,
+      baseURL,
+      data
+    })
+    return response as ReservationResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to update reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

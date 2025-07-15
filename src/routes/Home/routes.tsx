@@ -11,6 +11,7 @@ import NewGroupProfile from "@/pages/Guests/NewGroupProfile";
 import HousekeepingPage from "@/pages/Housekeeping/Housekeeping";
 import MaintenancePage from "@/pages/Maintenance/Maintenance";
 import NewGroupReservation from "@/pages/Reservations/NewGroupReservation";
+import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
 
 const RoutesList = () => {
 
@@ -84,6 +85,14 @@ const RoutesList = () => {
                     title: "View Guest Profile",
                     icon: <Eye />,
                     component: GuestProfileView,
+                    isAuthenticated: true,
+                    isShown: false,
+                },
+                {
+                    path: "/group-profile/:id/view",
+                    title: "View Guest Profile",
+                    icon: <Eye />,
+                    component: GroupProfileExpanded,
                     isAuthenticated: true,
                     isShown: false,
                 }

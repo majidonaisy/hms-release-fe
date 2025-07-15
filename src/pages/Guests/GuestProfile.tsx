@@ -216,7 +216,7 @@ const GuestProfile = () => {
 
     const handleRowClick = (item: CombinedGuestData) => {
         if (item.isGroup) {
-            console.log(`Navigate to group view: /guests-profile/group/${item.id}/view`)
+            navigate(`/group-profile/${item.id}/view`)
         } else {
             navigate(`/guests-profile/${item.id}/view`)
         }
