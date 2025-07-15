@@ -8,8 +8,10 @@ import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const Rooms = () => {
+    const { canCreate } = usePermissions();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(8); // Default page size
@@ -160,18 +162,19 @@ const Rooms = () => {
                 columns={roomColumns}
                 title="Rooms"
                 actions={roomActions}
-                primaryAction={{
+
+                primaryAction={canCreate('Room') ? {
                     label: 'New Room',
                     onClick: () => navigate('/rooms/new')
-                }}
-                secondaryActions={[
+                } : undefined}
+                secondaryActions={canCreate('RoomType') ? [
                     {
                         label: 'New Room Type',
                         icon: <Plus />,
                         onClick: () => setIsRoomTypeDialogOpen(true),
                         variant: 'foreground'
                     },
-                ]}
+                ] : []}
                 getRowKey={(room) => room.id}
                 filter={{
                     searchPlaceholder: "Search rooms...",

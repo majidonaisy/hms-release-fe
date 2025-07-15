@@ -8,7 +8,8 @@ export const usePermissions = () => {
     isAuthenticated,
     permissions,
     ability,
-    logout
+    logout,
+    filterRoutesByPermissions
   } = useRole();
 
   // Helper functions for common permission checks
@@ -32,6 +33,12 @@ export const usePermissions = () => {
     return can('delete', subject) || canManage(subject);
   };
 
+  // Helper to check if user can access a route
+  const canAccessRoute = (requiredPermissions?: { action: string; subject: string }): boolean => {
+    if (!requiredPermissions) return true;
+    return can(requiredPermissions.action, requiredPermissions.subject);
+  };
+
   return {
     // Core permission methods
     can,
@@ -43,16 +50,18 @@ export const usePermissions = () => {
     canCreate,
     canUpdate,
     canDelete,
+    canAccessRoute,
 
-    // Status
+    // Route filtering
+    filterRoutesByPermissions,
+
+    // State
     isAdmin,
     isAuthenticated,
     permissions,
+    ability,
 
     // Actions
-    logout,
-
-    // Advanced
-    ability,
+    logout
   };
 };

@@ -17,6 +17,8 @@ interface RoleContextType {
   can: (action: string, subject: string) => boolean;
   cannot: (action: string, subject: string) => boolean;
   logout: () => void;
+  filterRoutesByPermissions: (routes: any[]) => any[];
+
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -44,6 +46,34 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     (permission) => permission.action === 'manage' && permission.subject === 'all'
   );
 
+
+  const filterRoutesByPermissions = (routes: any[]): any[] => {
+    return routes.filter(route => {
+      // If user is admin (has manage all), show everything
+      if (isAdmin) {
+        return true;
+      }
+
+      // If route doesn't require permissions, show it
+      if (!route.requiredPermissions) {
+        return true;
+      }
+
+      // Check if user has required permissions
+      const hasPermission = can(
+        route.requiredPermissions.action,
+        route.requiredPermissions.subject
+      );
+
+      // If route has subroutes, filter them too
+      if (route.subRoutes && hasPermission) {
+        route.subRoutes = filterRoutesByPermissions(route.subRoutes);
+      }
+
+      return hasPermission;
+    });
+  };
+
   const logout = () => {
     dispatch(logoutAction());
   };
@@ -56,6 +86,7 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     can,
     cannot,
     logout,
+    filterRoutesByPermissions
   };
 
   return (
