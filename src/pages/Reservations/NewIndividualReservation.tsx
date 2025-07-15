@@ -81,10 +81,10 @@ export default function NewIndividualReservation() {
                     console.log('Actual room data:', actualRoomData);
                     console.log('Connected rooms:', connectedRooms);
                     setConnectableRooms(connectedRooms);
-                } catch (error) {
+                } catch (error: any) {
                     console.error('Failed to get room details:', error);
                     toast("Error!", {
-                        description: "Failed to get room connection details.",
+                        description: error.message.includes('is already reserved for the selected') ? 'This room is already reserved for the chosen dates' : 'Failed to create reservation',
                     });
                 }
             }

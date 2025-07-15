@@ -426,7 +426,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         </div>
       </div>
       <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
-      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
+      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
       <EditReservationDialog
         open={editReservationDialog}
         setOpen={setEditReservationDialog}
