@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/atoms/ScrollArea';
 import { checkIn } from '@/services/Reservation';
 import { UIReservation } from '@/pages/HotelScheduler';
 
-interface CheckInCheckoutDialogProps {
+interface CheckInDialogProps {
     open: boolean;
     setOpen: (open: boolean) => void;
     reservationId?: string;
@@ -18,14 +18,14 @@ interface CheckInCheckoutDialogProps {
     onError?: (error: string) => void;
 }
 
-const CheckInCheckoutDialog = ({
+const CheckInDialog = ({
     open,
     setOpen,
     reservationId,
     reservationData,
     onCheckInComplete,
     onError,
-}: CheckInCheckoutDialogProps) => {
+}: CheckInDialogProps) => {
     const [deposit, setDeposit] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -135,4 +135,4 @@ const CheckInCheckoutDialog = ({
     );
 };
 
-export default CheckInCheckoutDialog;
+export default CheckInDialog;

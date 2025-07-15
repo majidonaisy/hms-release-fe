@@ -61,7 +61,7 @@ const CheckOutDialog = ({
             <DialogContent className="min-w-4xl">
                 <DialogHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-semibold">Check-in</DialogTitle>
+                        <DialogTitle className="text-xl font-semibold">Check-out</DialogTitle>
                     </div>
                 </DialogHeader>
                 <ScrollArea className='h-[30rem]'>

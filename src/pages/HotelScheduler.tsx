@@ -12,11 +12,11 @@ import { getRooms } from "@/services/Rooms"
 import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
-import CheckInCheckoutDialog from "@/components/dialogs/CheckInCheckOutDialog"
 import ChooseReservationOptionDialog from "@/components/dialogs/ChooseReservationOptionDialog"
 import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
 import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
 import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
+import CheckInDialog from "@/components/dialogs/CheckInDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -425,7 +425,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </ScrollArea>
         </div>
       </div>
-      <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
+      <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
       <EditReservationDialog
         open={editReservationDialog}
