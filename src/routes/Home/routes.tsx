@@ -23,6 +23,7 @@ const RoutesList = () => {
             component: Dashboard,
             isAuthenticated: true,
             isShown: true,
+            
         },
         {
             path: "/rooms",
@@ -31,6 +32,10 @@ const RoutesList = () => {
             component: Rooms,
             isAuthenticated: true,
             isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Room"
+            },
             subRoutes: [
                 {
                     path: "/rooms/:id",
@@ -39,6 +44,10 @@ const RoutesList = () => {
                     component: Room,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "update",
+                        subject: "Room"
+                    }
                 }
             ]
         },
@@ -47,7 +56,11 @@ const RoutesList = () => {
             title: "Current Guests",
             icon: <Users className=" " />,
             component: CurrentGuestList,
-            isShown: true
+            isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Guest"
+            }
         },
         {
             path: '/guests-profile',
@@ -55,6 +68,11 @@ const RoutesList = () => {
             icon: <Users className=" " />,
             component: GuestProfile,
             isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Guest"
+            },
+            isAuthenticated: true,
             subRoutes: [
                 {
                     path: "/guests-profile/new-individual",
@@ -63,6 +81,10 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "create",
+                        subject: "Guest"
+                    }
                 },
                 {
                     path: "/guests-profile/new-group",
@@ -71,6 +93,10 @@ const RoutesList = () => {
                     component: NewGroupProfile,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "create",
+                        subject: "Guest"
+                    }
                 },
                 {
                     path: "/guests-profile/:id",
@@ -79,6 +105,10 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "update",
+                        subject: "Guest"
+                    }
                 },
                 {
                     path: "/guests-profile/:id/view",
@@ -95,6 +125,10 @@ const RoutesList = () => {
                     component: GroupProfileExpanded,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "Guest"
+                    }
                 }
 
             ]
@@ -104,7 +138,11 @@ const RoutesList = () => {
             title: "Calendar",
             icon: <Calendar className=" " />,
             component: HotelReservationCalendar,
-            isShown: true
+            isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Calendar"
+            }
         },
         {
             path: '/team-members',
@@ -112,6 +150,10 @@ const RoutesList = () => {
             icon: <Users className=" " />,
             component: TeamMembers,
             isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "TeamMembers"
+            },
             subRoutes: [
                 {
                     path: "/team-members/new",
@@ -120,6 +162,10 @@ const RoutesList = () => {
                     component: NewTeamMember,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "create",
+                        subject: "TeamMembers"
+                    },
                 },
                 {
                     path: "/team-members/profile/:id",
@@ -128,6 +174,10 @@ const RoutesList = () => {
                     component: TeamMemberProfile,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "TeamMembers"
+                    },
                 },
             ]
         },
@@ -137,14 +187,22 @@ const RoutesList = () => {
             title: "Maintenance",
             icon: <Wrench className=" " />,
             component: MaintenancePage,
-            isShown: true
+            isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Maintenance"
+            }
         },
         {
             path: '/housekeeping',
             title: "Housekeeping",
             icon: <Sparkles className=" " />,
             component: HousekeepingPage,
-            isShown: true
+            isShown: true,
+            requiredPermissions: {
+                action: "read",
+                subject: "Housekeeping"
+            }
         },
 
         {
@@ -153,6 +211,11 @@ const RoutesList = () => {
             icon: <Plus className=" " />,
             component: NewReservation,
             isShown: false,
+            isAuthenticated: true,
+            requiredPermissions: {
+                action: "create",
+                subject: "Reservations"
+            },
             subRoutes: [
                 {
                     path: "/new-reservation/new-group-reservation",
@@ -161,13 +224,21 @@ const RoutesList = () => {
                     component: NewGroupReservation,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: {
+                        action: "create",
+                        subject: "Reservations"
+                    }
                 },
                 {
                     path: '/new-reservation/new-individual-reservation',
                     title: "Reservations",
                     icon: <Plus className=" " />,
                     component: NewIndividualReservation,
-                    isShown: false
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "create",
+                        subject: "Reservations"
+                    }
                 },
             ]
         },
@@ -177,6 +248,11 @@ const RoutesList = () => {
             icon: <LayoutDashboard className=" " />,
             component: AdminDashboard,
             isShown: true,
+            isAuthenticated: true,
+            requiredPermissions: {
+                action: "manage",
+                subject: "all"
+            },
             subRoutes: [
                 {
                     path: '/roles-permissions',
@@ -184,14 +260,22 @@ const RoutesList = () => {
                     icon: <ChartColumnBig className=" " />,
                     component: Roles,
                     isAuthenticated: true,
-                    isShown: false
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "Roles"
+                    }
                 },
                 {
                     path: '/amenities',
                     title: "Amenities",
                     icon: <Coffee className=" " />,
                     component: Amenities,
-                    isShown: false
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "Amenities"
+                    }
                 },
                 {
                     path: '/rate-plans',
@@ -199,19 +283,27 @@ const RoutesList = () => {
                     icon: <DollarSign className=" " />,
                     component: RatePlans,
                     isAuthenticated: true,
-                    isShown: false
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "RatePlans"
+                    }
                 },
                 {
                     path: '/roomTypes',
                     title: "Room Types",
                     component: RoomTypes,
                     isAuthenticated: true,
-                    isShown: false
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "RoomTypes"
+                    }
                 },
             ]
         }
     ].map((route) =>
-        createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.subRoutes
+        createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
         )
     );
 
