@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
@@ -260,25 +259,17 @@ const GuestProfileView = () => {
                 <div className="lg:col-span-1 space-y-6">
                     {/* Profile Card */}
                     <Card className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center justify-center mb-4">
-                            <Avatar className="h-32 w-32">
-                                <AvatarImage src="" alt={`${guest.data.firstName} ${guest.data.lastName}`} />
-                                <AvatarFallback className="text-2xl">
-                                    {isEditMode ?
-                                        `${formData.firstName.charAt(0).toUpperCase()}${formData.lastName.charAt(0).toUpperCase()}` :
-                                        `${guest.data.firstName.charAt(0).toUpperCase()}${guest.data.lastName.charAt(0).toUpperCase()}`
-                                    }
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
-
-                        <div className="text-center mb-4">
+                        <div className="text-center space-y-2">
                             <h2 className="text-xl font-semibold">
                                 {isEditMode ?
                                     `${formData.firstName} ${formData.lastName}` :
                                     `${guest.data.firstName} ${guest.data.lastName}`
                                 }
                             </h2>
+                            <CardContent className="">
+                                <span className="font-semibold">Profile Type: </span>
+                               Individual
+                            </CardContent>
                         </div>
 
                         <div className='flex gap-2 text-center justify-center'>

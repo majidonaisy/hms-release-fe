@@ -67,10 +67,10 @@ export const ReservationResponseSchema = z.object({
 });
 
 export const UpdateReservationRequestSchema = z.object({
-    checkInDate: z.date(),
-    checkOutDate: z.date(),
-    numberOfGuests: z.number(),
-    specialRequests: z.string()
+    checkIn: z.date(),
+    checkOut: z.date(),
+    roomIds: z.array(z.string()),
+    ratePlanId: z.string(),
 });
 
 export const CheckInRequest = z.object({
@@ -97,6 +97,11 @@ export const CheckOutResponse = z.object({
     data: z.object({})
 });
 
+export const GetNightPriceResponseSchema = z.object({
+    message: z.string(),
+    data: z.string(),
+})
+
 export type Reservation = z.infer<typeof ReservationResponseShape>
 export type AddReservationRequest = z.infer<typeof AddReservationRequestSchema>;
 export type AddGroupReservationRequest = z.infer<typeof AddGroupReservationRequestSchema>;
@@ -106,3 +111,4 @@ export type CheckInRequest = z.infer<typeof CheckInRequest>;
 export type CheckInResponse = z.infer<typeof CheckInResponse>;
 export type CheckOutRequest = z.infer<typeof CheckOutRequest>;
 export type CheckOutResponse = z.infer<typeof CheckOutResponse>;
+export type GetNightPriceResponse = z.infer<typeof GetNightPriceResponseSchema>

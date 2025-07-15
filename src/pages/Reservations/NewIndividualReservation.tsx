@@ -13,11 +13,14 @@ import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { getGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
-import { addReservation } from "@/services/Reservation"
+import { addReservation, getNightPrice } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
+import { Separator } from "@/components/atoms/Separator"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
+    const [nightPrice, setNightPrice] = useState<number | null>(null);
 
     const steps = [
         { number: 1, title: "Guest", completed: currentStep > 1 },
@@ -166,6 +169,35 @@ export default function NewIndividualReservation() {
     }, []);
 
     const availableRooms = getAvailableRooms();
+
+    const getNights = () => {
+        if (!formData.checkIn || !formData.checkOut) return 0;
+
+        const diffTime = formData.checkOut.getTime() - formData.checkIn.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    };
+
+    useEffect(() => {
+        const fetchNightPrice = async () => {
+            if (!formData.ratePlanId || !selectedRoomType) return;
+
+            try {
+                const response = await getNightPrice(formData.ratePlanId, selectedRoomType);
+                const price = parseFloat(response.data) || 0;
+                setNightPrice(price);
+            } catch (error) {
+                console.error(error);
+                toast("Error!", {
+                    description: "Failed to fetch nightly rate."
+                });
+            }
+        };
+
+        if (formData.ratePlanId && selectedRoomType) {
+            fetchNightPrice();
+        }
+    }, [formData.ratePlanId, selectedRoomType]);
 
     const renderStepContent = (stepNumber: number) => {
         if (currentStep !== stepNumber) return null
@@ -428,43 +460,74 @@ export default function NewIndividualReservation() {
                 <h1 className="text-2xl font-semibold">New Reservation</h1>
             </div>
 
-            <div className="space-y-2">
-                {steps.map((step, index) => (
-                    <div key={step.number}>
-                        {/* Step header */}
-                        <div className="flex items-center">
-                            <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium mr-4 ${step.completed
-                                    ? "bg-white text-gray-300 border-2 border-gray-300"
-                                    : currentStep === step.number
-                                        ? "bg-hms-primary text-white"
-                                        : "bg-gray-300 text-gray-600"
-                                    }`}
-                            >
-                                {step.completed ? <Check className="size-5" /> : step.number}
-                            </div>
-                            <span
-                                className={`font-medium ${currentStep === step.number ? "text-black" : "text-gray-600"
-                                    }`}
-                            >
-                                {step.title}
-                            </span>
-                        </div>
-
-                        <div className="flex">
-                            {index < steps.length - 1 && (
-                                <div className="w-8 ml-0.5 flex justify-center">
-                                    <div className={`w-px bg-gray-300 ${currentStep === step.number ? "h-56" : "h-4"}`}></div>
+            <div className="grid lg:grid-cols-[2fr_1fr]  gap-7">
+                <div className="space-y-2">
+                    {steps.map((step, index) => (
+                        <div key={step.number}>
+                            {/* Step header */}
+                            <div className="flex items-center">
+                                <div
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium mr-4 ${step.completed
+                                        ? "bg-white text-gray-300 border-2 border-gray-300"
+                                        : currentStep === step.number
+                                            ? "bg-hms-primary text-white"
+                                            : "bg-gray-300 text-gray-600"
+                                        }`}
+                                >
+                                    {step.completed ? <Check className="size-5" /> : step.number}
                                 </div>
-                            )}
-                            <div className="ml-4 flex-1">
-                                {/* Step content */}
-                                {renderStepContent(step.number)}
+                                <span
+                                    className={`font-medium ${currentStep === step.number ? "text-black" : "text-gray-600"
+                                        }`}
+                                >
+                                    {step.title}
+                                </span>
+                            </div>
+
+                            <div className="flex">
+                                {index < steps.length - 1 && (
+                                    <div className="w-8 ml-0.5 flex justify-center">
+                                        <div className={`w-px bg-gray-300 ${currentStep === step.number ? "h-56" : "h-4"}`}></div>
+                                    </div>
+                                )}
+                                <div className="ml-4 flex-1">
+                                    {/* Step content */}
+                                    {renderStepContent(step.number)}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                <Card className="bg-hms-accent/15">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-bold">
+                            Reservation Summary
+                        </CardTitle>
+                        <CardContent className="p-0 space-y-1">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground font-semibold">Total Guests:</span>
+                                <span>1 guest</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground font-semibold">Total Nights:</span>
+                                <span>{getNights()} {getNights() === 1 ? 'night' : 'nights'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground font-semibold">Rate Per Night:</span>
+                                <span>{nightPrice !== null ? `$${nightPrice}` : "-"}</span>
+                            </div>
+                            <Separator className="bg-black" />
+                            <div className="flex justify-between">
+                                <span className="text-hms-primary font-bold text-lg">Total</span>
+                                <span>
+                                    {nightPrice !== null ? `$${nightPrice * getNights()}` : "-"}
+                                </span>
+                            </div>
+                        </CardContent>
+                    </CardHeader>
+                </Card>
             </div>
+
             <NewDialogsWithTypes
                 open={openGuestDialog}
                 setOpen={setOpenGuestDialog}

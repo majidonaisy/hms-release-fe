@@ -40,11 +40,12 @@ export const ENDPOINTS = {
   },
   Reservations: {
     Add: "reservation/add",
-    Update: "reservation/update/{id}",
+    Update: "reservation/update",
     CheckIn: "reservation/check-in",
     CheckOut: "reservation/check-out",
     Get: "reservation/get-reservation",
     AddGroupReservation: "reservation/create",
+    GetNightPrice: "reservation/get-night-price"
   },
   Maintenance: {
     Add: "maintenance/add",

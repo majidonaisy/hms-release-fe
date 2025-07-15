@@ -23,6 +23,41 @@ const GuestShape = z.object({
   hotelId: z.string(),
 });
 
+const GroupProfileShape = z.object({
+  id: z.string(),
+  name: z.string(),
+  legalName: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  primaryContact: z.object({
+    name: z.string(),
+    email: z.string(),
+    phone: z.string()
+  }),
+  address: z.object({
+    city: z.string(),
+    country: z.string()
+  }),
+  billingAddress: z.object({
+    city: z.string(),
+    country: z.string()
+  }),
+  businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+  specialRequirements: z.string(),
+  status: z.string(),
+  isVip: z.boolean(),
+  notes: z.string(),
+  hotelId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date()
+});
+
+export const GroupProfileResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: GroupProfileShape
+})
+
 // Add Guest
 export const AddGuestRequestSchema = z.object({
   firstName: z.string(),
@@ -187,3 +222,4 @@ export type AddGroupProfileRequest = z.infer<typeof AddGroupProfileRequestSchema
 export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileResponseSchema>
 export type LinkGuestsToGroupResponse = z.infer<typeof LinkGuestsToGroupResponseSchema>
 export type GetGroupProfilesResponse = z.infer<typeof GetGroupProfilesResponseSchema>
+export type GroupProfileResponse = z.infer<typeof GroupProfileResponseSchema>
