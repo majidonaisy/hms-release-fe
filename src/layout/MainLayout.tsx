@@ -6,6 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
+import { useRole } from '@/context/CASLContext';
 
 interface MainLayoutProps {
     routes: any[];
@@ -15,6 +16,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
     const [openTabs, setOpenTabs] = useState<string[]>([]);
     const [openReservationDialog, setOpenReservationDialog] = useState(false);
+    const { filterRoutesByPermissions, isAuthenticated } = useRole();
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
@@ -36,7 +38,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
             .map((route: any) => {
                 const fullPath = route.path;
                 const isOpen = openTabs.includes(fullPath);
-                const hasVisibleSubroutes = route.subRoutes && route.subRoutes.some((subRoute: any) => subRoute.isShown !== false);
+
+                // Filter subroutes by permissions if they exist
+                const filteredSubroutes = route.subRoutes
+                    ? filterRoutesByPermissions(route.subRoutes.filter((subRoute: any) => subRoute.isShown !== false))
+                    : [];
+
+                const hasVisibleSubroutes = filteredSubroutes.length > 0;
 
                 const isActive = location.pathname === fullPath ||
                     location.pathname.startsWith(fullPath + '/') ||
@@ -79,7 +87,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                 >
                                     <Link to={fullPath} className="flex items-center justify-start">
                                         {typeof route.icon === 'function' ?
-                                            <route.icon className="shrink-0" /> : // Remove !size-4
+                                            <route.icon className="shrink-0" /> :
                                             <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>
                                         }
                                         <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-bold' : 'font-semibold'}`}>
@@ -91,11 +99,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         </SidebarMenuItem>
                         {hasVisibleSubroutes && (
                             <div
-                                className={`pl-4 overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:hidden ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                                    }`}
+                                className={`pl-4 overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:hidden ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                             >
                                 <SidebarMenu>
-                                    {renderMenuItems(route.subRoutes)}
+                                    {renderMenuItems(filteredSubroutes)}
                                 </SidebarMenu>
                             </div>
                         )}
@@ -106,9 +113,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
 
     const getSidebarRoutes = () => {
         if (!routes || !Array.isArray(routes)) return [];
-        return routes.filter(route => route.isShown === true);
-    };
 
+        // Filter routes by permissions first, then by visibility
+        const filteredByPermissions = filterRoutesByPermissions(routes);
+        return filteredByPermissions.filter(route => route.isShown === true);
+    };
     const menuItems = React.useMemo(() => renderMenuItems(getSidebarRoutes()), [routes, openTabs, location.pathname]);
 
     return (
