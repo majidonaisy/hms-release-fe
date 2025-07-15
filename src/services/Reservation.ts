@@ -130,11 +130,11 @@ export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Pro
   }
 };
 
-export const updateReservation = async (data: UpdateReservationRequest): Promise<ReservationResponse> => {
+export const updateReservation = async (id: string, data: UpdateReservationRequest): Promise<ReservationResponse> => {
   try {
     const response = await apiClient({
       method: "PUT",
-      endpoint: ENDPOINTS.Reservations.Update,
+      endpoint: `${ENDPOINTS.Reservations.Update}/${id}`,
       baseURL,
       data
     })

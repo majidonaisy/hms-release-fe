@@ -16,6 +16,7 @@ import CheckInCheckoutDialog from "@/components/dialogs/CheckInCheckOutDialog"
 import ChooseReservationOptionDialog from "@/components/dialogs/ChooseReservationOptionDialog"
 import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
 import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
+import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -31,6 +32,10 @@ export type UIReservation = {
   status: string
   rate: string
   specialRequests: string
+  guestId: string
+  roomNumber: string
+  roomType: string
+  ratePlanId?: string
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
@@ -48,6 +53,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [chooseOptionDialog, setChooseOptionDialog] = useState(false);
   const [addChargesDialog, setAddChargesDialog] = useState(false);
   const [addChargeDialog, setAddChargeDialog] = useState(false);
+  const [editReservationDialog, setEditReservationDialog] = useState(false);
+
   // Get Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -79,6 +86,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               status: String(resv.status),
               rate: reservation.baseRate,
               specialRequests: reservation.description,
+              guestId: resv.guestId,
+              roomNumber: room.roomNumber,
+              roomType: reservation.name,
             }))
           )
         );
@@ -162,6 +172,51 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     };
     return colors[status.toLowerCase() as keyof typeof colors] || colors.reserved;
   };
+
+  const calculateStayDuration = (start: Date, end: Date): string => {
+    const nights = differenceInDays(end, start);
+    return `${nights} night${nights !== 1 ? 's' : ''}`;
+  };
+
+  const handleReservationUpdate = (updatedReservation: UIReservation) => {
+    setReservations(prev =>
+      prev.map(reservation =>
+        reservation.id === updatedReservation.id ? updatedReservation : reservation
+      )
+    );
+  };
+
+  const refreshReservations = async () => {
+    try {
+      const response: ReservationResponse = await getReservations(weekStart, weekEnd);
+      const apiReservations = response.data.reservations;
+
+      const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
+        reservation.Room.flatMap((room) =>
+          (room.reservations ?? []).map((resv) => ({
+            id: resv.id,
+            resourceId: room.id,
+            guestName: reservation.name,
+            bookingId: reservation.id,
+            start: new Date(resv.checkIn),
+            end: new Date(resv.checkOut),
+            status: String(resv.status),
+            rate: reservation.baseRate,
+            specialRequests: reservation.description,
+            guestId: resv.guestId,
+            roomNumber: room.roomNumber,
+            roomType: reservation.name,
+            ratePlanId: resv.ratePlanId, // You might need to add this to your API response
+          }))
+        )
+      );
+
+      setReservations(flattened);
+    } catch (err) {
+      console.error("Failed to refresh reservations:", err);
+    }
+  };
+
 
   return (
     <TooltipProvider>
@@ -344,7 +399,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowEnd: event.gridRowEnd,
                       }}
                       onClick={() => {
-                        console.log(event,"event"); setChooseOptionDialog(true);
+                        console.log(event, "event"); setChooseOptionDialog(true);
                         setDialogReservation(event);
                       }}
                     >
@@ -372,6 +427,13 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       </div>
       <CheckInCheckoutDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} />
+      <EditReservationDialog
+        open={editReservationDialog}
+        setOpen={setEditReservationDialog}
+        reservationData={dialogReservation}
+        onSave={handleReservationUpdate}
+        onRefresh={refreshReservations}
+      />
       <AddChargesDialog
         open={addChargesDialog}
         setOpen={setAddChargesDialog}
@@ -407,12 +469,16 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         checkOut={() => setCheckOutDialog(true)}
         addCharges={() => setAddChargesDialog(true)}
         addCharge={() => setAddChargeDialog(true)}
-        editReservation={() => {
-          // TODO: Implement edit reservation functionality
-          console.log('Edit reservation clicked');
-        }}
-        isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked-in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
-        isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked-out'}
+        editReservation={() => { setEditReservationDialog(true) }}
+        isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked_in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
+        isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked_out'}
+        // Add new props for the updated dialog
+        guestId={dialogReservation?.guestId}
+        roomNumber={dialogReservation?.roomNumber}
+        roomType={dialogReservation?.roomType}
+        checkInDate={dialogReservation?.start?.toISOString()}
+        checkOutDate={dialogReservation?.end?.toISOString()}
+        stayDuration={dialogReservation ? calculateStayDuration(dialogReservation.start, dialogReservation.end) : ''}
       />
     </TooltipProvider>
   );

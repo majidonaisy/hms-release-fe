@@ -40,7 +40,7 @@ export const ENDPOINTS = {
   },
   Reservations: {
     Add: "reservation/add",
-    Update: "reservation/update/{id}",
+    Update: "reservation/update",
     CheckIn: "reservation/check-in",
     CheckOut: "reservation/check-out",
     Get: "reservation/get-reservation",

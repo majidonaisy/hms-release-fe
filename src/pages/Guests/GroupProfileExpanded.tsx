@@ -1,8 +1,7 @@
 import { Button } from "@/components/atoms/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import { getGroupProfileById } from "@/services/Guests";
-import { getRoomTypes } from "@/services/RoomTypes";
-import { GroupProfileResponse, RoomType } from "@/validation";
+import { GroupProfileResponse } from "@/validation";
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -12,7 +11,6 @@ const GroupProfileExpanded = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [group, setGroup] = useState<GroupProfileResponse['data'] | null>(null);
-    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -38,9 +36,6 @@ const GroupProfileExpanded = () => {
                 const guestResponse = await getGroupProfileById(id);
                 setGroup(guestResponse.data);
 
-                const roomTypesResponse = await getRoomTypes();
-                setRoomTypes(roomTypesResponse.data);
-
             } catch (error: any) {
                 console.error('Error fetching guest data:', error);
                 setError(error.userMessage || 'Failed to load guest data');
@@ -51,11 +46,6 @@ const GroupProfileExpanded = () => {
 
         fetchGuestData();
     }, [id, location.state]);
-
-    const roomTypeMap = roomTypes.reduce((map, roomType) => {
-        map[roomType.id] = roomType.name;
-        return map;
-    }, {} as Record<string, string>);
 
     if (loading && !group) {
         return (
@@ -191,7 +181,7 @@ const GroupProfileExpanded = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
-                       
+
                     </CardContent>
                 </Card>
                 <Card className='p-3 gap-2'>
@@ -201,7 +191,7 @@ const GroupProfileExpanded = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
-                       
+
                     </CardContent>
                 </Card>
             </div>
