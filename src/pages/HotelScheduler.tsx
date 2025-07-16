@@ -36,6 +36,7 @@ export type UIReservation = {
   roomNumber: string
   roomType: string
   ratePlanId?: string
+  roomTypeId?: string
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
@@ -76,17 +77,17 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
         const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
           reservation.Room.flatMap((room) =>
-            (room.reservations ?? []).map((resv) => ({
-              id: resv.id,
+            (room.reservations ?? []).map((mappedReservation) => ({
+              id: mappedReservation.id,
               resourceId: room.id,
               guestName: reservation.name,
               bookingId: reservation.id,
-              start: new Date(resv.checkIn),
-              end: new Date(resv.checkOut),
-              status: String(resv.status),
+              start: new Date(mappedReservation.checkIn),
+              end: new Date(mappedReservation.checkOut),
+              status: String(mappedReservation.status),
               rate: reservation.baseRate,
               specialRequests: reservation.description,
-              guestId: resv.guestId,
+              guestId: mappedReservation.guestId,
               roomNumber: room.roomNumber,
               roomType: reservation.name,
             }))
@@ -164,13 +165,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
   const getStatusColor = (status: string) => {
     const colors = {
-      reserved: "bg-chart-1/20 border-l-4 border-chart-1",
-      occupied: "bg-chart-2/20 border-l-4 border-chart-2",
-      "checked-in": "bg-chart-3/20 border-l-4 border-chart-3",
-      "checked-out": "bg-chart-4/20 border-l-4 border-chart-4",
-      blocked: "bg-chart-5/20 border-l-4 border-chart-5",
+      "CHECKED_IN": "bg-chart-1/20 border-l-4 border-chart-1",
+      "CHECKED_OUT": "bg-chart-2/20 border-l-4 border-chart-2",
+      // DRAFT: "bg-chart-3/20 border-l-4 border-chart-3",
+      "CONFIRMED": "bg-chart-4/20 border-l-4 border-chart-4",
+      "CANCELLED": "bg-chart-5/20 border-l-4 border-chart-5",
+      // NO_SHOW: "bg-chart-5/20 border-l-4 border-chart-5",
+      "HELD": "bg-chart-5/20 border-l-4 border-chart-5",
     };
-    return colors[status.toLowerCase() as keyof typeof colors] || colors.reserved;
+    return colors[status as keyof typeof colors] || colors.HELD;
   };
 
   const calculateStayDuration = (start: Date, end: Date): string => {
@@ -193,20 +196,21 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
       const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
         reservation.Room.flatMap((room) =>
-          (room.reservations ?? []).map((resv) => ({
-            id: resv.id,
+          (room.reservations ?? []).map((mappedReservation) => ({
+            id: mappedReservation.id,
             resourceId: room.id,
             guestName: reservation.name,
             bookingId: reservation.id,
-            start: new Date(resv.checkIn),
-            end: new Date(resv.checkOut),
-            status: String(resv.status),
+            start: new Date(mappedReservation.checkIn),
+            end: new Date(mappedReservation.checkOut),
+            status: String(mappedReservation.status),
             rate: reservation.baseRate,
             specialRequests: reservation.description,
-            guestId: resv.guestId,
+            guestId: mappedReservation.guestId,
             roomNumber: room.roomNumber,
             roomType: reservation.name,
-            ratePlanId: resv.ratePlanId, // You might need to add this to your API response
+            ratePlanId: mappedReservation.ratePlanId,
+            roomTypeId: room.roomTypeId || room.roomTypeId,
           }))
         )
       );
@@ -230,19 +234,19 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           <div className="flex items-center justify-between gap-4">
             <div className="flex gap-2 text-sm w-full">
               <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Reserved</span>
+                <span className="text-xs">Checked In</span>
               </div>
               <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Occupied</span>
+                <span className="text-xs">Checked Out</span>
               </div>
               <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Checked-in</span>
+                <span className="text-xs">Confirmed</span>
               </div>
               <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Checked-out</span>
+                <span className="text-xs">Canceled</span>
               </div>
               <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Blocked</span>
+                <span className="text-xs">Held</span>
               </div>
             </div>
 

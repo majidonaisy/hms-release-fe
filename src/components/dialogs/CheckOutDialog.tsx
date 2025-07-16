@@ -31,18 +31,17 @@ const CheckOutDialog = ({
     useEffect(() => {
         if (open) {
             setIsLoading(false);
-            setError(null); // Clear any previous errors when dialog opens
+            setError(null);
         }
     }, [open]);
 
     const handleCheckIn = async () => {
         setIsLoading(true);
-        setError(null); // Clear previous errors
+        setError(null);
 
         try {
             const targetReservationId = reservationId || '';
-            const response = await checkOut(targetReservationId);
-            console.log('Check-out successful:', response);
+            await checkOut(targetReservationId);
             onCheckOutComplete?.();
             setOpen(false);
         } catch (error: any) {
@@ -51,7 +50,6 @@ const CheckOutDialog = ({
             let errorMessage = 'Check-out failed. Please try again.';
 
             if (error.userMessage) {
-                // If you threw { userMessage, ... }
                 errorMessage = error.userMessage;
 
             } else if (error.response && error.response.data) {
@@ -86,7 +84,6 @@ const CheckOutDialog = ({
                     </div>
                 </DialogHeader>
 
-                {/* Error Display */}
                 {error && (
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
                         <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />

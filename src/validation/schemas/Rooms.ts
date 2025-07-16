@@ -128,3 +128,4 @@ export type GetRoomsResponse = z.infer<typeof GetRoomsResponseSchema>;
 export type UpdateRoomRequest = z.infer<typeof UpdateRoomRequestSchema>;
 export type UpdateRoomResponse = z.infer<typeof UpdateRoomResponseSchema>;
 export type GetRoomsByRoomType = z.infer<typeof GetRoomsByRoomTypeSchema>;
+export type GetRoomByIdResponse = z.infer<typeof GetRoomByIdResponseSchema>

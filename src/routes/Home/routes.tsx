@@ -5,7 +5,6 @@ import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
 import NewGuest from "@/pages/Guests/NewGuest";
 import GuestProfileView from "@/pages/Guests/GuestExpanded";
-import NewReservation from "@/pages/Reservations/NewReservation";
 import NewIndividualReservation from "@/pages/Reservations/NewIndividualReservation";
 import NewGroupProfile from "@/pages/Guests/NewGroupProfile";
 import HousekeepingPage from "@/pages/Housekeeping/Housekeeping";
@@ -23,7 +22,7 @@ const RoutesList = () => {
             component: Dashboard,
             isAuthenticated: true,
             isShown: true,
-            
+
         },
         {
             path: "/rooms",
@@ -204,43 +203,29 @@ const RoutesList = () => {
                 subject: "Housekeeping"
             }
         },
-
         {
-            path: '/new-reservation',
-            title: "Reservations",
-            icon: <Plus className=" " />,
-            component: NewReservation,
-            isShown: false,
+
+            path: "/new-reservation/new-group-reservation",
+            title: "New Group Reservation",
+            icon: <Plus />,
+            component: NewGroupReservation,
             isAuthenticated: true,
+            isShown: false,
             requiredPermissions: {
                 action: "create",
                 subject: "Reservations"
-            },
-            subRoutes: [
-                {
-                    path: "/new-reservation/new-group-reservation",
-                    title: "New Group Reservation",
-                    icon: <Plus />,
-                    component: NewGroupReservation,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: {
-                        action: "create",
-                        subject: "Reservations"
-                    }
-                },
-                {
-                    path: '/new-reservation/new-individual-reservation',
-                    title: "Reservations",
-                    icon: <Plus className=" " />,
-                    component: NewIndividualReservation,
-                    isShown: false,
-                    requiredPermissions: {
-                        action: "create",
-                        subject: "Reservations"
-                    }
-                },
-            ]
+            }
+        },
+        {
+            path: '/new-reservation/new-individual-reservation',
+            title: "Reservations",
+            icon: <Plus className=" " />,
+            component: NewIndividualReservation,
+            isShown: false,
+            requiredPermissions: {
+                action: "create",
+                subject: "Reservations"
+            }
         },
         {
             path: '/dashboard',
