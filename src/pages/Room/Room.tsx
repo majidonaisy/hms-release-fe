@@ -27,7 +27,7 @@ const RoomPage = () => {
 
                 try {
                     const response = await getRoomById(id);
-                    const roomData = response.data?.data || response.data;
+                    const roomData = response.data;
                     setRoom(roomData);
                 } catch (error: any) {
                     setError(error.userMessage || 'Failed to load room data');

@@ -22,9 +22,6 @@ export { default as GuestProfileView } from "./Guests/GuestExpanded";
 export { default as Maintenance } from "./Maintenance/Maintenance";
 export { default as Housekeeping } from "./Housekeeping/Housekeeping";
 
-// Reservations
-export { default as NewReservation } from "./Reservations/NewReservation";
-
 // Dashboard and related features
 export { default as AdminDashboard } from "./dashboard/Dashboard";
 export { default as RoomTypes } from "./dashboard/RoomTypes/RoomTypes";

@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../Organisms/Dialog"
 import { Button } from "../atoms/Button"
-import { Input } from "../atoms/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../molecules/Select"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
@@ -13,6 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "../molecules/Popover"
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Calendar } from "../molecules/Calendar"
 import { toast } from "sonner"
+import { Label } from "../atoms/Label"
+import { ScrollArea } from "../atoms/ScrollArea"
+import { GetRatePlansResponse } from "@/validation"
 
 interface EditReservationDialogProps {
     open: boolean;
@@ -38,7 +40,7 @@ const EditReservationDialog = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [ratePlans, setRatePlans] = useState<any[]>([]);
+    const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [rooms, setRooms] = useState<any[]>([]);
     const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
 
@@ -255,7 +257,7 @@ const EditReservationDialog = ({
                                         <SelectContent>
                                             {ratePlans.map((plan) => (
                                                 <SelectItem key={plan.id} value={plan.id}>
-                                                    {plan.name} - ${plan.baseRate}
+                                                    {plan.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -263,34 +265,36 @@ const EditReservationDialog = ({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    <Label className="block text-sm font-medium text-gray-700 mb-2">
                                         Select Rooms
-                                    </label>
-                                    <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
-                                        {rooms.map((room) => (
-                                            <div key={room.id} className="flex items-center space-x-2 py-1">
-                                                <input
-                                                    type="checkbox"
-                                                    id={`room-${room.id}`}
-                                                    checked={selectedRooms.includes(room.id)}
-                                                    onChange={() => handleRoomToggle(room.id)}
-                                                    disabled={isLoading}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                                <label htmlFor={`room-${room.id}`} className="text-sm flex-1 cursor-pointer">
-                                                    <span className="font-medium">Room {room.roomNumber}</span>
-                                                    <span className="text-gray-500 ml-2">
-                                                        ({room.roomType?.name}) - Floor {room.floor}
-                                                    </span>
-                                                    <span className={`ml-2 px-2 py-1 rounded text-xs ${room.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
-                                                        room.status === 'OCCUPIED' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'
-                                                        }`}>
-                                                        {room.status}
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        ))}
+                                    </Label>
+                                    <div className="border rounded-lg p-3">
+                                        <ScrollArea className="h-[10rem]">
+                                            {rooms.map((room) => (
+                                                <div key={room.id} className="flex items-center space-x-2 py-1">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`room-${room.id}`}
+                                                        checked={selectedRooms.includes(room.id)}
+                                                        onChange={() => handleRoomToggle(room.id)}
+                                                        disabled={isLoading}
+                                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor={`room-${room.id}`} className="text-sm flex-1 cursor-pointer">
+                                                        <span className="font-medium">Room {room.roomNumber}</span>
+                                                        <span className="text-gray-500 ml-2">
+                                                            ({room.roomType?.name}) - Floor {room.floor}
+                                                        </span>
+                                                        <span className={`ml-2 px-2 py-1 rounded text-xs ${room.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
+                                                            room.status === 'OCCUPIED' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                            }`}>
+                                                            {room.status}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            ))}
+                                        </ScrollArea>
                                     </div>
                                     <div className="text-xs text-gray-500 mt-1">
                                         {selectedRooms.length} room(s) selected

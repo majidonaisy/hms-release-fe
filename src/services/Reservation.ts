@@ -13,7 +13,12 @@ export const addReservation = async (data: AddReservationRequest): Promise<Reser
     });
     return response as ReservationResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to add reservation";
+    const data = error.response?.data;
+    const errorMessage =
+      data?.error ||
+      data?.message ||
+      (typeof data === 'string' ? data : null) ||
+      "Failed to add reservation";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -84,7 +89,12 @@ export const checkIn = async (reservationId: string, deposit: number): Promise<a
     });
     return response
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to check in";
+    const data = error.response?.data;
+    const errorMessage =
+      data?.error ||
+      data?.message ||
+      (typeof data === 'string' ? data : null) ||
+      "Failed to check out";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -99,15 +109,21 @@ export const checkOut = async (reservationId: string): Promise<any> => {
       endpoint: `${ENDPOINTS.Reservations.CheckOut}/${reservationId}`,
       baseURL
     });
-    return response
+    return response;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to check out";
+    const data = error.response?.data;
+    const errorMessage =
+      data?.error ||
+      data?.message ||
+      (typeof data === 'string' ? data : null) ||
+      "Failed to check out";
     throw {
       userMessage: errorMessage,
       originalError: error,
     };
   }
-}
+};
+
 
 export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Promise<GetNightPriceResponse> => {
   try {

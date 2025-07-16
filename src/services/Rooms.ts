@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AmenityResponse } from "@/validation/schemas/amenity";
-import { AddRoomRequest, AddRoomResponse, GetRoomsByRoomType, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
+import { AddRoomRequest, AddRoomResponse, GetRoomByIdResponse, GetRoomsByRoomType, GetRoomsResponse, UpdateRoomRequest, UpdateRoomResponse } from "@/validation/schemas/Rooms";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -46,19 +46,14 @@ export const getRooms = async (params?: GetRoomsParams): Promise<GetRoomsRespons
   }
 };
 
-export const getRoomById = async (id: string): Promise<{ data: any }> => {
+export const getRoomById = async (id: string): Promise<GetRoomByIdResponse> => {
   try {
     const response = (await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Room.GetById}/${id}`,
       baseURL,
     })) as any;
-    if (response.data && response.data.data) {
-      return { data: response.data };
-    }
-
-    // Fallback if the structure is different
-    return { data: response };
+    return response as GetRoomByIdResponse
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get room";
     throw {

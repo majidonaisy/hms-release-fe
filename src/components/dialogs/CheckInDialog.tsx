@@ -1,53 +1,67 @@
-import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
-import { Button } from '@/components/atoms/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
-import { Label } from '@/components/atoms/Label';
-import { checkOut } from '@/services/Reservation';
-import { UIReservation } from '@/pages/HotelScheduler';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react"
+import { AlertCircle, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
+import { Button } from "@/components/atoms/Button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
+import { Label } from "@/components/atoms/Label"
+import { checkIn } from "@/services/Reservation"
+import type { UIReservation } from "@/pages/HotelScheduler"
+import { format } from "date-fns"
+import { Input } from "../atoms/Input"
+import { toast } from "sonner"
 
-interface CheckInCheckoutDialogProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    reservationId?: string;
+interface CheckInDialogProps {
+    open: boolean
+    setOpen: (open: boolean) => void
+    reservationId?: string
     reservationData?: UIReservation | null
-    onCheckOutComplete?: () => void;
-    onError?: (error: string) => void;
+    onCheckInComplete?: () => void
+    onError?: (error: string) => void
 }
 
-const CheckOutDialog = ({
+const CheckInDialog = ({
     open,
     setOpen,
     reservationId,
     reservationData,
-    onCheckOutComplete,
+    onCheckInComplete,
     onError,
-}: CheckInCheckoutDialogProps) => {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+}: CheckInDialogProps) => {
+    const [deposit, setDeposit] = useState<string>("")
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (open) {
-            setIsLoading(false);
+            setDeposit("")
+            setIsLoading(false)
             setError(null);
         }
-    }, [open]);
+    }, [open])
 
     const handleCheckIn = async () => {
-        setIsLoading(true);
-        setError(null);
+        if (!deposit) {
+            onError?.("Please select a deposit amount")
+            return
+        }
 
+        setIsLoading(true)
         try {
-            const targetReservationId = reservationId || '';
-            await checkOut(targetReservationId);
-            onCheckOutComplete?.();
-            setOpen(false);
-        } catch (error: any) {
-            console.error('Check-out failed:', error);
+            const depositAmount = Number.parseFloat(deposit)
+            const targetReservationId = reservationId || ""
+            await checkIn(targetReservationId, depositAmount)
 
-            let errorMessage = 'Check-out failed. Please try again.';
+            onCheckInComplete?.()
+            setOpen(false)
+            toast(
+                "Success!", {
+                description: "Check-in was successful"
+            }
+            )
+        } catch (error: any) {
+            console.error('Check-in failed:', error);
+
+            let errorMessage = 'Check-in failed. Please try again.';
 
             if (error.userMessage) {
                 errorMessage = error.userMessage;
@@ -71,16 +85,16 @@ const CheckOutDialog = ({
             setError(errorMessage);
             onError?.(errorMessage);
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="min-w-4xl">
+            <DialogContent className="min-w-4xl max-w-5xl">
                 <DialogHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-semibold">Check-out</DialogTitle>
+                        <DialogTitle className="text-xl font-semibold">Check-in</DialogTitle>
                     </div>
                 </DialogHeader>
 
@@ -88,7 +102,7 @@ const CheckOutDialog = ({
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
                         <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
-                            <h4 className="text-sm font-medium text-red-800 mb-1">Check-out Error</h4>
+                            <h4 className="text-sm font-medium text-red-800 mb-1">Check-in Error</h4>
                             <p className="text-sm text-red-700">{error}</p>
                         </div>
                     </div>
@@ -138,11 +152,41 @@ const CheckOutDialog = ({
                         </div>
                     </CardContent>
                 </Card>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="deposit" className="text-sm font-semibold">
+                            Deposit
+                        </Label>
+                        <Input type='number' value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+                    </div>
+
+                    <Card className="bg-hms-accent/15">
+                        <CardHeader className="p-0 px-3">
+                            <CardTitle className="text-lg font-semibold">
+                                Deposit Summary
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div>
+                                <Label className="text-gray-600 text-xs">Deposit Amount</Label>
+                                <p className="font-medium text-lg">
+                                    {deposit ? `$${parseFloat(deposit).toFixed(2)}` : "$0.00"}
+                                </p>
+                            </div>
+                            <p className="text-sm text-gray-700">
+                                This amount will be held for the guest's stay.
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
                 <div className="mt-6 pt-4 border-t text-center">
                     <Button
                         onClick={handleCheckIn}
                         className="px-20"
-                        disabled={isLoading}
+                        disabled={isLoading || !deposit}
                     >
                         {isLoading ? (
                             <>
@@ -150,13 +194,13 @@ const CheckOutDialog = ({
                                 Processing...
                             </>
                         ) : (
-                            'Confirm Check-Out'
+                            "Confirm Check-In"
                         )}
                     </Button>
                 </div>
             </DialogContent>
         </Dialog>
-    );
-};
+    )
+}
 
-export default CheckOutDialog;
+export default CheckInDialog

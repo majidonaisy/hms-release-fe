@@ -13,7 +13,7 @@ import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { getGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
-import { addReservation, getNightPrice } from "@/services/Reservation"
+import { addReservation, getNightPrice, getReservations } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
@@ -26,11 +26,10 @@ export default function NewIndividualReservation() {
         { number: 1, title: "Guest", completed: currentStep > 1 },
         { number: 2, title: "Stay info", completed: currentStep > 2 },
         { number: 3, title: "Room Assignment", completed: currentStep > 3 },
-        // { number: 4, title: "Special Requests", completed: currentStep > 4 },
     ]
 
     const handleNextStep = () => {
-        if (currentStep < 4) {
+        if (currentStep < 3) {
             setCurrentStep(currentStep + 1)
         }
     }
@@ -50,11 +49,12 @@ export default function NewIndividualReservation() {
         ratePlanId: '',
         roomIds: [],
     });
-    const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
+    const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
-    const [connectableRooms, setConnectableRooms] = useState<GetRoomsResponse['data']>([]);
+    const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
+    const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
 
     const handleInputChange = (field: keyof AddReservationRequest, value: string | string[]) => {
         setFormData(prev => {
@@ -65,17 +65,68 @@ export default function NewIndividualReservation() {
             return updatedFormData;
         });
     };
+
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
+
+    const getAvailableRoomsForDates = async (checkIn: Date, checkOut: Date) => {
+        try {
+            const reservationsResponse = await getReservations(checkIn, checkOut);
+
+            const reservedRoomIds = new Set<string>();
+
+            if (reservationsResponse.data?.reservations) {
+                reservationsResponse.data.reservations.forEach(reservation => {
+                    reservation.Room.forEach(room => {
+                        const hasOverlap = room.reservations.some(res => {
+                            const resCheckIn = new Date(res.checkIn);
+                            const resCheckOut = new Date(res.checkOut);
+
+                            return (
+                                (checkIn >= resCheckIn && checkIn < resCheckOut) ||
+                                (checkOut > resCheckIn && checkOut <= resCheckOut) ||
+                                (checkIn <= resCheckIn && checkOut >= resCheckOut)
+                            );
+                        });
+
+                        if (hasOverlap) {
+                            reservedRoomIds.add(room.id);
+                        }
+                    });
+                });
+            }
+
+            const availableRooms = rooms.filter(room =>
+                !reservedRoomIds.has(room.id) &&
+                room.status === 'AVAILABLE'
+            );
+
+            setAvailableRooms(availableRooms);
+
+        } catch (error) {
+            console.error('Error fetching available rooms:', error);
+            toast("Error!", {
+                description: "Failed to fetch available rooms"
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (formData.checkIn && formData.checkOut && rooms.length > 0) {
+            getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
+        }
+    }, [formData.checkIn, formData.checkOut, rooms]);
 
     const handleRoomSelection = async (roomId: string) => {
         if (!formData.roomIds?.includes(roomId)) {
             const updatedRoomIds = [...(formData.roomIds || []), roomId];
             handleInputChange('roomIds', updatedRoomIds);
 
+            // If this is the first room selected, get its connectable rooms
             if (formData.roomIds?.length === 0) {
                 try {
                     const roomResponse = await getRoomById(roomId);
-                    const actualRoomData = roomResponse.data.data;
+                    // The service returns { data: apiResponse }, and apiResponse has { status, data }
+                    const actualRoomData = roomResponse.data;
                     const connectedRooms = actualRoomData.connectedRooms || [];
                     console.log('Full room response:', roomResponse);
                     console.log('Actual room data:', actualRoomData);
@@ -90,7 +141,6 @@ export default function NewIndividualReservation() {
             }
         }
     };
-
     const handleRoomRemoval = (roomIdToRemove: string) => {
         const updatedRoomIds = formData.roomIds?.filter(id => id !== roomIdToRemove) || [];
         handleInputChange('roomIds', updatedRoomIds);
@@ -100,16 +150,16 @@ export default function NewIndividualReservation() {
         }
     };
 
-    const getAvailableRooms = () => {
+    const getFilteredAvailableRooms = () => {
         if (!formData.roomIds || formData.roomIds.length === 0) {
-            return rooms.filter(room =>
+            return availableRooms.filter(room =>
                 (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
                 !formData.roomIds?.includes(room.id)
             );
         }
 
         const connectableRoomIds = connectableRooms.map(connectedRoom => connectedRoom.id);
-        return rooms.filter(room =>
+        return availableRooms.filter(room =>
             connectableRoomIds.includes(room.id) &&
             !formData.roomIds?.includes(room.id)
         );
@@ -123,11 +173,29 @@ export default function NewIndividualReservation() {
                 description: "Reservation was created successfully.",
             })
             navigate('/guests-profile');
-        } catch (error) {
-            toast("Error!", {
-                description: "Failed to submit form.",
+        } catch (error: any) {
+            let errorMessage = 'Failed to create reservation. Please try again.';
+
+            if (error.userMessage) {
+                errorMessage = error.userMessage;
+            } else if (error.response && error.response.data) {
+                const responseData = error.response.data;
+                if (responseData.error) {
+                    errorMessage = responseData.error;
+                } else if (responseData.message) {
+                    errorMessage = responseData.message;
+                } else if (typeof responseData === 'string') {
+                    errorMessage = responseData;
+                }
+            } else if (error.request) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast('Error', {
+                description: errorMessage
             })
-            console.error("Failed to submit form:", error);
         } finally {
             setLoading(false);
         }
@@ -161,18 +229,15 @@ export default function NewIndividualReservation() {
             }
         };
 
-        Promise.all([
-            handleGetRooms(),
-            handleGetGuests(),
-            handleGetRatePlans()
-        ])
+        handleGetRooms();
+        handleGetGuests();
+        handleGetRatePlans();
     }, []);
 
-    const availableRooms = getAvailableRooms();
+    const filteredAvailableRooms = getFilteredAvailableRooms();
 
     const getNights = () => {
         if (!formData.checkIn || !formData.checkOut) return 0;
-
         const diffTime = formData.checkOut.getTime() - formData.checkIn.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
@@ -261,7 +326,15 @@ export default function NewIndividualReservation() {
                                     <CalendarComponent
                                         mode="single"
                                         selected={formData.checkIn}
-                                        onSelect={(date) => date && setFormData({ ...formData, checkIn: date })}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkIn: date });
+                                                // Clear room selection when dates change
+                                                setFormData(prev => ({ ...prev, roomIds: [] }));
+                                                setConnectableRooms([]);
+                                            }
+                                        }}
+                                        disabled={(date) => date < new Date()}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -283,7 +356,22 @@ export default function NewIndividualReservation() {
                                     <CalendarComponent
                                         mode="single"
                                         selected={formData.checkOut}
-                                        onSelect={(date) => date && setFormData({ ...formData, checkOut: date })}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkOut: date });
+                                                // Clear room selection when dates change
+                                                setFormData(prev => ({ ...prev, roomIds: [] }));
+                                                setConnectableRooms([]);
+                                            }
+                                        }}
+                                        disabled={(date) => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+
+                                            if (date < today) return true;
+                                            if (formData.checkIn && date <= formData.checkIn) return true;
+                                            return false;
+                                        }}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -329,6 +417,15 @@ export default function NewIndividualReservation() {
             case 3:
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
+                        <div className="mb-4 p-3 bg-white rounded-lg">
+                            <p className="text-sm text-hms-primary font-bold">
+                                Showing available rooms for {format(formData.checkIn, "MMM dd")} - {format(formData.checkOut, "MMM dd, yyyy")}
+                            </p>
+                            <p className="text-xs text-hms-primary mt-1">
+                                {filteredAvailableRooms.length} room(s) available
+                            </p>
+                        </div>
+
                         <div className='space-y-1'>
                             <Label>Room Type</Label>
                             <Select
@@ -339,8 +436,7 @@ export default function NewIndividualReservation() {
                                     <SelectValue placeholder="Select Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {/* Get unique room types from rooms array */}
-                                    {Array.from(new Map(rooms.map(room => [room.roomType?.id, room.roomType])).values())
+                                    {Array.from(new Map(availableRooms.map(room => [room.roomType?.id, room.roomType])).values())
                                         .filter(rt => rt && rt.id)
                                         .map(rt => (
                                             <SelectItem key={rt.id} value={rt.id}>
@@ -366,11 +462,17 @@ export default function NewIndividualReservation() {
                                         } />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {availableRooms.map(room => (
-                                            <SelectItem key={room.id} value={room.id}>
-                                                {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
+                                        {filteredAvailableRooms.length === 0 ? (
+                                            <SelectItem value="no-rooms" disabled>
+                                                No rooms available for selected dates
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            filteredAvailableRooms.map(room => (
+                                                <SelectItem key={room.id} value={room.id}>
+                                                    {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -381,11 +483,18 @@ export default function NewIndividualReservation() {
                                     <Label className="text-sm text-slate-600">Selected Rooms:</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {formData.roomIds.map(roomId => {
-                                            const room = rooms.find(r => r.id === roomId) ||
-                                                connectableRooms.find(r => r.id === roomId);
-                                            return room ? (
+                                            const room = rooms.find(r => r.id === roomId);
+                                            const connectableRoom = connectableRooms.find(r => r.id === roomId);
+                                            const displayRoom = room || connectableRoom;
+
+                                            return displayRoom ? (
                                                 <div key={roomId} className="flex items-center bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm">
-                                                    <span>{room.roomNumber} - {room.roomType?.name || 'Unknown Type'}</span>
+                                                    <span>
+                                                        {displayRoom.roomNumber} - {
+                                                            // Use room type name if available, otherwise show Unknown Type
+                                                            room?.roomType?.name || 'Unknown Type'
+                                                        }
+                                                    </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRoomRemoval(roomId)}
@@ -419,35 +528,6 @@ export default function NewIndividualReservation() {
                     </div>
                 )
 
-            // case 4:
-            //     return (
-            //         <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
-            //             <div className="space-y-4">
-            //                 <div>
-            //                     <Label className="text-base font-medium">Requests</Label>
-            //                     <Textarea
-            //                         placeholder="Describe the room and any key features guests should know about."
-            //                         className="mt-2 min-h-[120px]"
-            //                         value={reservationData.specialRequests}
-            //                         onChange={(e) => setReservationData({ ...reservationData, specialRequests: e.target.value })}
-            //                     />
-            //                 </div>
-            //                 <div className="flex justify-center gap-3 pt-4">
-            //                     <Button
-            //                         variant="outline"
-            //                         onClick={handlePreviousStep}
-            //                         className="bg-amber-200 hover:bg-amber-300 border-amber-300 px-8"
-            //                     >
-            //                         Previous Step
-            //                     </Button>
-            //                     <Button onClick={handleCreateReservation} className="bg-red-800 hover:bg-red-900 px-8">
-            //                         Create reservation
-            //                     </Button>
-            //                 </div>
-            //             </div>
-            //         </div>
-            //     )
-
             default:
                 return null
         }
@@ -460,11 +540,10 @@ export default function NewIndividualReservation() {
                 <h1 className="text-2xl font-semibold">New Reservation</h1>
             </div>
 
-            <div className="grid lg:grid-cols-[2fr_1fr]  gap-7">
+            <div className="grid lg:grid-cols-[2fr_1fr] gap-7">
                 <div className="space-y-2">
                     {steps.map((step, index) => (
                         <div key={step.number}>
-                            {/* Step header */}
                             <div className="flex items-center">
                                 <div
                                     className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium mr-4 ${step.completed
@@ -491,7 +570,6 @@ export default function NewIndividualReservation() {
                                     </div>
                                 )}
                                 <div className="ml-4 flex-1">
-                                    {/* Step content */}
                                     {renderStepContent(step.number)}
                                 </div>
                             </div>
