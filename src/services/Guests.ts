@@ -48,7 +48,7 @@ export const getGroupProfiles = async (params?: GetGuestsParams): Promise<GetGro
   try {
     const response = await apiClient({
       method: "GET",
-      endpoint: ENDPOINTS.Guest.GetGroupProfiles,
+      endpoint: ENDPOINTS.GroupProfile.GetGroupProfiles,
       baseURL,
       params,
     });
@@ -83,7 +83,7 @@ export const getGroupProfileById = async (id: string): Promise<GroupProfileRespo
   try {
     const response = await apiClient({
       method: 'GET',
-      endpoint: `${ENDPOINTS.Guest.GetGroupProfileById}/${id}`,
+      endpoint: `${ENDPOINTS.GroupProfile.GetGroupProfileById}/${id}`,
       baseURL,
     })
     return response as GroupProfileResponse
@@ -130,11 +130,27 @@ export const deleteGuest = async (id: string): Promise<void> => {
   }
 };
 
+export const deleteGroupProfile = async (id: string): Promise<void> => {
+  try {
+    await apiClient({
+      method: "DELETE",
+      endpoint: `${ENDPOINTS.GroupProfile.DeleteGroupProfile}/${id}`,
+      baseURL,
+    });
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to delete group profile";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
 export const addGroupProfile = async (data: AddGroupProfileRequest): Promise<AddGroupProfileResponse> => {
   try {
     const response = await apiClient({
       method: "POST",
-      endpoint: ENDPOINTS.Guest.AddGroupProfile,
+      endpoint: ENDPOINTS.GroupProfile.AddGroupProfile,
       baseURL,
       data,
     });
@@ -152,7 +168,7 @@ export const linkGuestsToGroup = async (guestIds: string[], groupId: string): Pr
   try {
     const response = await apiClient({
       method: "POST",
-      endpoint: `${ENDPOINTS.Guest.LinkGuestsToGroup}/${groupId}`,
+      endpoint: `${ENDPOINTS.GroupProfile.LinkGuestsToGroup}/${groupId}`,
       baseURL,
       data: { guestIds },
     });
