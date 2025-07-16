@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { deleteGuest, getGroupProfiles, getGuests } from "@/services/Guests"
+import { deleteGroupProfile, deleteGuest, getGroupProfiles, getGuests } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
 import DataTable, { type ActionMenuItem, defaultRenderers, type TableColumn } from "@/components/Templates/DataTable"
@@ -204,15 +204,23 @@ const GuestProfile = () => {
     ]
 
     const handleDeleteGuest = async (item: CombinedGuestData) => {
-        if (item.isGroup) {
-            console.log(`Delete group profile: ${item.id}`)
-            return
+        try {
+            setLoading(true);
+            if (item.isGroup) {
+                await deleteGroupProfile(item.id);
+                const groupResponse = await getGroupProfiles();
+                setGroupProfiles(groupResponse.data);
+            } else {
+                await deleteGuest(item.id);
+                const guestResponse = await getGuests();
+                setGuests(guestResponse.data);
+            }
+        } catch (error) {
+            console.error("Error deleting:", error);
+        } finally {
+            setLoading(false);
         }
-
-        await deleteGuest(item.id)
-        const response = await getGuests()
-        setGuests(response.data)
-    }
+    };
 
     const handleRowClick = (item: CombinedGuestData) => {
         if (item.isGroup) {
@@ -254,7 +262,7 @@ const GuestProfile = () => {
                     onDelete: handleDeleteGuest,
                     getDeleteTitle: (item) => item ? (item.isGroup ? "Delete Group Profile" : "Delete Guest") : "Delete Item",
                     getDeleteDescription: (item) =>
-                        item ? `Are you sure you want to delete ${item.isGroup ? 'group' : 'guest'} ${item.name}? This action cannot be undone.` : "Are you sure you want to delete this item?",
+                        item ? `Are you sure you want to delete ${item.isGroup ? 'group profile' : 'guest'} ${item.name}? This action cannot be undone.` : "Are you sure you want to delete this item?",
                     getItemName: (item) => item ? item.name : "Unknown",
                     action: "delete",
                     subject: "Guest"

@@ -208,6 +208,7 @@ export const GetGroupProfilesResponseSchema = z.object({
     createdAt: z.date(),
     updatedAt: z.date(),
     status: z.enum(["ACTIVE", "INACTIVE"]),
+    LinkedGuests: z.array(GuestShape),
   }))
 })
 

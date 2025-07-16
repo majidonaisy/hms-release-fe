@@ -12,10 +12,11 @@ import { getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { getGroupProfiles, getGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
-import { addGroupReservation, getNightPrice } from "@/services/Reservation"
+import { addGroupReservation, getNightPrice, getReservations } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
+import { Checkbox } from "@/components/atoms/Checkbox"
 
 interface GroupReservationRequest {
     groupProfileId: string;
@@ -28,6 +29,11 @@ interface GroupReservationRequest {
 interface GroupProfile {
     id: string;
     name: string;
+    LinkedGuests?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+    }[];
 }
 
 export default function NewGroupReservation() {
@@ -63,11 +69,13 @@ export default function NewGroupReservation() {
     });
 
     const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
-    const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
+    const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [groupProfiles, setGroupProfiles] = useState<GroupProfile[]>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
+    const [selectedGuest, setSelectedGuest] = useState<string>("");
+    const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
 
     const handleInputChange = (field: keyof GroupReservationRequest, value: any) => {
         setFormData(prev => ({
@@ -76,12 +84,56 @@ export default function NewGroupReservation() {
         }));
     };
 
-    const handleGuestRoomAssignment = (guestId: string, roomId: string) => {
+    const getAvailableRoomsForDates = async (checkIn: Date, checkOut: Date) => {
+        try {
+            const reservationsResponse = await getReservations(checkIn, checkOut);
+            const reservedRoomIds = new Set<string>();
+
+            if (reservationsResponse.data?.reservations) {
+                reservationsResponse.data.reservations.forEach(reservation => {
+                    reservation.Room.forEach(room => {
+                        const hasOverlap = room.reservations.some(res => {
+                            const resCheckIn = new Date(res.checkIn);
+                            const resCheckOut = new Date(res.checkOut);
+                            return (
+                                (checkIn >= resCheckIn && checkIn < resCheckOut) ||
+                                (checkOut > resCheckIn && checkOut <= resCheckOut) ||
+                                (checkIn <= resCheckIn && checkOut >= resCheckOut)
+                            );
+                        });
+                        if (hasOverlap) {
+                            reservedRoomIds.add(room.id);
+                        }
+                    });
+                });
+            }
+
+            const availableRooms = rooms.filter(room =>
+                !reservedRoomIds.has(room.id) &&
+                room.status === 'AVAILABLE'
+            );
+
+            setAvailableRooms(availableRooms);
+        } catch (error) {
+            console.error('Error fetching available rooms:', error);
+            toast("Error!", {
+                description: "Failed to fetch available rooms"
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (formData.checkIn && formData.checkOut && rooms.length > 0) {
+            getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
+        }
+    }, [formData.checkIn, formData.checkOut, rooms]);
+
+    const handleGuestRoomAssignment = (guestId: string, roomIds: string[]) => {
         setFormData(prev => ({
             ...prev,
             guestsAndRooms: {
                 ...prev.guestsAndRooms,
-                [guestId]: [roomId]
+                [guestId]: roomIds
             }
         }));
     };
@@ -97,21 +149,17 @@ export default function NewGroupReservation() {
         });
     };
 
-    const getAvailableRooms = () => {
+    const getFilteredAvailableRooms = () => {
         const assignedRoomIds = Object.values(formData.guestsAndRooms).flat();
-        return rooms.filter(room =>
+        return availableRooms.filter(room =>
             (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
-            !assignedRoomIds.includes(room.id)
+            !assignedRoomIds.includes(room.id) &&
+            !selectedRooms.includes(room.id)
         );
     };
 
     const getAssignedGuests = () => {
         return Object.keys(formData.guestsAndRooms);
-    };
-
-    const getUnassignedGuests = () => {
-        const assignedGuestIds = getAssignedGuests();
-        return guests.filter(guest => !assignedGuestIds.includes(guest.id));
     };
 
     const handleSubmit = async () => {
@@ -133,19 +181,11 @@ export default function NewGroupReservation() {
     };
 
     useEffect(() => {
+        setLoading(true)
         const handleGetRooms = async () => {
             try {
                 const rooms = await getRooms();
                 setRooms(rooms.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        const handleGetGuests = async () => {
-            try {
-                const guests = await getGuests();
-                setGuests(guests.data);
             } catch (error) {
                 console.error(error);
             }
@@ -171,18 +211,16 @@ export default function NewGroupReservation() {
 
         Promise.all([
             handleGetRooms(),
-            handleGetGuests(),
             handleGetRatePlans(),
             handleGetGroupProfiles()
         ])
+            .finally(() => setLoading(false));
     }, []);
 
-    const availableRooms = getAvailableRooms();
-    const unassignedGuests = getUnassignedGuests();
+    const filteredAvailableRooms = getFilteredAvailableRooms();
 
     const getNights = () => {
         if (!formData.checkIn || !formData.checkOut) return 0;
-
         const diffTime = formData.checkOut.getTime() - formData.checkIn.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
@@ -234,11 +272,17 @@ export default function NewGroupReservation() {
                                         <SelectValue placeholder="Select Group Profile" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {groupProfiles.map((group) => (
-                                            <SelectItem key={group.id} value={group.id}>
-                                                {group.name}
+                                        {loading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading...
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            groupProfiles.map((groupProfile) => (
+                                                <SelectItem key={groupProfile.id} value={groupProfile.id}>
+                                                    {groupProfile.name}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <div className="flex justify-center pt-4">
@@ -254,7 +298,6 @@ export default function NewGroupReservation() {
                         </div>
                     </div>
                 )
-
             case 2:
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
@@ -275,7 +318,13 @@ export default function NewGroupReservation() {
                                     <CalendarComponent
                                         mode="single"
                                         selected={formData.checkIn}
-                                        onSelect={(date) => date && setFormData({ ...formData, checkIn: date })}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkIn: date });
+                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                            }
+                                        }}
+                                        disabled={(date) => date < new Date()}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -297,7 +346,19 @@ export default function NewGroupReservation() {
                                     <CalendarComponent
                                         mode="single"
                                         selected={formData.checkOut}
-                                        onSelect={(date) => date && setFormData({ ...formData, checkOut: date })}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkOut: date });
+                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                            }
+                                        }}
+                                        disabled={(date) => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+                                            if (date < today) return true;
+                                            if (formData.checkIn && date <= formData.checkIn) return true;
+                                            return false;
+                                        }}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -340,23 +401,27 @@ export default function NewGroupReservation() {
                     </div>
                 )
 
-            case 3:
+            case 3: {
+                const linkedGuests = groupProfiles.find(gp => gp.id === formData.groupProfileId)?.LinkedGuests ?? [];
+
                 return (
-                    <div className="bg-hms-accent/15 p-5 rounded-lg space-y-4">
-                        <div className='space-y-1'>
-                            <Label>Room Type Filter</Label>
+                    <div className="space-y-6 ml-5 p-5 bg-hms-accent/15 rounded-lg">
+                        <div className="">
+                            <Label className="mb-2 block">Select Room Type</Label>
                             <Select
                                 value={selectedRoomType}
-                                onValueChange={(value) => setSelectedRoomType(value)}
+                                onValueChange={(value) => {
+                                    setSelectedRoomType(value);
+                                    setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                }}
                             >
-                                <SelectTrigger className='w-full border border-slate-300 bg-white'>
-                                    <SelectValue placeholder="All Room Types" />
+                                <SelectTrigger className=" bg-white w-full">
+                                    <SelectValue placeholder="Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Room Types</SelectItem>
-                                    {Array.from(new Map(rooms.map(room => [room.roomType?.id, room.roomType])).values())
-                                        .filter(rt => rt && rt.id)
-                                        .map(rt => (
+                                    {Array.from(new Map(availableRooms.map((room) => [room.roomType?.id, room.roomType])).values())
+                                        .filter((rt) => rt && rt.id)
+                                        .map((rt) => (
                                             <SelectItem key={rt.id} value={rt.id}>
                                                 {rt.name}
                                             </SelectItem>
@@ -365,109 +430,137 @@ export default function NewGroupReservation() {
                             </Select>
                         </div>
 
-                        {/* Guest-Room Assignment Section */}
-                        <div className="space-y-3">
-                            <Label>Guest Room Assignments</Label>
+                        {getAssignedGuests().length > 0 && (
+                            <div className="mt-6 space-y-4 border rounded-lg p-4 bg-white">
+                                <h3 className="font-semibold text-lg text-hms-primary">Assigned Guests Summary</h3>
+                                <ul className="space-y-2 text-sm">
+                                    {getAssignedGuests().map((guestId) => {
+                                        const guest = linkedGuests.find((g) => g.id === guestId);
+                                        const roomIds = formData.guestsAndRooms[guestId];
+                                        const roomNumbers = availableRooms
+                                            .filter((room) => roomIds.includes(room.id))
+                                            .map((room) => room.roomNumber)
+                                            .join(", ");
 
-                            {/* Show assigned guests */}
-                            {Object.entries(formData.guestsAndRooms).map(([guestId, roomIds]) => {
-                                const guest = guests.find(g => g.id === guestId);
-                                const room = rooms.find(r => r.id === roomIds[0]);
+                                        return (
+                                            <li key={guestId}>
+                                                <span className="font-medium">
+                                                    {guest?.firstName} {guest?.lastName}
+                                                </span>{" "}
+                                                → Rooms: <span className="text-muted-foreground">{roomNumbers}</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        )}
 
-                                return (
-                                    <div key={guestId} className="flex items-center justify-between bg-slate-100 p-3 rounded">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">{guest?.firstName} {guest?.lastName}</span>
-                                            <span className="text-slate-600">→</span>
-                                            <span className="text-sm bg-white px-2 py-1 rounded">
-                                                {room?.roomNumber} - {room?.roomType?.name}
-                                            </span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveGuestRoomAssignment(guestId)}
-                                            className="text-slate-500 hover:text-red-500"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                );
-                            })}
-
-                            {/* Add new assignment */}
-                            {unassignedGuests.length > 0 && availableRooms.length > 0 && (
-                                <div className="border-2 border-dashed border-slate-300 p-4 rounded-lg">
-                                    <Label className="text-sm text-slate-600 mb-2 block">Assign Guest to Room</Label>
-                                    <div className="flex gap-2">
-                                        <Select
-                                            value=""
-                                            onValueChange={(guestId) => {
-                                                // Store selected guest for room assignment
-                                                const selectedGuest = guestId;
-                                                // You might want to handle this differently based on your UX
-                                                console.log('Selected guest:', selectedGuest);
-                                            }}
-                                        >
-                                            <SelectTrigger className="flex-1 border border-slate-300 bg-white">
-                                                <SelectValue placeholder="Select Guest" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {unassignedGuests.map(guest => (
-                                                    <SelectItem key={guest.id} value={guest.id}>
+                        {selectedRoomType && (
+                            <div className="rounded-lg border">
+                                <div className="grid grid-cols-9 gap-4 p-4 border-b font-medium text-sm">
+                                    <div className="col-span-1"></div>
+                                    <div className="col-span-3">Guest Name</div>
+                                    <div className="col-span-3">Room Number(s)</div>
+                                </div>
+                                <div className="divide-y">
+                                    {linkedGuests.map((guest, index) => (
+                                        <div key={guest.id} className="p-4 space-y-4">
+                                            <div className="grid grid-cols-9 gap-4 items-center bg-hms-accent/35 p-7 rounded-lg">
+                                                <div className="col-span-1 flex items-center justify-center">
+                                                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
+                                                        {index + 1}
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-3">
+                                                    <div className="w-full p-2 border rounded bg-white">
                                                         {guest.firstName} {guest.lastName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Select
-                                            value=""
-                                            onValueChange={(roomId) => {
-                                                // For now, assign to first unassigned guest
-                                                if (unassignedGuests.length > 0) {
-                                                    handleGuestRoomAssignment(unassignedGuests[0].id, roomId);
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="flex-1 border border-slate-300 bg-white">
-                                                <SelectValue placeholder="Select Room" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableRooms.map(room => (
-                                                    <SelectItem key={room.id} value={room.id}>
-                                                        {room.roomNumber} - {room.roomType?.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-3 space-y-1 max-h-[150px] overflow-y-auto border rounded bg-white p-2">
+                                                    {filteredAvailableRooms.length === 0 ? (
+                                                        <div className="text-center text-muted-foreground">
+                                                            <p className="">No rooms available</p>
+                                                        </div>
+                                                    ) : (
+                                                        filteredAvailableRooms.map((room) => {
+                                                            const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
+                                                            return (
+                                                                <div key={room.id} className="flex items-center space-x-2">
+                                                                    <Checkbox
+                                                                        checked={isChecked}
+                                                                        onCheckedChange={(checked) => {
+                                                                            const currentRooms = formData.guestsAndRooms[guest.id] || [];
+                                                                            if (checked) {
+                                                                                handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
+                                                                            } else {
+                                                                                handleGuestRoomAssignment(
+                                                                                    guest.id,
+                                                                                    currentRooms.filter((r) => r !== room.id)
+                                                                                );
+                                                                            }
+                                                                        }} />
+                                                                    <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
+                                                                        {room.roomNumber}
+                                                                    </Label>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    )}
+                                                </div>
+                                                <div className="col-span-2 flex items-center justify-end">
+                                                    {formData.guestsAndRooms[guest.id] && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveGuestRoomAssignment(guest.id)}
+                                                            className="text-gray-400 hover:text-red-500"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {unassignedGuests.length === 0 && Object.keys(formData.guestsAndRooms).length === 0 && (
-                                <div className="text-center py-8 text-slate-500">
-                                    No guests available for assignment
+                        {selectedRoomType && availableRooms.length === 0 && (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <div className="text-muted-foreground">
+                                    <p className="text-lg font-medium">No rooms available</p>
+                                    <p className="text-sm mt-2">
+                                        There are no available rooms for the selected dates ({format(formData.checkIn, "PPP")} - {format(formData.checkOut, "PPP")})
+                                    </p>
+                                    <p className="text-xs mt-1">
+                                        Please try different dates or check room availability
+                                    </p>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
-                        <div className="flex justify-center gap-3 pt-4">
+                        {/* Footer Buttons */}
+                        <div className="flex justify-center gap-3">
                             <Button
                                 variant="background"
                                 onClick={handlePreviousStep}
-                                className="h-7 px-8"
+                                className="px-8 h-7"
                             >
                                 Previous Step
                             </Button>
                             <Button
                                 onClick={handleSubmit}
-                                className="h-7 px-8"
-                                disabled={Object.keys(formData.guestsAndRooms).length === 0 || loading}
+                                className="px-8 h-7"
+                                disabled={Object.keys(formData.guestsAndRooms).length === 0 || loading || !selectedRoomType}
                             >
                                 {loading ? 'Creating...' : 'Create Group Reservation'}
                             </Button>
                         </div>
                     </div>
-                )
+                );
+            }
+
 
             default:
                 return null
@@ -504,7 +597,6 @@ export default function NewGroupReservation() {
                                     {step.title}
                                 </span>
                             </div>
-
                             <div className="flex">
                                 {index < steps.length - 1 && (
                                     <div className="w-8 ml-0.5 flex justify-center">
@@ -519,6 +611,7 @@ export default function NewGroupReservation() {
                         </div>
                     ))}
                 </div>
+
                 <Card className="bg-hms-accent/15">
                     <CardHeader>
                         <CardTitle className="text-xl font-bold">
@@ -541,8 +634,8 @@ export default function NewGroupReservation() {
                             <div className="flex justify-between">
                                 <span className="text-hms-primary font-bold text-lg">Total</span>
                                 <span>
-                                    {nightPrice !== null && getTotalGuests() > 0 
-                                        ? `$${nightPrice * getNights() * getTotalGuests()}` 
+                                    {nightPrice !== null && getTotalGuests() > 0
+                                        ? `$${nightPrice * getNights() * getTotalGuests()}`
                                         : "-"}
                                 </span>
                             </div>
@@ -550,6 +643,7 @@ export default function NewGroupReservation() {
                     </CardHeader>
                 </Card>
             </div>
+
             <NewDialogsWithTypes
                 open={openGuestDialog}
                 setOpen={setOpenGuestDialog}
