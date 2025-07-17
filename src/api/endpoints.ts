@@ -50,6 +50,7 @@ export const ENDPOINTS = {
     CheckIn: "reservation/check-in",
     CheckOut: "reservation/check-out",
     Get: "reservation/get-reservation",
+    GetId: "reservation/get",
     AddGroupReservation: "reservation/create",
     GetNightPrice: "reservation/get-night-price"
   },
@@ -95,7 +96,7 @@ export const ENDPOINTS = {
   },
   Folio: {
     AddCharge: "folio-item/add-charge",
-    UnsettledCharges: "folio-item//unsettled-charges",
-
+    UnsettledCharges: "folio-item/unsettled-charges",
+    AddPayment:"folio-item/settle",
   },
 };
