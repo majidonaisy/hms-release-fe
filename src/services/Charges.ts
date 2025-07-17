@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddChargeRequest, AddChargeResponse, GetChargesResponse } from "@/validation/schemas/charges";
+import { AddChargeRequest, AddChargeResponse, GetChargesResponse, AddPaymentRequest } from "@/validation/schemas/charges";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -32,6 +32,24 @@ export const addCharges = async (data: AddChargeRequest): Promise<AddChargeRespo
     return response as AddChargeResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to add charges";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const addPayment = async (data: AddPaymentRequest): Promise<AddChargeResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Folio.AddPayment,
+      data,
+      baseURL,
+    });
+    return response as AddChargeResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to add payment";
     throw {
       userMessage: errorMessage,
       originalError: error,

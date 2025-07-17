@@ -75,9 +75,15 @@ export const GetAvailableChargeItemsResponseSchema = z.object({
 export const PaymentConfirmationRequestSchema = z.object({
   reservationId: z.string().min(1, "Reservation ID is required"),
   chargeIds: z.array(z.string()).min(1, "At least one charge is required"),
-  itemType: z.string().min(1, "Payment method is required"),
-  quantity: z.number().min(0.01, "Total quantity must be greater than 0"),
-  unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  description: z.string().optional(),
+});
+
+// Add Payment Request (Updated structure)
+export const AddPaymentRequestSchema = z.object({
+  folioItemIds: z.array(z.string()).min(1, "At least one folio item is required"),
+  currencyId: z.string().min(1, "Currency is required"),
+  method: z.string().min(1, "Payment method is required"),
   description: z.string().optional(),
 });
 
@@ -88,3 +94,4 @@ export type AddChargeResponse = z.infer<typeof AddChargeResponseSchema>;
 export type GetChargesResponse = z.infer<typeof GetChargesResponseSchema>;
 export type GetAvailableChargeItemsResponse = z.infer<typeof GetAvailableChargeItemsResponseSchema>;
 export type PaymentConfirmationRequest = z.infer<typeof PaymentConfirmationRequestSchema>;
+export type AddPaymentRequest = z.infer<typeof AddPaymentRequestSchema>;

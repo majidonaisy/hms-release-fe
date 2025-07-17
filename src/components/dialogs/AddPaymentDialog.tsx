@@ -10,10 +10,11 @@ import { Separator } from "@/components/atoms/Separator";
 import { ScrollArea } from "@/components/atoms/ScrollArea";
 import { Search, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
-import { addCharges, getUnsetledCharges } from "@/services/Charges";
-import { AddChargeRequest } from "@/validation/schemas/charges";
+import { getUnsetledCharges, addPayment } from "@/services/Charges";
+import { getAllCurrencies } from "@/services/Currency";
 import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
+import { Currency } from '@/validation/schemas/Currency';
 import { format } from 'date-fns';
 
 interface PaymentChargeItem {
@@ -35,31 +36,36 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
     const [searchText, setSearchText] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [paymentMethod, setPaymentMethod] = useState('');
+    const [selectedCurrency, setSelectedCurrency] = useState('');
     const [notes, setNotes] = useState('');
 
     // Data states
     const [chargeItems, setChargeItems] = useState<PaymentChargeItem[]>([]);
     const [selectedItems, setSelectedItems] = useState<PaymentChargeItem[]>([]);
     const [reservationDetails, setReservationDetails] = useState<SingleReservation | null>(null);
+    const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [loadingCharges, setLoadingCharges] = useState(true);
     const [loadingReservation, setLoadingReservation] = useState(true);
+    const [loadingCurrencies, setLoadingCurrencies] = useState(true);
 
     const paymentMethods = [
         { value: 'cash', label: 'Cash' },
         { value: 'credit_card', label: 'Credit Card' },
         { value: 'debit_card', label: 'Debit Card' },
         { value: 'bank_transfer', label: 'Bank Transfer' },
-        { value: 'room_charge', label: 'Room Charge' },
+        { value: 'check', label: 'Check' },
     ];
+
 
     // Calculate total amount
     const totalAmount = selectedItems.reduce((sum, item) => sum + parseFloat(item.amount), 0);
 
     // Fetch charges data
     const fetchCharges = useCallback(async () => {
-        if (!reservationId) return [];
+        if (!reservationId) return;
 
         try {
+            setLoadingCharges(true);
             const response = await getUnsetledCharges(reservationId);
             // Handle the actual response structure from your API
             const folioItems = response.data?.folioItems || [];
@@ -72,54 +78,83 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                 status: item.status,
                 selected: false,
             }));
-            return mappedChargeItems;
+            setChargeItems(mappedChargeItems);
         } catch (error: any) {
             console.error('Failed to fetch charges:', error);
             toast.error(error.userMessage || 'Failed to load charges');
-            return [];
+            setChargeItems([]);
+        } finally {
+            setLoadingCharges(false);
         }
     }, [reservationId]);
 
-    // Fetch data using Promise.all
+    // Fetch reservation data
+    const fetchReservation = useCallback(async () => {
+        if (!reservationId) return;
+
+        try {
+            setLoadingReservation(true);
+            const response = await getReservationById(reservationId);
+            // Handle both direct data response and wrapped response
+            const reservationData = 'data' in response && response.data ? response.data : response;
+            setReservationDetails(reservationData as SingleReservation);
+        } catch (error: any) {
+            console.error('Failed to fetch reservation details:', error);
+            toast.error(error.userMessage || 'Failed to fetch reservation details');
+            setReservationDetails(null);
+        } finally {
+            setLoadingReservation(false);
+        }
+    }, [reservationId]);
+
+    // Fetch currencies data
+    const fetchCurrencies = useCallback(async () => {
+        try {
+            setLoadingCurrencies(true);
+            const response = await getAllCurrencies();
+            const currenciesData = response.data || [];
+            setCurrencies(currenciesData);
+        } catch (error: any) {
+            console.error('Failed to fetch currencies:', error);
+            toast.error(error.userMessage || 'Failed to fetch currencies');
+            setCurrencies([]);
+        } finally {
+            setLoadingCurrencies(false);
+        }
+    }, []);
+
+    // Fetch all data using Promise.all
     useEffect(() => {
-        const fetchData = async () => {
-            if (!reservationId) return;
+        const fetchAllData = async () => {
+            if (!reservationId || !open) return;
 
             try {
-                setLoadingCharges(true);
-                setLoadingReservation(true);
-
-                const [chargesData, reservationData] = await Promise.all([
+                // Execute all fetch functions in parallel
+                await Promise.all([
                     fetchCharges(),
-                    (async () => {
-                        try {
-                            const response = await getReservationById(reservationId);
-                            // Handle both direct data response and wrapped response
-                            return 'data' in response && response.data ? response.data : response;
-                        } catch (error: any) {
-                            console.error('Failed to fetch reservation details:', error);
-                            toast.error(error.userMessage || 'Failed to fetch reservation details');
-                            return null;
-                        }
-                    })()
+                    fetchReservation(),
+                    fetchCurrencies()
                 ]);
-
-                setChargeItems(chargesData);
-                setReservationDetails(reservationData as SingleReservation);
-
             } catch (error: any) {
                 console.error('Failed to fetch data:', error);
-                toast.error(error.userMessage || 'Failed to load data');
-                setChargeItems([]);
-                setReservationDetails(null);
-            } finally {
-                setLoadingCharges(false);
-                setLoadingReservation(false);
+                toast.error('Failed to load data');
             }
         };
 
-        fetchData();
-    }, [reservationId, fetchCharges]);
+        fetchAllData();
+    }, [reservationId, open, fetchCharges, fetchReservation, fetchCurrencies]);
+
+    // Reset form state when dialog opens
+    useEffect(() => {
+        if (open) {
+            setSearchText('');
+            setSortBy('name');
+            setPaymentMethod('');
+            setSelectedCurrency('');
+            setNotes('');
+            setSelectedItems([]);
+        }
+    }, [open]);
 
 
 
@@ -139,6 +174,11 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         });
 
     const handleItemToggle = (item: PaymentChargeItem) => {
+        // Prevent toggling paid items
+        if (item.status === 'PAID') {
+            return;
+        }
+
         const isSelected = selectedItems.find(selected => selected.id === item.id);
 
         if (isSelected) {
@@ -149,25 +189,28 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
     };
 
     const handleConfirmPayment = async () => {
-        if (!reservationId || selectedItems.length === 0 || !paymentMethod) {
-            toast.error('Please select charges and payment method');
+        // Filter out any paid items from selected items (extra safety)
+        const unpaidSelectedItems = selectedItems.filter(item => item.status !== 'PAID');
+
+        if (!reservationId || unpaidSelectedItems.length === 0 || !paymentMethod || !selectedCurrency) {
+            toast.error('Please select unpaid charges, payment method and currency');
             return;
         }
 
         setIsLoading(true);
         try {
-            // For now, we'll use the existing addCharges function
-            // In the future, this should be replaced with a proper payment confirmation endpoint
-            for (const item of selectedItems) {
-                const chargeData: AddChargeRequest = {
-                    reservationId,
-                    quantity: item.quantity,
-                    unitPrice: parseFloat(item.unitPrice),
-                    itemType: item.itemType,
-                    description: notes || undefined,
-                };
-                await addCharges(chargeData);
-            }
+            // Extract folio item IDs from selected items
+            const folioItemIds = unpaidSelectedItems.map(item => item.id);
+
+            // Create payment request with new structure
+            const paymentData = {
+                folioItemIds,
+                currencyId: selectedCurrency,
+                method: paymentMethod,
+                description: notes || undefined,
+            };
+
+            await addPayment(paymentData);
 
             toast.success('Payment confirmed successfully');
             handleClose();
@@ -184,7 +227,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         // Just close the modal, don't navigate since we're in a modal context
     };
 
-    if (loadingCharges || loadingReservation) {
+    if (loadingCharges || loadingReservation || loadingCurrencies) {
         return (
             <Dialog open={open} onOpenChange={handleClose}>
                 <DialogContent className="max-w-6xl px-6">
@@ -279,65 +322,84 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
 
                             {/* Search and Sort */}
                             <div className="border p-2">
-                            <div className="flex gap-2 mb-4">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                    <Input
-                                        placeholder="Search by charge type"
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
-                                        className="pl-9"
-                                    />
+                                <div className="flex gap-2 mb-4">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                        <Input
+                                            placeholder="Search by charge type"
+                                            value={searchText}
+                                            onChange={(e) => setSearchText(e.target.value)}
+                                            className="pl-9"
+                                        />
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex items-center gap-2"
+                                        onClick={() => setSortBy(sortBy === 'name' ? 'amount' : 'name')}
+                                    >
+                                        <ArrowUpDown className="h-4 w-4" />
+                                        Sort by {sortBy === 'name' ? 'Amount' : 'Type'}
+                                    </Button>
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex items-center gap-2"
-                                    onClick={() => setSortBy(sortBy === 'name' ? 'amount' : 'name')}
-                                >
-                                    <ArrowUpDown className="h-4 w-4" />
-                                    Sort by {sortBy === 'name' ? 'Amount' : 'Type'}
-                                </Button>
-                            </div>
 
-                            {/* Charge Items List */}
-                            <ScrollArea className="h-36 ">
-                                <div className="space-y-2">
-                                    {filteredAndSortedItems.map((item) => {
-                                        const isSelected = selectedItems.find(selected => selected.id === item.id);
-                                        const itemAmount = parseFloat(item.amount);
-                                        return (
-                                            <div
-                                                key={item.id}
-                                                className="flex items-center justify-between rounded-lg hover:bg-gray-50 cursor-pointer"
-                                                onClick={() => handleItemToggle(item)}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Checkbox
-                                                        checked={!!isSelected}
-                                                        className='data-[state=checked]:bg-hms-primary'
-                                                        onChange={() => handleItemToggle(item)}
-                                                    />
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium text-sm">{item.itemType}</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}
-                                                        </span>
+                                {/* Charge Items List */}
+                                <ScrollArea className="h-36 ">
+                                    <div className="space-y-2">
+                                        {filteredAndSortedItems.map((item) => {
+                                            const isSelected = selectedItems.find(selected => selected.id === item.id);
+                                            const itemAmount = parseFloat(item.amount);
+                                            const isPaid = item.status === 'PAID';
+
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className={`flex items-center justify-between rounded-lg cursor-pointer transition-colors ${isPaid
+                                                        ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                                                        : 'hover:bg-gray-50'
+                                                        }`}
+                                                    onClick={() => !isPaid && handleItemToggle(item)}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Checkbox
+                                                            checked={!!isSelected}
+                                                            disabled={isPaid}
+                                                            className={`data-[state=checked]:bg-hms-primary ${isPaid ? 'opacity-50 cursor-not-allowed' : ''
+                                                                }`}
+                                                            onChange={() => !isPaid && handleItemToggle(item)}
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`font-medium text-sm ${isPaid ? 'text-gray-500' : ''
+                                                                    }`}>
+                                                                    {item.itemType}
+                                                                </span>
+                                                                {isPaid && (
+                                                                    <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                                                                        PAID
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
+                                                                }`}>
+                                                                Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}
+                                                            </span>
+                                                        </div>
                                                     </div>
+                                                    <span className={`font-semibold ${isPaid ? 'text-gray-400' : 'text-hms-accent'
+                                                        }`}>
+                                                        ${itemAmount.toFixed(2)} USD
+                                                    </span>
                                                 </div>
-                                                <span className="font-semibold text-hms-accent">
-                                                    ${itemAmount.toFixed(2)} USD
-                                                </span>
+                                            );
+                                        })}
+                                        {filteredAndSortedItems.length === 0 && (
+                                            <div className="text-center text-gray-500 py-8">
+                                                No charges found
                                             </div>
-                                        );
-                                    })}
-                                    {filteredAndSortedItems.length === 0 && (
-                                        <div className="text-center text-gray-500 py-8">
-                                            No charges found
-                                        </div>
-                                    )}
-                                </div>
-                            </ScrollArea>
+                                        )}
+                                    </div>
+                                </ScrollArea>
                             </div>
                             {/* Total Amount */}
                             <Separator className="my-4" />
@@ -349,10 +411,31 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
 
                         {/* Right Column - Payment Method and Notes */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-4">Payment method</h3>
+                            <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
 
                             <div className="space-y-4">
+                                {/* Currency Selection */}
                                 <div>
+                                    <Label htmlFor="currency">Currency</Label>
+                                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {currencies.map((currency) => (
+                                                <SelectItem key={currency.id} value={currency.id}>
+                                                    {currency.code} - {currency.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+
+
+                                {/* Payment Method Selection */}
+                                <div>
+                                    <Label htmlFor="paymentMethod">Payment Method</Label>
                                     <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select payment method" />
@@ -367,14 +450,15 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                                     </Select>
                                 </div>
 
+                                {/* Notes */}
                                 <div>
                                     <Label htmlFor="notes">Notes</Label>
                                     <Textarea
                                         id="notes"
-                                        placeholder="Describe the room and any key features guests should know about."
+                                        placeholder="Add any additional notes about this payment..."
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
-                                        className="min-h-60"
+                                        className="min-h-32"
                                     />
                                 </div>
                             </div>
@@ -396,7 +480,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">
                         <Button
                             onClick={handleConfirmPayment}
-                            disabled={isLoading || selectedItems.length === 0 || !paymentMethod}
+                            disabled={isLoading || selectedItems.length === 0 || !paymentMethod || !selectedCurrency}
                             className="w-full max-w-md h-12 text-lg"
                         >
                             {isLoading ? 'Processing...' : `Confirm Payment - $${totalAmount.toFixed(2)} USD`}

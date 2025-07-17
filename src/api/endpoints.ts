@@ -97,6 +97,6 @@ export const ENDPOINTS = {
   Folio: {
     AddCharge: "folio-item/add-charge",
     UnsettledCharges: "folio-item/unsettled-charges",
-
+    AddPayment:"folio-item/settle",
   },
 };
