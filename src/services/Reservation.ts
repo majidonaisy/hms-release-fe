@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
+import { GetSingleReservationResponse } from "@/validation/schemas/SingleReservation";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
@@ -14,11 +15,7 @@ export const addReservation = async (data: AddReservationRequest): Promise<Reser
     return response as ReservationResponse;
   } catch (error: any) {
     const data = error.response?.data;
-    const errorMessage =
-      data?.error ||
-      data?.message ||
-      (typeof data === 'string' ? data : null) ||
-      "Failed to add reservation";
+    const errorMessage = data?.error || data?.message || (typeof data === "string" ? data : null) || "Failed to add reservation";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -82,41 +79,15 @@ export const getReservations = async (startDate?: Date, endDate?: Date, paginati
 export const checkIn = async (reservationId: string, deposit: number): Promise<any> => {
   try {
     const response = await apiClient({
-      method: 'POST',
+      method: "POST",
       endpoint: `${ENDPOINTS.Reservations.CheckIn}/${reservationId}`,
       baseURL,
-      data: { deposit }
-    });
-    return response
-  } catch (error: any) {
-    const data = error.response?.data;
-    const errorMessage =
-      data?.error ||
-      data?.message ||
-      (typeof data === 'string' ? data : null) ||
-      "Failed to check out";
-    throw {
-      userMessage: errorMessage,
-      originalError: error,
-    };
-  }
-}
-
-export const checkOut = async (reservationId: string): Promise<any> => {
-  try {
-    const response = await apiClient({
-      method: 'POST',
-      endpoint: `${ENDPOINTS.Reservations.CheckOut}/${reservationId}`,
-      baseURL
+      data: { deposit },
     });
     return response;
   } catch (error: any) {
     const data = error.response?.data;
-    const errorMessage =
-      data?.error ||
-      data?.message ||
-      (typeof data === 'string' ? data : null) ||
-      "Failed to check out";
+    const errorMessage = data?.error || data?.message || (typeof data === "string" ? data : null) || "Failed to check out";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -124,6 +95,23 @@ export const checkOut = async (reservationId: string): Promise<any> => {
   }
 };
 
+export const checkOut = async (reservationId: string): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: `${ENDPOINTS.Reservations.CheckOut}/${reservationId}`,
+      baseURL,
+    });
+    return response;
+  } catch (error: any) {
+    const data = error.response?.data;
+    const errorMessage = data?.error || data?.message || (typeof data === "string" ? data : null) || "Failed to check out";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
 
 export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Promise<GetNightPriceResponse> => {
   try {
@@ -133,9 +121,9 @@ export const getNightPrice = async (ratePlanId: string, roomTypeId: string): Pro
       baseURL,
       params: {
         ratePlanId: ratePlanId,
-        roomTypeId: roomTypeId
-      }
-    })
+        roomTypeId: roomTypeId,
+      },
+    });
     return response as GetNightPriceResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to check out";
@@ -152,11 +140,28 @@ export const updateReservation = async (id: string, data: UpdateReservationReque
       method: "PUT",
       endpoint: `${ENDPOINTS.Reservations.Update}/${id}`,
       baseURL,
-      data
-    })
+      data,
+    });
     return response as ReservationResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to update reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const getReservationById = async (reservationId: string): Promise<GetSingleReservationResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Reservations.GetId}/${reservationId}`,
+      baseURL,
+    });
+    return response as GetSingleReservationResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservation";
     throw {
       userMessage: errorMessage,
       originalError: error,

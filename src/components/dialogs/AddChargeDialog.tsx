@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
@@ -8,42 +8,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { addCharges } from "@/services/Charges";
 import { AddChargeRequest } from "@/validation/schemas/charges";
-import { Currency } from '@/validation/schemas/Currency';
-import { getAllCurrencies } from '@/services/Currency';
-import { Loader2 } from 'lucide-react';
+import { getReservationById } from '@/services/Reservation';
+import { SingleReservation } from '@/validation';
+import { format } from 'date-fns';
 
-interface ReservationSummary {
-    guestName: string;
-    reservationId: string;
-    roomType: string;
-    roomNumber: string;
-    guestCount: {
-        adults: number;
-        children: number;
-    };
-    stayDates: {
-        checkIn: string;
-        checkOut: string;
-    };
-    bookingSource: string;
-}
 
 interface AddChargeDialogProps {
     open: boolean;
     setOpen: (open: boolean) => void;
-    reservationId?: string;
-    reservationData?: ReservationSummary;
+    reservationId: string;
 }
 
-const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddChargeDialogProps) => {
+const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [itemType, setItemType] = useState('');
     const [amount, setAmount] = useState('');
     const [unitPrice, setUnitPrice] = useState('');
     const [description, setDescription] = useState('');
-    const [currencies, setCurrencies] = useState<Currency[]>([]);
-    const [loadingCurrencies, setLoadingCurrencies] = useState(false);
-    const [selectedCurrency, setSelectedCurrency] = useState('USD'); // Default to USD
+    const [reservationDetails, setReservationDetails] = useState<SingleReservation | null>(null);
+    const [isLoadingReservation, setIsLoadingReservation] = useState(false);
 
     const itemTypes = [
         { value: 'ROOM_CHARGE', label: 'Room Charge' },
@@ -67,9 +50,14 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
         { value: 'VOID', label: 'Void' }
     ];
 
-    const handleConfirmPayment = async () => {
+    const handleConfirmCharge = async () => {
         if (!reservationId) {
             toast.error('Reservation ID is required');
+            return;
+        }
+
+        if (!reservationDetails) {
+            toast.error('Please wait for reservation details to load');
             return;
         }
 
@@ -78,12 +66,12 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
             return;
         }
 
-        if (!amount || parseFloat(amount) <= 0) {
+        if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
             toast.error('Please enter a valid quantity');
             return;
         }
 
-        if (!unitPrice || parseFloat(unitPrice) <= 0) {
+        if (!unitPrice || isNaN(parseFloat(unitPrice)) || parseFloat(unitPrice) <= 0) {
             toast.error('Please enter a valid unit price');
             return;
         }
@@ -96,9 +84,9 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                 quantity: parseFloat(amount),
                 unitPrice: parseFloat(unitPrice),
                 itemType,
-                description: description || undefined,
+                description: description.trim() || undefined,
             };
-            console.log('chargeRequest', chargeRequest)
+
             await addCharges(chargeRequest);
 
             toast.success('Charge added successfully');
@@ -108,7 +96,6 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
             setAmount('');
             setUnitPrice('');
             setDescription('');
-            setSelectedCurrency('USD');
             setOpen(false);
         } catch (error: any) {
             console.error('Failed to add charge:', error);
@@ -123,33 +110,44 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
         setAmount('');
         setUnitPrice('');
         setDescription('');
-        setSelectedCurrency('USD');
         setOpen(false);
     };
 
-    const fetchCurrencies = async () => {
+    const getReservation = useCallback(async () => {
         try {
-            setLoadingCurrencies(true);
-            const response = await getAllCurrencies();
-            setCurrencies(response.data);
-
-            const usdCurrency = response.data?.find(curr => curr.code === 'USD');
-            if (usdCurrency) {
-                setSelectedCurrency('USD');
-            } else if (response.data && response.data.length > 0) {
-                setSelectedCurrency(response.data[0].code);
+            if (!reservationId) {
+                console.error('Reservation ID is required to fetch reservation details');
+                return;
             }
-        } catch (error) {
-            console.error('Error fetching currencies:', error);
-            toast.error('Failed to load currencies');
+            setIsLoadingReservation(true);
+            const response = await getReservationById(reservationId);
+
+            // Handle both direct data response and wrapped response
+            const reservationData = 'data' in response && response.data ? response.data : response;
+            setReservationDetails(reservationData as SingleReservation);
+        } catch (error: any) {
+            console.error('Failed to fetch reservation details:', error);
+            toast.error(error.userMessage || 'Failed to fetch reservation details');
+            setReservationDetails(null);
         } finally {
-            setLoadingCurrencies(false);
+            setIsLoadingReservation(false);
         }
-    }
+    }, [reservationId]);
 
     useEffect(() => {
-        Promise.all([fetchCurrencies()]);
-    }, []);
+        if (open && reservationId) {
+            getReservation();
+        }
+
+        // Reset form when dialog closes or reservation changes
+        if (!open) {
+            setItemType('');
+            setAmount('');
+            setUnitPrice('');
+            setDescription('');
+            setReservationDetails(null);
+        }
+    }, [open, reservationId, getReservation]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -157,62 +155,72 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                 <DialogHeader className="flex flex-row items-center justify-between pb-4">
                     <div>
                         <DialogTitle className="text-xl font-semibold">Add Charge</DialogTitle>
-                        <span className="text-gray-500 text-sm">June 21, 2025</span>
+                        <span className="text-gray-500 text-sm">{format(new Date(), 'MMMM dd, yyyy')}</span>
                     </div>
-
                 </DialogHeader>
 
                 <div className="space-y-2">
                     {/* Reservation Summary */}
-                    <div className=" border-blue-300 rounded-lg p-4 bg-hms-primary/15">
+                    <div className="border border-blue-300 rounded-lg p-4 bg-hms-primary/15">
                         <h3 className="font-semibold text-lg mb-3">Reservation Summary</h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Guest Name</span>
-                                    <div className="font-medium">{reservationData?.guestName || 'N/A'}</div>
+                        {isLoadingReservation ? (
+                            <div className="flex justify-center items-center py-4">
+                                <div className="text-sm text-gray-500">Loading reservation details...</div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Guest Name</span>
+                                        <div className="font-medium">
+                                            {reservationDetails ? `${reservationDetails.guest.firstName} ${reservationDetails.guest.lastName}` : 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Reservation ID</span>
+                                        <div className="font-medium">{reservationId || 'N/A'}</div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Guest ID:</span>
+                                        <div className="font-medium">
+                                            {reservationDetails?.guest.id || 'N/A'}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Reservation ID</span>
-                                    <div className="font-medium">{reservationData?.reservationId || reservationId || 'N/A'}</div>
-                                </div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Guest Count:</span>
-                                    <div className="font-medium">
-                                        <span className="block">Adults: {reservationData?.guestCount?.adults || 'N/A'}</span>
-                                        <span className="block">Children: {reservationData?.guestCount?.children || 'N/A'}</span>
+                                <div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Room Number</span>
+                                        <div className="font-medium">
+                                            {reservationDetails?.rooms?.[0]?.roomNumber || 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Price</span>
+                                        <div className="font-medium">{reservationDetails?.price || 'N/A'}</div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Stay Dates (Check-in & Check-out)</span>
+                                        <div className="font-medium">
+                                            {reservationDetails ? (
+                                                `${format(new Date(reservationDetails.checkIn), 'MMM dd, yyyy')} - ${format(new Date(reservationDetails.checkOut), 'MMM dd, yyyy')}`
+                                            ) : 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Status</span>
+                                        <div className="font-medium">{reservationDetails?.status || 'N/A'}</div>
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Room Type</span>
-                                    <div className="font-medium">{reservationData?.roomType || 'N/A'}</div>
-                                </div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Room Number</span>
-                                    <div className="font-medium">{reservationData?.roomNumber || 'N/A'}</div>
-                                </div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Stay Dates (Check-in & Check-out)</span>
-                                    <div className="font-medium">
-                                        {reservationData?.stayDates?.checkIn || 'N/A'} - {reservationData?.stayDates?.checkOut || 'N/A'}
-                                    </div>
-                                </div>
-                                <div className="mb-2">
-                                    <span className="text-gray-600">Booking Source</span>
-                                    <div className="font-medium">{reservationData?.bookingSource || 'N/A'}</div>
-                                </div>
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Charge Type */}
-                    <div className=" border-blue-300 rounded-lg ">
+                    <div className="border border-gray-200 rounded-lg p-4">
                         <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
                         <Select value={itemType} onValueChange={setItemType}>
                             <SelectTrigger className="mt-2">
-                                <SelectValue placeholder="Select Low, Medium or High" />
+                                <SelectValue placeholder="Select charge type" />
                             </SelectTrigger>
                             <SelectContent>
                                 {itemTypes.map((type) => (
@@ -224,8 +232,8 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                         </Select>
                     </div>
 
-                    {/* Amount */}
-                    <div className=" border-blue-300 rounded-lg ">
+                    {/* Quantity */}
+                    <div className="border border-gray-200 rounded-lg p-4">
                         <Label htmlFor="amount" className="text-base font-semibold">Quantity</Label>
                         <Input
                             id="amount"
@@ -240,7 +248,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                     </div>
 
                     {/* Unit Price */}
-                    <div className=" border-blue-300 rounded-lg ">
+                    <div className="border border-gray-200 rounded-lg p-4">
                         <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
                         <div className="flex mt-2 gap-2">
                             <Input
@@ -253,43 +261,15 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                                 onChange={(e) => setUnitPrice(e.target.value)}
                                 className="flex-1"
                             />
-                            <div className="w-32">
-                                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder={loadingCurrencies ? "Loading..." : "Currency"} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {loadingCurrencies ? (
-                                            <div className="flex items-center justify-center ">
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                <span>Loading...</span>
-                                            </div>
-                                        ) : currencies.length > 0 ? (
-                                            currencies.map((currency) => (
-                                                <SelectItem key={currency.id} value={currency.code}>
-                                                    <div className="flex items-center justify-between w-full">
-                                                        <span className="font-medium">{currency.code}</span>
-                                                        <span className="text-gray-500 ml-2 text-xs">{currency.name}</span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className="flex items-center justify-center p-4 text-gray-500">
-                                                No currencies available
-                                            </div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
                         </div>
                     </div>
 
-                    {/* description */}
-                    <div className=" border-blue-300 rounded-lg ">
-                        <Label htmlFor="description" className="text-base font-semibold">description</Label>
+                    {/* Description */}
+                    <div className="border border-gray-200 rounded-lg p-4">
+                        <Label htmlFor="description" className="text-base font-semibold">Description</Label>
                         <Textarea
                             id="description"
-                            placeholder="Describe the room and any key features guests should know about."
+                            placeholder="Optional description for this charge"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
@@ -308,7 +288,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, reservationData }: AddC
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleConfirmPayment}
+                            onClick={handleConfirmCharge}
                             disabled={isLoading}
                             className="py-3 text-lg font-medium"
                         >
