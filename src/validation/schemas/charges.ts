@@ -32,32 +32,36 @@ export const AddChargeResponseSchema = z.object({
   }),
 });
 
-// Get Charges Response
+// Get Charges Response (Updated to match actual API response)
 export const GetChargesResponseSchema = z.object({
-  status: z.number(),
   message: z.string(),
-  data: z.array(
-    z.object({
-      id: z.string(),
-      reservationId: z.string(),
-      itemName: z.string(),
-      quantity: z.number(),
-      unitPrice: z.number(),
-      itemType: z.string(),
-      description: z.string().optional(),
-      createdAt: z.string(),
-    })
-  ),
-  pagination: z
-    .object({
-      totalItems: z.number(),
-      totalPages: z.number(),
-      currentPage: z.number(),
-      pageSize: z.number(),
-      hasNext: z.boolean(),
-      hasPrevious: z.boolean(),
-    })
-    .optional(),
+  data: z.object({
+    id: z.string(),
+    status: z.string(),
+    balance: z.string(),
+    deposit: z.string(),
+    hotelId: z.string(),
+    reservationId: z.string(),
+    groupBookingId: z.string().nullable(),
+    parentFolioId: z.string().nullable(),
+    folioType: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    folioItems: z.array(
+      z.object({
+        id: z.string(),
+        folioId: z.string(),
+        itemType: z.string(),
+        amount: z.string(),
+        quantity: z.number(),
+        unitPrice: z.string(),
+        status: z.string(),
+        voidReason: z.string().nullable(),
+        voidedAt: z.string().nullable(),
+        voidedBy: z.string().nullable(),
+      })
+    ),
+  }),
 });
 
 // Get Available Charge Items Response
