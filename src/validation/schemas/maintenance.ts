@@ -47,7 +47,7 @@ const MaintenanceShape = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   hotelId: z.string(),
-  assignedTo: z.string().optional().nullable(),
+  userId: z.string().optional().nullable(),
   requestedBy: z.string().optional().nullable(),
   type: z.string().optional(), // Keep as string since it's not in your Prisma enums
   title: z.string().optional().nullable(),
@@ -68,7 +68,7 @@ export const AddMaintenanceRequestSchema = z.object({
   description: z.string().min(1, "Description is required"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]), // Updated to match Prisma
   roomId: z.string().min(1, "Room ID is required"),
-  assignedTo: z.string().optional(),
+  userId: z.string().optional(),
   requestedBy: z.string().optional(),
   type: z.string().optional(), // Keep as string
   title: z.string().optional(),
@@ -108,7 +108,7 @@ export const UpdateMaintenanceRequestSchema = z.object({
   status: z.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELED"]).optional(), // Updated to match Prisma
   startedAt: z.string().optional().nullable(),
   completedAt: z.string().optional().nullable(),
-  assignedTo: z.string().optional(),
+  userId: z.string().optional(),
   requestedBy: z.string().optional(),
   type: z.string().optional(),
   title: z.string().optional(),
@@ -162,7 +162,7 @@ export const MaintenanceFormDataSchema = z.object({
   areaNameOrNumber: z.string().min(1, "Area name or number is required"),
   issueDescription: z.string().min(1, "Issue description is required"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"), // Updated to match Prisma
-  assignedTo: z.string().min(1, "Assignment is required"),
+  userId: z.string().min(1, "Assignment is required"),
   photos: z.array(z.any()).default([]),
   repeatMaintenance: z.boolean().default(false),
   frequency: z.string().optional(),

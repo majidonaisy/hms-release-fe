@@ -226,7 +226,7 @@ const MaintenancePage = () => {
                 const response = await addMaintenance(data);
 
                 // Add the new maintenance request to the beginning of the list
-                setMaintenanceRequests(prev => [response.data, ...prev]);
+                fetchMaintenanceRequests();
                 setCurrentPage(1);
                 toast.success('Maintenance request created successfully');
             }
@@ -510,7 +510,7 @@ const MaintenancePage = () => {
                     roomId: editingMaintenance.roomId,
                     description: editingMaintenance.description,
                     priority: editingMaintenance.priority,
-                    assignedTo: editingMaintenance.assignedTo || editingMaintenance.user?.id || '',
+                    userId: editingMaintenance.userId || editingMaintenance.user?.id || '',
                     photos: editingMaintenance.photos || [],
                     repeatMaintenance: false,
                     frequency: '',

@@ -26,7 +26,7 @@ interface MaintenanceFormData {
     roomId: string;
     description: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Updated to match Prisma Priority enum
-    assignedTo: string;
+    userId: string;
     photos: File[];
     repeatMaintenance: boolean;
     frequency: string;
@@ -69,7 +69,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
         roomId: '',
         description: '',
         priority: 'MEDIUM',
-        assignedTo: '',
+        userId: '',
         photos: [],
         repeatMaintenance: false,
         frequency: ''
@@ -98,7 +98,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 roomId: editData.roomId || '',
                 description: editData.description || '',
                 priority: editData.priority || 'MEDIUM',
-                assignedTo: editData.assignedTo || '',
+                userId: editData.userId || '',
                 photos: editData.photos || [],
                 repeatMaintenance: editData.repeatMaintenance || false,
                 frequency: editData.frequency || '',
@@ -112,7 +112,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 roomId: '',
                 description: '',
                 priority: 'MEDIUM',
-                assignedTo: '',
+                userId: '',
                 photos: [],
                 repeatMaintenance: false,
                 frequency: ''
@@ -184,7 +184,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                     roomId: '',
                     description: '',
                     priority: 'MEDIUM',
-                    assignedTo: '',
+                    userId: '',
                     photos: [],
                     repeatMaintenance: false,
                     frequency: ''
@@ -204,7 +204,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 roomId: '',
                 description: '',
                 priority: 'MEDIUM',
-                assignedTo: '',
+                userId: '',
                 photos: [],
                 repeatMaintenance: false,
                 frequency: ''
@@ -304,8 +304,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
                     {/* Assign to */}
                     <div className="space-y-2">
-                        <Label htmlFor="assignedTo">Assign to</Label>
-                        <Select value={formData.assignedTo} onValueChange={(value) => handleInputChange('assignedTo', value)}>
+                        <Label htmlFor="userId">Assign to</Label>
+                        <Select value={formData.userId} onValueChange={(value) => handleInputChange('userId', value)}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select maintenance staff" />
                             </SelectTrigger>
