@@ -512,7 +512,7 @@ const MaintenancePage = () => {
                     priority: editingMaintenance.priority,
                     userId: editingMaintenance.userId || editingMaintenance.user?.id || '',
                     photos: editingMaintenance.photos || [],
-                    repeatMaintenance: false,
+                    isExternal: false,
                     frequency: '',
                     type: editingMaintenance.type,
                     status: editingMaintenance.status

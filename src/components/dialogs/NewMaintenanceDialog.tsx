@@ -26,27 +26,18 @@ interface MaintenanceFormData {
     roomId: string;
     description: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Updated to match Prisma Priority enum
-    userId: string;
+    userId?: string;
     photos: File[];
-    repeatMaintenance: boolean;
     frequency: string;
     type?: string;
-    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED'; // Updated to match Prisma maintenanceStatus enum
+    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED';
+    isExternal?: boolean;
 }
 
 const areaTypes = [
     { value: 'ROOM', label: 'Room' },
-    { value: 'LOBBY', label: 'Lobby' },
-    { value: 'RESTAURANT', label: 'Restaurant' },
-    { value: 'GYM', label: 'Gym' },
-    { value: 'POOL', label: 'Pool' },
-    { value: 'PARKING', label: 'Parking' },
-    { value: 'ELEVATOR', label: 'Elevator' },
-    { value: 'STAIRWAY', label: 'Stairway' },
-    { value: 'CORRIDOR', label: 'Corridor' },
-    { value: 'OTHER', label: 'Other' }
+    { value: 'AREA', label: 'Area' }
 ];
-
 
 const frequencies = [
     { value: 'WEEKLY', label: 'Weekly' },
@@ -71,8 +62,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
         priority: 'MEDIUM',
         userId: '',
         photos: [],
-        repeatMaintenance: false,
-        frequency: ''
+        frequency: '',
+        isExternal: false,
     });
 
     const [rooms, setRooms] = useState<Room[]>([]);
@@ -100,10 +91,10 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 priority: editData.priority || 'MEDIUM',
                 userId: editData.userId || '',
                 photos: editData.photos || [],
-                repeatMaintenance: editData.repeatMaintenance || false,
                 frequency: editData.frequency || '',
                 type: editData.type,
-                status: editData.status
+                status: editData.status,
+                isExternal: editData.isExternal || false,
             });
         } else {
             // Reset form for new maintenance
@@ -114,7 +105,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 priority: 'MEDIUM',
                 userId: '',
                 photos: [],
-                repeatMaintenance: false,
+                isExternal: false,
                 frequency: ''
             });
         }
@@ -169,10 +160,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             return;
         }
 
-        if (formData.repeatMaintenance && !formData.frequency) {
-            toast.error('Please select frequency for repeat maintenance');
-            return;
-        }
+
 
         setLoading(true);
         try {
@@ -186,7 +174,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                     priority: 'MEDIUM',
                     userId: '',
                     photos: [],
-                    repeatMaintenance: false,
+                    isExternal: false,
                     frequency: ''
                 });
             }
@@ -206,7 +194,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 priority: 'MEDIUM',
                 userId: '',
                 photos: [],
-                repeatMaintenance: false,
+                isExternal: false,
                 frequency: ''
             });
         }
@@ -301,10 +289,19 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                             </SelectContent>
                         </Select>
                     </div>
-
-                    {/* Assign to */}
-                    <div className="space-y-2">
-                        <Label htmlFor="userId">Assign to</Label>
+                    {/* External Maintenance */}
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="isExternal" className="text-sm font-medium">
+                            Assign To
+                        </Label>
+                        <Switch
+                            id="isExternal"
+                            className='data-[state=checked]:bg-hms-primary'
+                            checked={formData.isExternal}
+                            onCheckedChange={(checked) => handleInputChange('isExternal', checked)}
+                        />
+                    </div>
+                    {formData.isExternal && (
                         <Select value={formData.userId} onValueChange={(value) => handleInputChange('userId', value)}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select maintenance staff" />
@@ -316,8 +313,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                                     </SelectItem>
                                 ))}
                             </SelectContent>
-                        </Select>
-                    </div>
+                        </Select>)}
 
                     {/* Upload Photos */}
                     <div className="space-y-2">
@@ -373,36 +369,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                         )}
                     </div>
 
-                    {/* Repeat this maintenance */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="repeatMaintenance">Repeat this maintenance</Label>
-                            <Switch
-                                id="repeatMaintenance"
-                                className='data-[state=checked]:bg-hms-primary'
-                                checked={formData.repeatMaintenance}
-                                onCheckedChange={(checked) => handleInputChange('repeatMaintenance', checked)}
-                            />
-                        </div>
 
-                        {formData.repeatMaintenance && (
-                            <div className="space-y-2">
-                                <Label htmlFor="frequency">Frequency</Label>
-                                <Select value={formData.frequency} onValueChange={(value) => handleInputChange('frequency', value)}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select every: Week / Month / 3 Months / 6 Months / Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {frequencies.map((freq) => (
-                                            <SelectItem key={freq.value} value={freq.value}>
-                                                {freq.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                    </div>
 
                     {/* Submit Button */}
                     <Button
