@@ -223,7 +223,7 @@ const MaintenancePage = () => {
                 toast.success('Maintenance request updated successfully');
             } else {
                 // Handle add mode
-                const response = await addMaintenance(data);
+                await addMaintenance(data);
 
                 // Add the new maintenance request to the beginning of the list
                 fetchMaintenanceRequests();
@@ -506,8 +506,8 @@ const MaintenancePage = () => {
                 isEditMode={isEditMode}
                 editData={editingMaintenance ? {
                     id: editingMaintenance.id,
-                    areaType: editingMaintenance.type || 'REPAIR',
-                    roomId: editingMaintenance.roomId,
+                    areaTypeId: editingMaintenance.type || 'REPAIR',
+                    areaId: editingMaintenance.roomId,
                     description: editingMaintenance.description,
                     priority: editingMaintenance.priority,
                     userId: editingMaintenance.userId || editingMaintenance.user?.id || '',

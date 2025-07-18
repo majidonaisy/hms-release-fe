@@ -22,10 +22,10 @@ interface NewMaintenanceDialogProps {
 
 interface MaintenanceFormData {
     id?: string;
-    areaType: string;
-    roomId: string;
+    areaTypeId: string; // Changed from areaType to areaTypeId
+    areaId: string; // This will store the actual area/room ID
     description: string;
-    priority: 'LOW' | 'MEDIUM' | 'HIGH'; 
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
     userId?: string;
     photos: File[];
     frequency: string;
@@ -35,8 +35,8 @@ interface MaintenanceFormData {
 }
 
 const areaTypes = [
-    { value: 'ROOM', label: 'Room' },
-    { value: 'AREA', label: 'Area' }
+    { value: 'ROOM', label: 'Room', id: 'room-type-001' },
+    { value: 'AREA', label: 'Area', id: 'area-type-001' }
 ];
 
 
@@ -49,9 +49,11 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     isEditMode = false
 }) => {
     const [loading, setLoading] = useState(false);
+    const [roomsLoading, setRoomsLoading] = useState(false);
+    const [areasLoading, setAreasLoading] = useState(false);
     const [formData, setFormData] = useState<MaintenanceFormData>({
-        areaType: '',
-        roomId: '',
+        areaTypeId: '',
+        areaId: '',
         description: '',
         priority: 'MEDIUM',
         userId: '',
@@ -61,12 +63,12 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     });
 
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]); 
-const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }[]>([]);
 
     const fetchEmployees = async () => {
         try {
-            const response = await getEmployees(); 
+            const response = await getEmployees();
             setEmployees(response.data);
         } catch (error) {
             console.error('Failed to fetch employees:', error);
@@ -75,12 +77,15 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
     };
 
     const fetchAreas = async () => {
+        setAreasLoading(true);
         try {
             const response = await getAreas();
             setAreas(response.data);
         } catch (error) {
             console.error('Failed to fetch areas:', error);
             toast.error('Failed to fetch areas. Please try again later.');
+        } finally {
+            setAreasLoading(false);
         }
     };
 
@@ -89,22 +94,20 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
         if (isEditMode && editData) {
             setFormData({
                 id: editData.id || '',
-                areaType: editData.areaType || '',
-                roomId: editData.roomId || '',
+                areaTypeId: editData.areaTypeId || '',
+                areaId: editData.areaId || '',
                 description: editData.description || '',
                 priority: editData.priority || 'MEDIUM',
                 userId: editData.userId || '',
                 photos: editData.photos || [],
                 frequency: editData.frequency || '',
-                type: editData.type,
-                status: editData.status,
                 isExternal: editData.isExternal || false,
             });
         } else {
             // Reset form for new maintenance
             setFormData({
-                areaType: '',
-                roomId: '',
+                areaTypeId: '',
+                areaId: '',
                 description: '',
                 priority: 'MEDIUM',
                 userId: '',
@@ -119,12 +122,12 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
         setFormData(prev => ({
             ...prev,
             [field]: value,
-            // Reset roomId when areaType changes
-            ...(field === 'areaType' && { roomId: '' })
+            // Reset areaId when areaTypeId changes
+            ...(field === 'areaTypeId' && { areaId: '' })
         }));
 
         // Fetch appropriate data when area type changes
-        if (field === 'areaType') {
+        if (field === 'areaTypeId') {
             if (value === 'ROOM') {
                 fetchRooms();
             } else if (value === 'AREA') {
@@ -160,12 +163,12 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
         e.preventDefault();
         console.log('formData', formData)
 
-        if (!formData.areaType) {
+        if (!formData.areaTypeId) {
             toast.error('Please select an area type');
             return;
         }
 
-        if (!formData.roomId) {
+        if (!formData.areaId) {
             toast.error('Please enter area name or number');
             return;
         }
@@ -182,8 +185,8 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
             await onConfirm(formData);
             if (!isEditMode) {
                 setFormData({
-                    areaType: '',
-                    roomId: '',
+                    areaTypeId: '',
+                    areaId: '',
                     description: '',
                     priority: 'MEDIUM',
                     userId: '',
@@ -202,8 +205,8 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
     const handleCancel = () => {
         if (!isEditMode) {
             setFormData({
-                areaType: '',
-                roomId: '',
+                areaTypeId: '',
+                areaId: '',
                 description: '',
                 priority: 'MEDIUM',
                 userId: '',
@@ -216,12 +219,15 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
     };
 
     const fetchRooms = async () => {
+        setRoomsLoading(true);
         try {
             const response = await getRooms();
             setRooms(response.data);
         } catch (error) {
             console.error('Failed to fetch rooms:', error);
             toast.error('Failed to fetch rooms. Please try again later.');
+        } finally {
+            setRoomsLoading(false);
         }
     }
 
@@ -243,7 +249,7 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="areaType">Area Type</Label>
-                        <Select value={formData.areaType} onValueChange={(value) => handleInputChange('areaType', value)}>
+                        <Select value={formData.areaTypeId} onValueChange={(value) => handleInputChange('areaTypeId', value)}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select area type" />
                             </SelectTrigger>
@@ -259,36 +265,43 @@ const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }
 
                     <div className="space-y-2">
                         <Label htmlFor="areaNameOrNumber">
-                            {formData.areaType === 'ROOM' ? 'Room' : formData.areaType === 'AREA' ? 'Area' : 'Area name or number'}
+                            {formData.areaTypeId === 'ROOM' ? 'Room' : formData.areaTypeId === 'AREA' ? 'Area' : 'Area name or number'}
                         </Label>
                         <Select
-                            value={formData.roomId}
-                            onValueChange={(value) => handleInputChange('roomId', value)}
-                            disabled={!formData.areaType}
+                            value={formData.areaId}
+                            onValueChange={(value) => handleInputChange('areaId', value)}
+                            disabled={!formData.areaTypeId || roomsLoading || areasLoading}
                         >
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder={
-                                    !formData.areaType
+                                    !formData.areaTypeId
                                         ? "Please select area type first"
-                                        : formData.areaType === 'ROOM'
-                                            ? "Select a room"
-                                            : "Select an area"
+                                        : roomsLoading || areasLoading
+                                            ? "Loading..."
+                                            : formData.areaTypeId === 'ROOM'
+                                                ? "Select a room"
+                                                : "Select an area"
                                 } />
                             </SelectTrigger>
                             <SelectContent>
-                                {formData.areaType === 'ROOM' && rooms.map((room) => (
+                                {formData.areaTypeId === 'ROOM' && !roomsLoading && rooms.map((room) => (
                                     <SelectItem key={room.id} value={room.id}>
                                         Room {room.roomNumber} - Floor {room.floor}
                                     </SelectItem>
                                 ))}
-                                {formData.areaType === 'AREA' && areas.map((area) => (
+                                {formData.areaTypeId === 'AREA' && !areasLoading && areas.map((area) => (
                                     <SelectItem key={area.id} value={area.id}>
                                         {area.name}
                                     </SelectItem>
                                 ))}
-                                {formData.areaType && (formData.areaType === 'ROOM' ? rooms : areas).length === 0 && (
+                                {(roomsLoading || areasLoading) && (
+                                    <SelectItem value="loading" disabled>
+                                        Loading...
+                                    </SelectItem>
+                                )}
+                                {formData.areaTypeId && !roomsLoading && !areasLoading && (formData.areaTypeId === 'ROOM' ? rooms : areas).length === 0 && (
                                     <SelectItem value="no-data" disabled>
-                                        No {formData.areaType === 'ROOM' ? 'rooms' : 'areas'} available
+                                        No {formData.areaTypeId === 'ROOM' ? 'rooms' : 'areas'} available
                                     </SelectItem>
                                 )}
                             </SelectContent>
