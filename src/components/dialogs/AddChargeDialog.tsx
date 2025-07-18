@@ -139,7 +139,6 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
             getReservation();
         }
 
-        // Reset form when dialog closes or reservation changes
         if (!open) {
             setItemType('');
             setAmount('');
@@ -216,10 +215,10 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                     </div>
 
                     {/* Charge Type */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className=" rounded-lg ">
                         <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
                         <Select value={itemType} onValueChange={setItemType}>
-                            <SelectTrigger className="mt-2">
+                            <SelectTrigger className="mt-2 w-full">
                                 <SelectValue placeholder="Select charge type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -233,7 +232,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                     </div>
 
                     {/* Quantity */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className=" rounded-lg ">
                         <Label htmlFor="amount" className="text-base font-semibold">Quantity</Label>
                         <Input
                             id="amount"
@@ -248,7 +247,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                     </div>
 
                     {/* Unit Price */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className=" rounded-lg ">
                         <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
                         <div className="flex mt-2 gap-2">
                             <Input
@@ -265,7 +264,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                     </div>
 
                     {/* Description */}
-                    <div className="border border-gray-200 rounded-lg p-4">
+                    <div className=" rounded-lg ">
                         <Label htmlFor="description" className="text-base font-semibold">Description</Label>
                         <Textarea
                             id="description"
