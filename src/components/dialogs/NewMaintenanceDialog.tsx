@@ -7,7 +7,7 @@ import { Textarea } from '@/components/atoms/Textarea';
 import { Switch } from '@/components/atoms/Switch';
 import { X, Upload, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { getRooms } from '@/services/Rooms';
+import { getAreas, getRooms } from '@/services/Rooms';
 import { Room } from '@/validation';
 import { Employee } from '@/validation/schemas/Employees';
 import { getEmployees } from '@/services/Employees';
@@ -25,7 +25,7 @@ interface MaintenanceFormData {
     areaType: string;
     roomId: string;
     description: string;
-    priority: 'LOW' | 'MEDIUM' | 'HIGH'; // Updated to match Prisma Priority enum
+    priority: 'LOW' | 'MEDIUM' | 'HIGH'; 
     userId?: string;
     photos: File[];
     frequency: string;
@@ -39,13 +39,7 @@ const areaTypes = [
     { value: 'AREA', label: 'Area' }
 ];
 
-const frequencies = [
-    { value: 'WEEKLY', label: 'Weekly' },
-    { value: 'MONTHLY', label: 'Monthly' },
-    { value: 'QUARTERLY', label: '3 Months' },
-    { value: 'SEMI_ANNUAL', label: '6 Months' },
-    { value: 'ANNUAL', label: 'Year' }
-];
+
 
 const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     isOpen,
@@ -67,19 +61,29 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     });
 
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]); // Assuming you have a way to fetch employees
-
+    const [employees, setEmployees] = useState<Employee[]>([]); 
+const [areas, setAreas] = useState<{ id: string; name: string; hotelId: string }[]>([]);
 
     const fetchEmployees = async () => {
-        // Assuming you have a service to fetch employees
         try {
-            const response = await getEmployees(); // Replace with actual service call
+            const response = await getEmployees(); 
             setEmployees(response.data);
         } catch (error) {
             console.error('Failed to fetch employees:', error);
             toast.error('Failed to fetch employees. Please try again later.');
         }
     };
+
+    const fetchAreas = async () => {
+        try {
+            const response = await getAreas();
+            setAreas(response.data);
+        } catch (error) {
+            console.error('Failed to fetch areas:', error);
+            toast.error('Failed to fetch areas. Please try again later.');
+        }
+    };
+
     // Load edit data when editing
     useEffect(() => {
         if (isEditMode && editData) {
@@ -114,8 +118,19 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     const handleInputChange = (field: keyof MaintenanceFormData, value: any) => {
         setFormData(prev => ({
             ...prev,
-            [field]: value
+            [field]: value,
+            // Reset roomId when areaType changes
+            ...(field === 'areaType' && { roomId: '' })
         }));
+
+        // Fetch appropriate data when area type changes
+        if (field === 'areaType') {
+            if (value === 'ROOM') {
+                fetchRooms();
+            } else if (value === 'AREA') {
+                fetchAreas();
+            }
+        }
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +180,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
         setLoading(true);
         try {
             await onConfirm(formData);
-            // Reset form after successful submission
             if (!isEditMode) {
                 setFormData({
                     areaType: '',
@@ -179,7 +193,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 });
             }
         } catch (error) {
-            // Error handling is done in parent component
+            toast.error('Failed to submit maintenance request. Please try again later.');
         } finally {
             setLoading(false);
         }
@@ -214,7 +228,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
     useEffect(() => {
         Promise.all([
-            fetchRooms(),
             fetchEmployees()
         ]);
     }, []);
@@ -228,7 +241,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Area Type */}
                     <div className="space-y-2">
                         <Label htmlFor="areaType">Area Type</Label>
                         <Select value={formData.areaType} onValueChange={(value) => handleInputChange('areaType', value)}>
@@ -245,24 +257,44 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                         </Select>
                     </div>
 
-                    {/* Area name or number */}
                     <div className="space-y-2">
-                        <Label htmlFor="areaNameOrNumber">Area name or number</Label>
-                        <Select value={formData.roomId} onValueChange={(value) => handleInputChange('roomId', value)}>
+                        <Label htmlFor="areaNameOrNumber">
+                            {formData.areaType === 'ROOM' ? 'Room' : formData.areaType === 'AREA' ? 'Area' : 'Area name or number'}
+                        </Label>
+                        <Select
+                            value={formData.roomId}
+                            onValueChange={(value) => handleInputChange('roomId', value)}
+                            disabled={!formData.areaType}
+                        >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select area name or number" />
+                                <SelectValue placeholder={
+                                    !formData.areaType
+                                        ? "Please select area type first"
+                                        : formData.areaType === 'ROOM'
+                                            ? "Select a room"
+                                            : "Select an area"
+                                } />
                             </SelectTrigger>
                             <SelectContent>
-                                {rooms.map((room) => (
+                                {formData.areaType === 'ROOM' && rooms.map((room) => (
                                     <SelectItem key={room.id} value={room.id}>
-                                        {room.roomNumber}
+                                        Room {room.roomNumber} - Floor {room.floor}
                                     </SelectItem>
                                 ))}
+                                {formData.areaType === 'AREA' && areas.map((area) => (
+                                    <SelectItem key={area.id} value={area.id}>
+                                        {area.name}
+                                    </SelectItem>
+                                ))}
+                                {formData.areaType && (formData.areaType === 'ROOM' ? rooms : areas).length === 0 && (
+                                    <SelectItem value="no-data" disabled>
+                                        No {formData.areaType === 'ROOM' ? 'rooms' : 'areas'} available
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    {/* Issue description */}
                     <div className="space-y-2">
                         <Label htmlFor="description">Issue description</Label>
                         <Textarea
@@ -274,7 +306,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                         />
                     </div>
 
-                    {/* Priority */}
                     <div className="space-y-2">
                         <Label htmlFor="priority">Priority</Label>
                         <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>

@@ -53,7 +53,7 @@ export const getRoomById = async (id: string): Promise<GetRoomByIdResponse> => {
       endpoint: `${ENDPOINTS.Room.GetById}/${id}`,
       baseURL,
     })) as any;
-    return response as GetRoomByIdResponse
+    return response as GetRoomByIdResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get room";
     throw {
@@ -143,6 +143,41 @@ export const getRoomsByRoomTypes = async (id: string, params?: GetRoomsParams): 
     return response as GetRoomsByRoomType;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get rooms by type";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+interface areaParams {
+  data: {
+    id: string;
+    name: string;
+    hotelId: string;
+  }[];
+  pagination: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+    nextPage: number | null;
+    previousPage: number | null;
+  } | null;
+}
+
+export const getAreas = async (): Promise<areaParams> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Area.GetAll,
+      baseURL,
+    });
+    return response as areaParams;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get areas";
     throw {
       userMessage: errorMessage,
       originalError: error,

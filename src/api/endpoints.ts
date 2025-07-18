@@ -1,5 +1,3 @@
-import { Delete } from "lucide-react";
-
 export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
@@ -93,6 +91,13 @@ export const ENDPOINTS = {
   },
   Currency: {
     GetAll: "exchange/currencies/",
+  },
+  Area:{
+    Add: "area/add",
+    GetAll: "area/get",
+    GetById: "area/get",
+    Update: "area/update",
+    Delete: "area/delete",
   },
   Folio: {
     AddCharge: "folio-item/add-charge",
