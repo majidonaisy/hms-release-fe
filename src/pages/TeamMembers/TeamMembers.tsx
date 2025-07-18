@@ -76,8 +76,12 @@ const TeamMembers = () => {
     const teamActions: ActionMenuItem[] = [
         {
             label: 'Edit',
-            onClick: () => {
-
+            onClick: async (data) => {
+                try {
+                //
+                } catch (error) {
+                    console.log(error)
+                }
             }
         }
     ];
@@ -91,7 +95,7 @@ const TeamMembers = () => {
             actions={teamActions}
             primaryAction={{
                 label: 'New Team Member',
-                onClick: () => {/* Handle new team member */ }
+                onClick: () => {navigate("/team-members/new") }
             }}
             onRowClick={(member) => {
                 navigate(`/team-members/profile/${member.id}`, { state: { teamMember: member } });
