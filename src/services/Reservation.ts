@@ -168,3 +168,39 @@ export const getReservationById = async (reservationId: string): Promise<GetSing
     };
   }
 };
+
+export const cancelReservation = async (reservationId: string): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: `${ENDPOINTS.Reservations.Cancel}/${reservationId}`,
+      baseURL,
+    });
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to cancel reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const getReservationByGuestId = async (guestId: string): Promise<any> => {
+  console.log('called')
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Reservations.GetByGuestId,
+      baseURL,
+      params: guestId
+    });
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

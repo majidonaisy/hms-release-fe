@@ -15,6 +15,7 @@ import { GetGuestByIdResponse, RoomType, AddGuestRequest } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import DeleteDialog from "../../components/molecules/DeleteDialog";
+import { getReservationByGuestId } from '@/services/Reservation';
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
@@ -85,7 +86,13 @@ const GuestProfileView = () => {
             }
         };
 
+        const getGuestHistory = async () => {
+            const history = await getReservationByGuestId(id || '')
+            console.log('history', history)
+        }
+
         fetchGuestData();
+        getGuestHistory()
     }, [id, location.state]);
 
     const handleInputChange = (field: keyof AddGuestRequest | 'preferences.roomType', value: string) => {
@@ -268,7 +275,7 @@ const GuestProfileView = () => {
                             </h2>
                             <CardContent className="">
                                 <span className="font-semibold">Profile Type: </span>
-                               Individual
+                                Individual
                             </CardContent>
                         </div>
 

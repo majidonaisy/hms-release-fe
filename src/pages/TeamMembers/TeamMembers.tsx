@@ -4,13 +4,26 @@ import { GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees
 import { getEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
+import { getRoles } from '@/services/Role';
+
+interface Role {
+    id: string;
+    name: string;
+    hotelId: string;
+    permissions: Array<{
+        id: string;
+        subject: string;
+        action: string;
+    }>;
+}
 
 const TeamMembers = () => {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState<GetEmployeesResponse['data']>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10); // Default page size
+    const [pageSize] = useState(10);
     const [pagination, setPagination] = useState<Pagination | null>(null);
 
     const getStatusColor = (status: boolean): string => {
@@ -30,7 +43,7 @@ const TeamMembers = () => {
                     page: currentPage,
                     limit: pageSize
                 });
-                console.log('response', response)
+                console.log('response', response);
                 setEmployees(response.data);
                 if (response.pagination) {
                     setPagination(response.pagination);
@@ -43,8 +56,29 @@ const TeamMembers = () => {
                 setLoading(false);
             }
         };
-        handleGetEmployees();
+
+        const handleGetRoles = async () => {
+            try {
+                const rolesResponse = await getRoles();
+                setRoles(rolesResponse.data);
+            } catch (error) {
+                console.error('Failed to fetch roles:', error);
+            }
+        };
+
+        Promise.all([
+            handleGetEmployees(),
+            handleGetRoles()
+        ]);
     }, [currentPage, pageSize]);
+
+    const roleMap = roles.reduce(
+        (map, role) => {
+            map[role.id] = role.name;
+            return map;
+        },
+        {} as Record<string, string>
+    );
 
     const teamColumns: TableColumn[] = [
         {
@@ -58,6 +92,11 @@ const TeamMembers = () => {
             className: 'font-medium text-gray-900'
         },
         {
+            key: 'username',
+            label: 'Username',
+            className: 'text-gray-600'
+        },
+        {
             key: 'isActive',
             label: 'Status',
             render: (_item, value) => (
@@ -69,22 +108,19 @@ const TeamMembers = () => {
         {
             key: 'role',
             label: 'Role',
-            render: (item) => <span className="text-gray-600">{item.role.name}</span>
+            render: (item) => (
+                <span className="text-gray-600">
+                    {item.role?.name || roleMap[item.roleId] || 'Unknown Role'}
+                </span>
+            )
         }
     ];
 
-    const teamActions: ActionMenuItem[] = [
-        {
-            label: 'Edit',
-            onClick: async (data) => {
-                try {
-                //
-                } catch (error) {
-                    console.log(error)
-                }
-            }
-        }
-    ];
+    const teamActions: ActionMenuItem[] = [];
+
+    const handleRowClick = (member: any) => {
+        navigate(`/team-members/profile/${member.id}`, { state: { teamMember: member } });
+    };
 
     return (
         <DataTable
@@ -95,15 +131,13 @@ const TeamMembers = () => {
             actions={teamActions}
             primaryAction={{
                 label: 'New Team Member',
-                onClick: () => {navigate("/team-members/new") }
+                onClick: () => { navigate("/team-members/new") }
             }}
-            onRowClick={(member) => {
-                navigate(`/team-members/profile/${member.id}`, { state: { teamMember: member } });
-            }}
+            onRowClick={handleRowClick}
             getRowKey={(member) => member.id}
             filter={{
                 searchPlaceholder: "Search team members...",
-                searchFields: ['firstName', 'lastName', 'email']
+                searchFields: ['firstName', 'lastName', 'email', 'username']
             }}
             pagination={pagination ? {
                 currentPage: pagination.currentPage,

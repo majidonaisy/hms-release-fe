@@ -50,7 +50,9 @@ export const ENDPOINTS = {
     Get: "reservation/get-reservation",
     GetId: "reservation/get",
     AddGroupReservation: "reservation/create",
-    GetNightPrice: "reservation/get-night-price"
+    GetNightPrice: "reservation/get-night-price",
+    Cancel: 'reservation/cancel',
+    GetByGuestId: 'reservation/get-reservation-by-guestId'
   },
   Maintenance: {
     Add: "maintenance/add",
@@ -80,6 +82,7 @@ export const ENDPOINTS = {
   Employees: {
     GetAll: "auth/employees",
     GetEmployeeById: "auth/get-user",
+    Create: 'auth/add-user'
   },
   Role: {
     Add: "role/add",
@@ -92,7 +95,7 @@ export const ENDPOINTS = {
   Currency: {
     GetAll: "exchange/currencies/",
   },
-  Area:{
+  Area: {
     Add: "area/add",
     GetAll: "area/get",
     GetById: "area/get",
@@ -102,6 +105,6 @@ export const ENDPOINTS = {
   Folio: {
     AddCharge: "folio-item/add-charge",
     UnsettledCharges: "folio-item/unsettled-charges",
-    AddPayment:"folio-item/settle",
+    AddPayment: "folio-item/settle",
   },
 };

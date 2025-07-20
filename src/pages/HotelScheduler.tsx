@@ -9,7 +9,7 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../com
 import { ScrollArea } from "@/components/atoms/ScrollArea"
 import { Room } from "@/validation"
 import { getRooms } from "@/services/Rooms"
-import { getReservations } from "@/services/Reservation"
+import { cancelReservation, getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
 import ChooseReservationOptionDialog from "@/components/dialogs/ChooseReservationOptionDialog"
@@ -17,6 +17,8 @@ import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
 import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
 import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
 import CheckInDialog from "@/components/dialogs/CheckInDialog"
+import DeleteDialog from "@/components/molecules/DeleteDialog"
+import { toast } from "sonner"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -55,6 +57,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [addChargesDialog, setAddChargesDialog] = useState(false);
   const [addChargeDialog, setAddChargeDialog] = useState(false);
   const [editReservationDialog, setEditReservationDialog] = useState(false);
+  const [cancelReservationDialog, setCancelReservationDialog] = useState(false)
+  const [reservationToCancel, setReservationToCancel] = useState('')
 
   // Get Rooms
   useEffect(() => {
@@ -220,6 +224,21 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       console.error("Failed to refresh reservations:", err);
     }
   };
+
+  const handleCancelReservation = async () => {
+    try {
+      await cancelReservation(reservationToCancel);
+      toast('Success', {
+        description: 'Reservation was canceled'
+      });
+    } catch (error) {
+      toast('Error', {
+        description: 'Could not cancel reservation'
+      })
+    } finally {
+      setCancelReservationDialog(false)
+    }
+  }
 
 
   return (
@@ -403,8 +422,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         gridRowEnd: event.gridRowEnd,
                       }}
                       onClick={() => {
-                        console.log(event, "event"); setChooseOptionDialog(true);
+                        setChooseOptionDialog(true);
                         setDialogReservation(event);
+                        setReservationToCancel(event.id)
                       }}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
@@ -483,7 +503,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         checkInDate={dialogReservation?.start?.toISOString()}
         checkOutDate={dialogReservation?.end?.toISOString()}
         stayDuration={dialogReservation ? calculateStayDuration(dialogReservation.start, dialogReservation.end) : ''}
+        cancelReservation={() => setCancelReservationDialog(true)}
       />
+      <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" />
     </TooltipProvider>
   );
 };

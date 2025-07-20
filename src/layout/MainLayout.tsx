@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, Link, Outlet } from 'react-router-dom';
+import { useLocation, Link, Outlet, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
@@ -7,6 +7,8 @@ import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
 import { useRole } from '@/context/CASLContext';
+import { useDispatch } from 'react-redux';
+import { logout } from '@/redux/slices/authSlice';
 
 interface MainLayoutProps {
     routes: any[];
@@ -17,6 +19,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const [openTabs, setOpenTabs] = useState<string[]>([]);
     const [openReservationDialog, setOpenReservationDialog] = useState(false);
     const { filterRoutesByPermissions, isAuthenticated } = useRole();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
@@ -29,6 +33,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                 ? prevOpenTabs.filter((tab) => tab !== path)
                 : [...prevOpenTabs, path]
         );
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/home');
     };
 
     // Render menu items with subroute support
@@ -151,7 +160,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200">
+                                    <Button className="w-full transition-all duration-200" onClick={handleLogout}>
                                         <LogOut className="!size-4" />
                                         <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
                                     </Button>

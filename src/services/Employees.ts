@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { GetEmployeeByIdResponse, GetEmployeesResponse } from "@/validation/schemas/Employees";
+import { AddEmployeeRequest, AddTeamMemberResponse, GetEmployeeByIdResponse, GetEmployeesResponse } from "@/validation/schemas/Employees";
 const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 
 interface GetEmployeesParams {
@@ -42,3 +42,21 @@ export const getEmployeeById = async (id: string): Promise<GetEmployeeByIdRespon
     };
   }
 };
+
+export const addTeamMember = async (data: AddEmployeeRequest): Promise<AddTeamMemberResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Employees.Create,
+      baseURL,
+      data
+    });
+    return response as AddTeamMemberResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to create employee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
