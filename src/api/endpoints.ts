@@ -104,5 +104,6 @@ export const ENDPOINTS = {
     UnsettledCharges: "folio-item/unsettled-charges",
     AddPayment: "folio-item/settle",
     ViewPayment: "folio-item/get-handled-folio-items",
+    VoidPayments: "folio-item/void",
   },
 };

@@ -113,6 +113,23 @@ export const ExportPaymentRequestSchema = z.object({
     .optional(),
 });
 
+// Void Payments Request
+export const VoidPaymentsRequestSchema = z.object({
+  reservationId: z.string().min(1, "Reservation ID is required"),
+  paymentIds: z.array(z.string().min(1)).min(1, "At least one payment ID is required"),
+  voidReason: z.string().optional(),
+});
+
+// Void Payments Response
+export const VoidPaymentsResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.object({
+    voidedCount: z.number(),
+    voidedPayments: z.array(z.string()),
+  }),
+});
+
 // Type exports
 export type ItemType = z.infer<typeof ItemTypeEnum>;
 export type PaymentMethod = z.infer<typeof PaymentMethodEnum>;
@@ -124,6 +141,8 @@ export type GetPaymentsResponse = z.infer<typeof GetPaymentsResponseSchema>;
 export type FolioSummaryResponse = z.infer<typeof FolioSummaryResponseSchema>;
 export type PaymentSummary = z.infer<typeof PaymentSummaryShape>;
 export type ExportPaymentRequest = z.infer<typeof ExportPaymentRequestSchema>;
+export type VoidPaymentsRequest = z.infer<typeof VoidPaymentsRequestSchema>;
+export type VoidPaymentsResponse = z.infer<typeof VoidPaymentsResponseSchema>;
 
 // Helper functions for transforming data
 export const transformFolioItemToPayment = (item: FolioItem): Payment => {

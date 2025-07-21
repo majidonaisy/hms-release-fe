@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddChargeRequest, AddChargeResponse, GetChargesResponse, AddPaymentRequest } from "@/validation/schemas/charges";
-import { GetPaymentsResponse } from "@/validation/schemas/payments";
+import { VoidPaymentsRequest, VoidPaymentsResponse } from "@/validation/schemas/payments";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -88,6 +88,24 @@ export const getPayments = async (reservationId: string): Promise<APIPaymentResp
     return response as APIPaymentResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get payments";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const voidPayments = async (data: VoidPaymentsRequest): Promise<VoidPaymentsResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Folio.VoidPayments,
+      data,
+      baseURL,
+    });
+    return response as VoidPaymentsResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to void payments";
     throw {
       userMessage: errorMessage,
       originalError: error,
