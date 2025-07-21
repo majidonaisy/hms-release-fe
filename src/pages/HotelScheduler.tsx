@@ -16,6 +16,7 @@ import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
 import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
 import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
 import CheckInDialog from "@/components/dialogs/CheckInDialog"
+import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -54,6 +55,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [addChargesDialog, setAddChargesDialog] = useState(false);
   const [addChargeDialog, setAddChargeDialog] = useState(false);
   const [editReservationDialog, setEditReservationDialog] = useState(false);
+  const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
+
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -177,7 +180,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) 
    
 
-      const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
+      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus;
 
       const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
 
@@ -350,11 +353,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="reserved">Reserved</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="checked-in">Checked In</SelectItem>
-                  <SelectItem value="checked-out">Checked Out</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
+                  <SelectItem value="HELD">Held</SelectItem>
+                  <SelectItem value="OCCUPIED">Occupied</SelectItem>
+                  <SelectItem value="CHECKED_IN">Checked In</SelectItem>
+                  <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
+                  <SelectItem value="BLOCKED">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -534,6 +537,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         setOpen={setAddChargeDialog}
         reservationId={dialogReservation?.id || ''}
       />
+      <ViewPaymentsDialog
+        open={viewPaymentsDialog}
+        setOpen={setViewPaymentsDialog}
+        reservationId={dialogReservation?.id || ''}
+        guestName={dialogReservation?.guestName || ''}
+        roomNumber={dialogReservation?.roomNumber || ''}
+        bookingId={dialogReservation?.bookingId || ''}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -546,7 +557,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         editReservation={() => { setEditReservationDialog(true) }}
         isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked_in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
         isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked_out'}
-        // Add new props for the updated dialog
+        viewPayments={() => setViewPaymentsDialog(true)} 
         guestId={dialogReservation?.guestId}
         roomNumber={dialogReservation?.roomNumber}
         roomType={dialogReservation?.roomType}
