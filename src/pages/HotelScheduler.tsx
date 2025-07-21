@@ -180,7 +180,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) 
    
 
-      const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
+      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus;
 
       const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
 
@@ -353,11 +353,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="reserved">Reserved</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="checked-in">Checked In</SelectItem>
-                  <SelectItem value="checked-out">Checked Out</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
+                  <SelectItem value="HELD">Held</SelectItem>
+                  <SelectItem value="OCCUPIED">Occupied</SelectItem>
+                  <SelectItem value="CHECKED_IN">Checked In</SelectItem>
+                  <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
+                  <SelectItem value="BLOCKED">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
