@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddChargeRequest, AddChargeResponse, GetChargesResponse, AddPaymentRequest } from "@/validation/schemas/charges";
+import { GetPaymentsResponse } from "@/validation/schemas/payments";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -50,6 +51,43 @@ export const addPayment = async (data: AddPaymentRequest): Promise<AddChargeResp
     return response as AddChargeResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to add payment";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+// Add interface for the API response structure
+interface FolioItem {
+  id: string;
+  folioId: string;
+  itemType: string;
+  amount: string;
+  quantity: number;
+  unitPrice: string;
+  status: string;
+  voidReason: string | null;
+  voidedAt: string | null;
+  voidedBy: string | null;
+}
+
+interface APIPaymentResponse {
+  status: number;
+  message: string;
+  data: FolioItem[];
+}
+
+export const getPayments = async (reservationId: string): Promise<APIPaymentResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Folio.ViewPayment + "/" + reservationId,
+      baseURL,
+    });
+    return response as APIPaymentResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get payments";
     throw {
       userMessage: errorMessage,
       originalError: error,

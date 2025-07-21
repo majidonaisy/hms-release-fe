@@ -16,6 +16,7 @@ import AddChargesDialog from "@/components/dialogs/AddPaymentDialog"
 import AddChargeDialog from "@/components/dialogs/AddChargeDialog"
 import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
 import CheckInDialog from "@/components/dialogs/CheckInDialog"
+import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -54,6 +55,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [addChargesDialog, setAddChargesDialog] = useState(false);
   const [addChargeDialog, setAddChargeDialog] = useState(false);
   const [editReservationDialog, setEditReservationDialog] = useState(false);
+  const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
+
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -534,6 +537,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         setOpen={setAddChargeDialog}
         reservationId={dialogReservation?.id || ''}
       />
+      <ViewPaymentsDialog
+        open={viewPaymentsDialog}
+        setOpen={setViewPaymentsDialog}
+        reservationId={dialogReservation?.id || ''}
+        guestName={dialogReservation?.guestName || ''}
+        roomNumber={dialogReservation?.roomNumber || ''}
+        bookingId={dialogReservation?.bookingId || ''}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -546,7 +557,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         editReservation={() => { setEditReservationDialog(true) }}
         isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked_in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
         isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked_out'}
-        // Add new props for the updated dialog
+        viewPayments={() => setViewPaymentsDialog(true)} 
         guestId={dialogReservation?.guestId}
         roomNumber={dialogReservation?.roomNumber}
         roomType={dialogReservation?.roomType}
