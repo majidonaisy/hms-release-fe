@@ -139,22 +139,43 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     return new Set(allRooms.map(room => room.roomNumber));
   }, [allRooms]);
 
+  const filteredRoomsByType = useMemo(() => {
+    if (!searchTerm) return roomsByType;
+
+    const filtered: Record<string, Room[]> = {};
+
+    Object.entries(roomsByType).forEach(([type, typeRooms]) => {
+      // Filter rooms that match the search term (by room number or room type)
+      const matchingRooms = typeRooms.filter((room) =>
+        room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      // Only include room types that have matching rooms
+      if (matchingRooms.length > 0) {
+        filtered[type] = matchingRooms;
+      }
+    });
+
+    return filtered;
+  }, [roomsByType, searchTerm]);
+
   const flattenedRooms = useMemo(() => {
     const flattened: (Room | { type: "header"; name: string })[] = [];
-    Object.entries(roomsByType).forEach(([type, typeRooms]) => {
+    Object.entries(filteredRoomsByType).forEach(([type, typeRooms]) => {
       flattened.push({ type: "header", name: type });
       flattened.push(...typeRooms);
     });
     return flattened;
-  }, [roomsByType]);
+  }, [filteredRoomsByType]);
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
-      console.log('reservation', reservation)
       const matchesSearch =
         !searchTerm ||
         reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) 
+   
 
       const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
 
