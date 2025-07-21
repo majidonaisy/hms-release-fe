@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../components/atoms/Tooltip"
 import { ScrollArea } from "@/components/atoms/ScrollArea"
 import { Room } from "@/validation"
-import { getRooms } from "@/services/Rooms"
 import { getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
@@ -40,7 +39,7 @@ export type UIReservation = {
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [reservations, setReservations] = useState<UIReservation[]>([])
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,24 +55,47 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [addChargeDialog, setAddChargeDialog] = useState(false);
   const [editReservationDialog, setEditReservationDialog] = useState(false);
 
-  // Get Rooms
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const response = await getRooms();
-        setRooms(response.data);
-      } catch (err) {
-        console.error("Failed to fetch rooms:", err);
-      }
-    };
-    fetchRooms();
-  }, []);
-
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
         const apiReservations = response.data.reservations;
+
+        // Extract all rooms from the reservation response
+        const extractedRooms: Room[] = [];
+        const seenRoomIds = new Set<string>();
+
+        apiReservations.forEach((reservation) => {
+          reservation.Room.forEach((room) => {
+            if (!seenRoomIds.has(room.id)) {
+              seenRoomIds.add(room.id);
+              extractedRooms.push({
+                id: room.id,
+                roomNumber: room.roomNumber,
+                status: room.status,
+                floor: room.floor,
+                description: room.description,
+                roomTypeId: room.roomTypeId,
+                photos: room.photos,
+                hotelId: room.hotelId,
+                roomType: {
+                  id: reservation.id,
+                  name: reservation.name,
+                  description: reservation.description,
+                  baseRate: reservation.baseRate,
+                  hotelId: reservation.hotelId,
+                  createdAt: reservation.createdAt.toString(),
+                  updatedAt: reservation.updatedAt.toString(),
+                  maxOccupancy: reservation.maxOccupancy,
+                  adultOccupancy: reservation.adultOccupancy,
+                  childOccupancy: reservation.childOccupancy,
+                }
+              });
+            }
+          });
+        });
+
+        setAllRooms(extractedRooms);
 
         const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
           reservation.Room.flatMap((room) =>
@@ -105,13 +127,17 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
   const roomsByType = useMemo(() => {
     const grouped: Record<string, Room[]> = {};
-    rooms.forEach((room) => {
+    allRooms.forEach((room) => {
       const typeName = room.roomType?.name ?? "Unknown";
       if (!grouped[typeName]) grouped[typeName] = [];
       grouped[typeName].push(room);
     });
     return grouped;
-  }, [rooms]);
+  }, [allRooms]);
+
+  const validRoomNumbers = useMemo(() => {
+    return new Set(allRooms.map(room => room.roomNumber));
+  }, [allRooms]);
 
   const flattenedRooms = useMemo(() => {
     const flattened: (Room | { type: "header"; name: string })[] = [];
@@ -124,18 +150,21 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
+      console.log('reservation', reservation)
       const matchesSearch =
         !searchTerm ||
-        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
 
       const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
 
-      return matchesSearch && matchesStatus && overlapsWithWeek;
+      const hasValidRoomNumber = validRoomNumbers.has(reservation.roomNumber);
+
+      return matchesSearch && matchesStatus && overlapsWithWeek && hasValidRoomNumber;
     });
-  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd]);
+  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd, validRoomNumbers]);
 
   // Map reservations to grid
   const gridEvents = useMemo(() => {
@@ -193,6 +222,42 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     try {
       const response: ReservationResponse = await getReservations(weekStart, weekEnd);
       const apiReservations = response.data.reservations;
+
+      // Extract all rooms from the reservation response
+      const extractedRooms: Room[] = [];
+      const seenRoomIds = new Set<string>();
+
+      apiReservations.forEach((reservation) => {
+        reservation.Room.forEach((room) => {
+          if (!seenRoomIds.has(room.id)) {
+            seenRoomIds.add(room.id);
+            extractedRooms.push({
+              id: room.id,
+              roomNumber: room.roomNumber,
+              status: room.status,
+              floor: room.floor,
+              description: room.description,
+              roomTypeId: room.roomTypeId,
+              photos: room.photos,
+              hotelId: room.hotelId,
+              roomType: {
+                id: reservation.id,
+                name: reservation.name,
+                description: reservation.description,
+                baseRate: reservation.baseRate,
+                hotelId: reservation.hotelId,
+                createdAt: reservation.createdAt.toString(),
+                updatedAt: reservation.updatedAt.toString(),
+                maxOccupancy: reservation.maxOccupancy,
+                adultOccupancy: reservation.adultOccupancy,
+                childOccupancy: reservation.childOccupancy,
+              }
+            });
+          }
+        });
+      });
+
+      setAllRooms(extractedRooms);
 
       const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
         reservation.Room.flatMap((room) =>
@@ -442,27 +507,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         open={addChargesDialog}
         setOpen={setAddChargesDialog}
         reservationId={dialogReservation?.id}
-        reservationData={dialogReservation}
       />
       <AddChargeDialog
         open={addChargeDialog}
         setOpen={setAddChargeDialog}
-        reservationId={dialogReservation?.id}
-        reservationData={{
-          guestName: dialogReservation?.guestName || '',
-          reservationId: dialogReservation?.id || '',
-          roomType: 'Standard Room', // You can extract this from your data
-          roomNumber: 'Room 101', // You can extract this from your data
-          guestCount: {
-            adults: 2,
-            children: 0,
-          },
-          stayDates: {
-            checkIn: dialogReservation?.start ? format(dialogReservation.start, 'yyyy-MM-dd') : '',
-            checkOut: dialogReservation?.end ? format(dialogReservation.end, 'yyyy-MM-dd') : '',
-          },
-          bookingSource: 'Direct',
-        }}
+        reservationId={dialogReservation?.id || ''}
       />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}

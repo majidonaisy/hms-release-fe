@@ -7,6 +7,8 @@ import { Label } from '@/components/atoms/Label';
 import { checkOut } from '@/services/Reservation';
 import { UIReservation } from '@/pages/HotelScheduler';
 import { format } from 'date-fns';
+import { Checkbox } from '../atoms/Checkbox';
+import { Input } from '../atoms/Input';
 
 interface CheckInCheckoutDialogProps {
     open: boolean;
@@ -27,11 +29,20 @@ const CheckOutDialog = ({
 }: CheckInCheckoutDialogProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [hasLateCheckoutFee, setHasLateCheckoutFee] = useState<boolean>(false);
+    const [lateCheckoutFee, setLateCheckoutFee] = useState<string>('');
+    const [isLateCheckoutFeeSettled, setIsLateCheckoutFeeSettled] = useState<boolean>(false);
+    const isCheckoutDisabled = isLoading || (hasLateCheckoutFee && !isLateCheckoutFeeSettled);
+
 
     useEffect(() => {
         if (open) {
             setIsLoading(false);
             setError(null);
+            setHasLateCheckoutFee(false);
+            setLateCheckoutFee('');
+            setIsLateCheckoutFeeSettled(false);
+
         }
     }, [open]);
 
@@ -73,6 +84,15 @@ const CheckOutDialog = ({
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSettleLateCheckoutFee = () => {
+        if (!lateCheckoutFee || parseFloat(lateCheckoutFee) <= 0) {
+            setError('Please enter a valid late checkout fee amount');
+            return;
+        }
+        setIsLateCheckoutFeeSettled(true);
+        setError(null);
     };
 
     return (
@@ -138,6 +158,55 @@ const CheckOutDialog = ({
                         </div>
                     </CardContent>
                 </Card>
+                <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="lateCheckoutFee"
+                            checked={hasLateCheckoutFee}
+                            onCheckedChange={(checked) => setHasLateCheckoutFee(checked === true)}
+                            className="data-[state=checked]:bg-hms-primary"
+                        />
+                        <Label htmlFor="lateCheckoutFee" className="text-sm font-medium">
+                            Late Checkout Fee
+                        </Label>
+                    </div>
+
+                    {hasLateCheckoutFee && (
+                        <div className="space-y-3 ml-6">
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                    <Label htmlFor="feeAmount" className="text-sm">
+                                        Fee Amount
+                                    </Label>
+                                    <Input
+                                        id="feeAmount"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="Enter fee amount"
+                                        value={lateCheckoutFee}
+                                        onChange={(e) => setLateCheckoutFee(e.target.value)}
+                                        className="mt-1"
+                                        disabled={isLateCheckoutFeeSettled}
+                                    />
+                                </div>
+                                <Button
+                                    onClick={handleSettleLateCheckoutFee}
+                                    disabled={isLateCheckoutFeeSettled || !lateCheckoutFee || parseFloat(lateCheckoutFee) <= 0}
+                                    variant={isLateCheckoutFeeSettled ? "outline" : "default"}
+                                    className="mt-6"
+                                >
+                                    {isLateCheckoutFeeSettled ? 'Settled' : 'Settle'}
+                                </Button>
+                            </div>
+                            {isLateCheckoutFeeSettled && (
+                                <div className="text-sm text-green-600 font-medium">
+                                    ✓ Late checkout fee of ${parseFloat(lateCheckoutFee).toFixed(2)} has been settled
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
                 <div className="mt-6 pt-4 border-t text-center">
                     <Button
                         onClick={handleCheckIn}
