@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus, DoorOpen, Calendar1 } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
@@ -11,7 +11,7 @@ import { Calendar } from '@/components/molecules/Calendar';
 import { Switch } from '@/components/atoms/Switch';
 import { format } from 'date-fns';
 import { deleteGuest, getGuestById, updateGuest } from '@/services/Guests';
-import { GetGuestByIdResponse, RoomType, AddGuestRequest } from '@/validation';
+import { GetGuestByIdResponse, RoomType, AddGuestRequest, GetReservationByGuestId } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import DeleteDialog from "../../components/molecules/DeleteDialog";
@@ -27,7 +27,7 @@ const GuestProfileView = () => {
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [guestToDelete, setGuestToDelete] = useState<GetGuestByIdResponse['data'] | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
-
+    const [reservationData, setReservationData] = useState<GetReservationByGuestId | null>(null)
     const [guest, setGuest] = useState<GetGuestByIdResponse | null>(null);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [formData, setFormData] = useState<AddGuestRequest>({
@@ -57,7 +57,6 @@ const GuestProfileView = () => {
             try {
                 const guestResponse = await getGuestById(id);
                 setGuest(guestResponse);
-                // Set form data when guest data is loaded
                 setFormData({
                     firstName: guestResponse.data.firstName,
                     lastName: guestResponse.data.lastName,
@@ -87,8 +86,12 @@ const GuestProfileView = () => {
         };
 
         const getGuestHistory = async () => {
-            const history = await getReservationByGuestId(id || '')
-            console.log('history', history)
+            try {
+                const history = await getReservationByGuestId(id || '')
+                setReservationData(history)
+            } catch (err) {
+                console.error(err)
+            }
         }
 
         fetchGuestData();
@@ -202,6 +205,13 @@ const GuestProfileView = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
+    };
+
+    const formatHistoryDate = (date: Date) => {
+        return new Date(date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short'
+        });
     };
 
     const handleDeleteCancel = (): void => {
@@ -519,11 +529,10 @@ const GuestProfileView = () => {
                     </Card>
                 </div>
 
-                {/* Right Column - Reservation History */}
                 <Card className="p-3">
                     <CardHeader className='p-0'>
                         <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
-                            Reservation History / Upcoming Stays
+                            Reservation History
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="flex items-center rounded-lg border px-1">
@@ -542,6 +551,41 @@ const GuestProfileView = () => {
                             </Button>
                         </div>
                     </CardHeader>
+                    <CardContent className='space-y-3 px-0'>
+                        {reservationData?.data.map((reservation) => (
+                            <Card key={reservation.id} className='bg-hms-accent/15 px-2 gap-2'>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <DoorOpen className='size-5' />
+                                        Rooms:
+                                    </p>
+                                    <span>
+                                        {reservation.rooms.map((room) => (
+                                            <p key={room.id}>{room.roomNumber}</p>
+                                        ))}
+                                    </span>
+                                </span>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <Calendar1 className='size-5' />
+                                        Stay Dates:
+                                    </p>
+                                    <p>
+                                        {formatHistoryDate(reservation.checkIn)} - {formatHistoryDate(reservation.checkOut)}
+                                    </p>
+                                </span>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <Calendar1 className='size-5' />
+                                        Stay Dates:
+                                    </p>
+                                    <p>
+                                       {reservation.status}
+                                    </p>
+                                </span>
+                            </Card>
+                        ))}
+                    </CardContent>
                 </Card>
 
                 <DeleteDialog

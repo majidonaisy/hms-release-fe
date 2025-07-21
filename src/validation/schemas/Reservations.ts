@@ -100,6 +100,50 @@ export const CheckOutResponse = z.object({
 export const GetNightPriceResponseSchema = z.object({
     message: z.string(),
     data: z.string(),
+});
+
+export const GetReservationByGuestIdSchema = z.object({
+    status: z.number(),
+    message: z.string(),
+    data: z.array(z.object({
+        id: z.string(),
+        checkIn: z.date(),
+        checkOut: z.date(),
+        status: z.enum(["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"]),
+        guestId: z.string(),
+        hotelId: z.string(),
+        ratePlanId: z.string(),
+        price: z.string(),
+        groupBookingId: z.string(),
+        chargeRouting: z.enum(["OWN_FOLIO", "MASTER_FOLIO", "SPLIT"]),
+        createdAt: z.date(),
+        updatedAt: z.date(),
+        rooms: z.array(z.object({
+            id: z.string(),
+            roomNumber: z.string(),
+            status: z.enum(["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"]),
+            floor: z.number(),
+            description: z.string(),
+            roomTypeId: z.string(),
+            photos: z.array(z.any()),
+            hotelId: z.string(),
+        })),
+        ratePlan: z.object({
+            id: z.string(),
+            hotelId: z.string(),
+            code: z.string(),
+            name: z.string(),
+            baseAdjType: z.enum(["PERCENT", "FIXED"], {
+                message: "Adjustment type must be either PERCENT or FIXED",
+            }),
+            baseAdjVal: z.string(),
+            currencyId: z.string(),
+            isActive: z.boolean(),
+            createdAt: z.date(),
+            updatedAt: z.date(),
+        })
+    }
+    ))
 })
 
 export type Reservation = z.infer<typeof ReservationResponseShape>
@@ -112,3 +156,4 @@ export type CheckInResponse = z.infer<typeof CheckInResponse>;
 export type CheckOutRequest = z.infer<typeof CheckOutRequest>;
 export type CheckOutResponse = z.infer<typeof CheckOutResponse>;
 export type GetNightPriceResponse = z.infer<typeof GetNightPriceResponseSchema>
+export type GetReservationByGuestId = z.infer<typeof GetReservationByGuestIdSchema>

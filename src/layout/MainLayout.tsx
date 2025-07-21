@@ -35,11 +35,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
         );
     };
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/home');
-    };
-
     // Render menu items with subroute support
     const renderMenuItems = (routes: any[], parentPath = "") => {
         return routes
@@ -160,7 +155,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200" onClick={handleLogout}>
+                                    <Button className="w-full transition-all duration-200">
                                         <LogOut className="!size-4" />
                                         <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
                                     </Button>
