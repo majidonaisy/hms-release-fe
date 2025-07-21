@@ -20,7 +20,8 @@ const ChooseReservationOptionDialog = ({
     roomType,
     checkInDate,
     checkOutDate,
-    stayDuration
+    stayDuration,
+    cancelReservation
 }: {
     open: boolean
     setOpen: (open: boolean) => void
@@ -39,7 +40,8 @@ const ChooseReservationOptionDialog = ({
     roomType?: string
     checkInDate?: string
     checkOutDate?: string
-    stayDuration?: string
+    stayDuration?: string,
+    cancelReservation: () => void
 }) => {
     const [guestData, setGuestData] = useState<Guest | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -211,7 +213,7 @@ const ChooseReservationOptionDialog = ({
                     </div>
 
                     {/* Cancel Reservation */}
-                    <div className="flex items-center justify-between p-3 hover:bg-red-50 rounded-lg cursor-pointer transition-colors">
+                    <div className="flex items-center justify-between p-3 hover:bg-red-50 rounded-lg cursor-pointer transition-colors" onClick={() => {setOpen(false); cancelReservation()}}>
                         <div className="flex items-center gap-3">
                             <Trash2 className="h-5 w-5 text-red-600" />
                             <span className="font-medium text-red-600">Cancel Reservation</span>

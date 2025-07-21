@@ -46,7 +46,24 @@ export const GetEmployeeByIdResponseSchema = z.object({
   data: EmployeeShape,
 });
 
+export const AddEmployeeRequestSchema = z.object({
+  email: z.string,
+  username: z.string(),
+  password: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  roleId: z.string()
+})
+
+export const AddTeamMemberResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: EmployeeShape
+})
+
 export type Employee = z.infer<typeof EmployeeShape>;
 export type Pagination = z.infer<typeof PaginationSchema>;
 export type GetEmployeesResponse = z.infer<typeof GetEmployeesResponseSchema>;
 export type GetEmployeeByIdResponse = z.infer<typeof GetEmployeeByIdResponseSchema>;
+export type AddEmployeeRequest = z.infer<typeof AddEmployeeRequestSchema>
+export type AddTeamMemberResponse = z.infer<typeof AddTeamMemberResponseSchema>
