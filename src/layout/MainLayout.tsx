@@ -154,7 +154,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200" onClick={() => { dispatch(logout()); navigate("/"); }}>
+                                    <Button className="w-full transition-all duration-200" onClick={() => { dispatch(logout()); navigate("/auth/login"); }}>
                                         <LogOut className="!size-4" />
                                         <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
                                     </Button>

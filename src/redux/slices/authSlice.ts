@@ -35,6 +35,12 @@ export const authSlice = createSlice({
       state.refreshToken = action.payload.refreshToken || null;
       // state.user = action.payload.user || null;
       state.isAuthenticated = true;
+
+      // Persist tokens
+      localStorage.setItem("accessToken", action.payload.accessToken);
+      if (action.payload.refreshToken) {
+        localStorage.setItem("refreshToken", action.payload.refreshToken);
+      }
     },
     logout: (state) => {
       state.accessToken = null;
@@ -42,12 +48,18 @@ export const authSlice = createSlice({
       state.refreshToken = null;
       // state.user = null;
       state.isAuthenticated = false;
+
+      // Clear persisted tokens
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     },
     updateAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
+      localStorage.setItem("accessToken", action.payload);
     },
     setTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken?: string }>) => {
       state.accessToken = action.payload.accessToken;
+      state.isAuthenticated = true;
       if (action.payload.refreshToken) {
         state.refreshToken = action.payload.refreshToken;
       }

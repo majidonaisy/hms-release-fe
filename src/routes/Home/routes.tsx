@@ -15,15 +15,7 @@ import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
 const RoutesList = () => {
 
     const homeRoutesList: HomeRouteConfig[] = [
-        {
-            path: "/home",
-            title: "Dashboard",
-            icon: <Home className=" " />,
-            component: Dashboard,
-            isAuthenticated: true,
-            isShown: true,
-
-        },
+        
         {
             path: "/rooms",
             title: "Rooms",
