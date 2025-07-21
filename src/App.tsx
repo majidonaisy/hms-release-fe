@@ -8,6 +8,33 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { Toaster } from './components/molecules/Sonner';
 import { DialogProvider } from './context/DialogContext';
 import DialogContainer from './components/Templates/DialogContainer';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
+import { setTokens } from '@/redux/slices/authSlice';
+
+// Token restoration component
+const TokenRestoration: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    // Only restore tokens if not already authenticated
+    if (!isAuthenticated) {
+      const accessToken = localStorage.getItem('accessToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+
+      if (accessToken) {
+        dispatch(setTokens({
+          accessToken,
+          refreshToken: refreshToken || undefined
+        }));
+      }
+    }
+  }, [dispatch, isAuthenticated]);
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -19,15 +46,17 @@ function App() {
     >
       <Provider store={store}>
         <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-          <RoleProvider>
-            <DialogProvider>
-            <Router>
-              <HomeRoutes />
-              <Toaster/>
-              <DialogContainer />
-            </Router>
-            </DialogProvider>
-          </RoleProvider>
+          <TokenRestoration>
+            <RoleProvider>
+              <DialogProvider>
+                <Router>
+                  <HomeRoutes />
+                  <Toaster />
+                  <DialogContainer />
+                </Router>
+              </DialogProvider>
+            </RoleProvider>
+          </TokenRestoration>
         </PersistGate>
       </Provider>
     </PostHogProvider>

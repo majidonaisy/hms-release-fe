@@ -7,6 +7,7 @@ import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { login } from '@/services/Auth';
 import { login as loginAction } from '@/redux/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardProps {
   modalContext?: any;
@@ -15,6 +16,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   // Form state
   const [credentials, setCredentials] = useState<LoginRequest>({
     username: 'majid',
@@ -50,6 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
         permissions: response.data.permissions ,
         refreshToken: response.data.refreshToken,
       }));
+      navigate("/")
     } catch (error: any) {
       console.error('Login Error:', error);
       setError(error.userMessage || 'Login failed. Please try again.');

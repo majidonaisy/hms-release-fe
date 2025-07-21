@@ -19,6 +19,7 @@ import EditReservationDialog from "@/components/dialogs/EditReservationDialog"
 import CheckInDialog from "@/components/dialogs/CheckInDialog"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import { toast } from "sonner"
+import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -42,7 +43,7 @@ export type UIReservation = {
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [reservations, setReservations] = useState<UIReservation[]>([])
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,25 +60,49 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [editReservationDialog, setEditReservationDialog] = useState(false);
   const [cancelReservationDialog, setCancelReservationDialog] = useState(false)
   const [reservationToCancel, setReservationToCancel] = useState('')
-
-  // Get Rooms
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const response = await getRooms();
-        setRooms(response.data);
-      } catch (err) {
-        console.error("Failed to fetch rooms:", err);
-      }
-    };
-    fetchRooms();
-  }, []);
+  const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
         const apiReservations = response.data.reservations;
+
+        // Extract all rooms from the reservation response
+        const extractedRooms: Room[] = [];
+        const seenRoomIds = new Set<string>();
+
+        apiReservations.forEach((reservation) => {
+          reservation.Room.forEach((room) => {
+            if (!seenRoomIds.has(room.id)) {
+              seenRoomIds.add(room.id);
+              extractedRooms.push({
+                id: room.id,
+                roomNumber: room.roomNumber,
+                status: room.status,
+                floor: room.floor,
+                description: room.description,
+                roomTypeId: room.roomTypeId,
+                photos: room.photos,
+                hotelId: room.hotelId,
+                roomType: {
+                  id: reservation.id,
+                  name: reservation.name,
+                  description: reservation.description,
+                  baseRate: reservation.baseRate,
+                  hotelId: reservation.hotelId,
+                  createdAt: reservation.createdAt.toString(),
+                  updatedAt: reservation.updatedAt.toString(),
+                  maxOccupancy: reservation.maxOccupancy,
+                  adultOccupancy: reservation.adultOccupancy,
+                  childOccupancy: reservation.childOccupancy,
+                }
+              });
+            }
+          });
+        });
+
+        setAllRooms(extractedRooms);
 
         const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
           reservation.Room.flatMap((room) =>
@@ -109,37 +134,65 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
   const roomsByType = useMemo(() => {
     const grouped: Record<string, Room[]> = {};
-    rooms.forEach((room) => {
+    allRooms.forEach((room) => {
       const typeName = room.roomType?.name ?? "Unknown";
       if (!grouped[typeName]) grouped[typeName] = [];
       grouped[typeName].push(room);
     });
     return grouped;
-  }, [rooms]);
+  }, [allRooms]);
+
+  const validRoomNumbers = useMemo(() => {
+    return new Set(allRooms.map(room => room.roomNumber));
+  }, [allRooms]);
+
+  const filteredRoomsByType = useMemo(() => {
+    if (!searchTerm) return roomsByType;
+
+    const filtered: Record<string, Room[]> = {};
+
+    Object.entries(roomsByType).forEach(([type, typeRooms]) => {
+      // Filter rooms that match the search term (by room number or room type)
+      const matchingRooms = typeRooms.filter((room) =>
+        room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      // Only include room types that have matching rooms
+      if (matchingRooms.length > 0) {
+        filtered[type] = matchingRooms;
+      }
+    });
+
+    return filtered;
+  }, [roomsByType, searchTerm]);
 
   const flattenedRooms = useMemo(() => {
     const flattened: (Room | { type: "header"; name: string })[] = [];
-    Object.entries(roomsByType).forEach(([type, typeRooms]) => {
+    Object.entries(filteredRoomsByType).forEach(([type, typeRooms]) => {
       flattened.push({ type: "header", name: type });
       flattened.push(...typeRooms);
     });
     return flattened;
-  }, [roomsByType]);
+  }, [filteredRoomsByType]);
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
       const matchesSearch =
         !searchTerm ||
-        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
+        reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) 
+   
 
-      const matchesStatus = filterStatus === "all" || reservation.status.toLowerCase() === filterStatus;
+      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus;
 
       const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
 
-      return matchesSearch && matchesStatus && overlapsWithWeek;
+      const hasValidRoomNumber = validRoomNumbers.has(reservation.roomNumber);
+
+      return matchesSearch && matchesStatus && overlapsWithWeek && hasValidRoomNumber;
     });
-  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd]);
+  }, [reservations, searchTerm, filterStatus, weekStart, weekEnd, validRoomNumbers]);
 
   // Map reservations to grid
   const gridEvents = useMemo(() => {
@@ -197,6 +250,42 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     try {
       const response: ReservationResponse = await getReservations(weekStart, weekEnd);
       const apiReservations = response.data.reservations;
+
+      // Extract all rooms from the reservation response
+      const extractedRooms: Room[] = [];
+      const seenRoomIds = new Set<string>();
+
+      apiReservations.forEach((reservation) => {
+        reservation.Room.forEach((room) => {
+          if (!seenRoomIds.has(room.id)) {
+            seenRoomIds.add(room.id);
+            extractedRooms.push({
+              id: room.id,
+              roomNumber: room.roomNumber,
+              status: room.status,
+              floor: room.floor,
+              description: room.description,
+              roomTypeId: room.roomTypeId,
+              photos: room.photos,
+              hotelId: room.hotelId,
+              roomType: {
+                id: reservation.id,
+                name: reservation.name,
+                description: reservation.description,
+                baseRate: reservation.baseRate,
+                hotelId: reservation.hotelId,
+                createdAt: reservation.createdAt.toString(),
+                updatedAt: reservation.updatedAt.toString(),
+                maxOccupancy: reservation.maxOccupancy,
+                adultOccupancy: reservation.adultOccupancy,
+                childOccupancy: reservation.childOccupancy,
+              }
+            });
+          }
+        });
+      });
+
+      setAllRooms(extractedRooms);
 
       const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
         reservation.Room.flatMap((room) =>
@@ -283,11 +372,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="reserved">Reserved</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="checked-in">Checked In</SelectItem>
-                  <SelectItem value="checked-out">Checked Out</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
+                  <SelectItem value="HELD">Held</SelectItem>
+                  <SelectItem value="OCCUPIED">Occupied</SelectItem>
+                  <SelectItem value="CHECKED_IN">Checked In</SelectItem>
+                  <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
+                  <SelectItem value="BLOCKED">Blocked</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -462,27 +551,19 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         open={addChargesDialog}
         setOpen={setAddChargesDialog}
         reservationId={dialogReservation?.id}
-        reservationData={dialogReservation}
       />
       <AddChargeDialog
         open={addChargeDialog}
         setOpen={setAddChargeDialog}
-        reservationId={dialogReservation?.id}
-        reservationData={{
-          guestName: dialogReservation?.guestName || '',
-          reservationId: dialogReservation?.id || '',
-          roomType: 'Standard Room', // You can extract this from your data
-          roomNumber: 'Room 101', // You can extract this from your data
-          guestCount: {
-            adults: 2,
-            children: 0,
-          },
-          stayDates: {
-            checkIn: dialogReservation?.start ? format(dialogReservation.start, 'yyyy-MM-dd') : '',
-            checkOut: dialogReservation?.end ? format(dialogReservation.end, 'yyyy-MM-dd') : '',
-          },
-          bookingSource: 'Direct',
-        }}
+        reservationId={dialogReservation?.id || ''}
+      />
+      <ViewPaymentsDialog
+        open={viewPaymentsDialog}
+        setOpen={setViewPaymentsDialog}
+        reservationId={dialogReservation?.id || ''}
+        guestName={dialogReservation?.guestName || ''}
+        roomNumber={dialogReservation?.roomNumber || ''}
+        bookingId={dialogReservation?.bookingId || ''}
       />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
@@ -496,7 +577,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         editReservation={() => { setEditReservationDialog(true) }}
         isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked_in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
         isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked_out'}
-        // Add new props for the updated dialog
+        viewPayments={() => setViewPaymentsDialog(true)} 
         guestId={dialogReservation?.guestId}
         roomNumber={dialogReservation?.roomNumber}
         roomType={dialogReservation?.roomType}

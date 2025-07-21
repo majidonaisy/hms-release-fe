@@ -23,7 +23,8 @@ interface NewMaintenanceDialogProps {
 interface MaintenanceFormData {
     id?: string;
     areaTypeId: string; // Changed from areaType to areaTypeId
-    areaId: string; // This will store the actual area/room ID
+    areaId?: string; // This will store the actual area ID (made optional)
+    roomId?: string; // Add roomId as optional
     description: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     userId?: string;
@@ -54,6 +55,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     const [formData, setFormData] = useState<MaintenanceFormData>({
         areaTypeId: '',
         areaId: '',
+        roomId: '',
         description: '',
         priority: 'MEDIUM',
         userId: '',
@@ -96,6 +98,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 id: editData.id || '',
                 areaTypeId: editData.areaTypeId || '',
                 areaId: editData.areaId || '',
+                roomId: editData.roomId || '',
                 description: editData.description || '',
                 priority: editData.priority || 'MEDIUM',
                 userId: editData.userId || '',
@@ -108,6 +111,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             setFormData({
                 areaTypeId: '',
                 areaId: '',
+                roomId: '',
                 description: '',
                 priority: 'MEDIUM',
                 userId: '',
@@ -122,8 +126,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
         setFormData(prev => ({
             ...prev,
             [field]: value,
-            // Reset areaId when areaTypeId changes
-            ...(field === 'areaTypeId' && { areaId: '' })
+            // Reset areaId and roomId when areaTypeId changes
+            ...(field === 'areaTypeId' && { areaId: '', roomId: '' })
         }));
 
         // Fetch appropriate data when area type changes
@@ -168,8 +172,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             return;
         }
 
-        if (!formData.areaId) {
-            toast.error('Please enter area name or number');
+        if (!formData.areaId && !formData.roomId) {
+            toast.error('Please select a room or area');
             return;
         }
 
@@ -182,11 +186,25 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
 
         setLoading(true);
         try {
-            await onConfirm(formData);
+            // Prepare data based on area type selection
+            const submitData = {
+                ...formData,
+                // If room is selected, send as roomId; if area is selected, send as areaId
+                ...(formData.areaTypeId === 'ROOM' ? {
+                    roomId: formData.areaId,
+                    areaId: undefined
+                } : {
+                    areaId: formData.areaId,
+                    roomId: undefined
+                })
+            };
+
+            await onConfirm(submitData);
             if (!isEditMode) {
                 setFormData({
                     areaTypeId: '',
                     areaId: '',
+                    roomId: '',
                     description: '',
                     priority: 'MEDIUM',
                     userId: '',
@@ -207,6 +225,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             setFormData({
                 areaTypeId: '',
                 areaId: '',
+                roomId: '',
                 description: '',
                 priority: 'MEDIUM',
                 userId: '',

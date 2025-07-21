@@ -9,6 +9,7 @@ const ChooseReservationOptionDialog = ({
     setOpen,
     checkIn,
     checkOut,
+    viewPayments,
     addCharges,
     editReservation,
     addCharge,
@@ -28,6 +29,7 @@ const ChooseReservationOptionDialog = ({
     description: string
     checkIn: () => void
     checkOut: () => void
+    viewPayments: () => void
     addCharges: () => void
     editReservation: () => void
     addCharge: () => void
@@ -127,7 +129,17 @@ const ChooseReservationOptionDialog = ({
                         </div>
                         <ChevronRight size={15} />
                     </div>
-
+                    {/* View Payment */}
+                    <div
+                        className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                        onClick={() => { setOpen(false); viewPayments(); }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <Banknote className="h-5 w-5 text-gray-600" />
+                            <span className="font-medium text-gray-900">View Payment</span>
+                        </div>
+                        <ChevronRight size={15} />
+                    </div>
                     {/* Add Payment */}
                     <div
                         className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"

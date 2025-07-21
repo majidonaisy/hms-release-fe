@@ -9,3 +9,4 @@ export * from "./SingleReservation";
 export * from "./housekeeping";
 export * from "./maintenance";
 export * from "./charges";
+export * from "./payments";

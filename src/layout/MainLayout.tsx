@@ -18,10 +18,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const location = useLocation();
     const [openTabs, setOpenTabs] = useState<string[]>([]);
     const [openReservationDialog, setOpenReservationDialog] = useState(false);
-    const { filterRoutesByPermissions, isAuthenticated } = useRole();
+    const { filterRoutesByPermissions } = useRole();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
     const activeRoute = decodeURIComponent(activeRouteSeg);
@@ -155,7 +154,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200">
+                                    <Button className="w-full transition-all duration-200" onClick={() => { dispatch(logout()); navigate("/auth/login"); }}>
                                         <LogOut className="!size-4" />
                                         <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
                                     </Button>
