@@ -51,8 +51,8 @@ export const ENDPOINTS = {
     GetId: "reservation/get",
     AddGroupReservation: "reservation/create",
     GetNightPrice: "reservation/get-night-price",
-    Cancel: 'reservation/cancel',
-    GetByGuestId: 'reservation/get-reservation-by-guestId'
+    Cancel: "reservation/cancel",
+    GetByGuestId: "reservation/get-reservation-by-guestId",
   },
   Maintenance: {
     Add: "maintenance/add",
@@ -82,7 +82,7 @@ export const ENDPOINTS = {
   Employees: {
     GetAll: "auth/employees",
     GetEmployeeById: "auth/get-user",
-    Create: 'auth/add-user'
+    Create: "auth/add-user",
   },
   Role: {
     Add: "role/add",
@@ -93,7 +93,7 @@ export const ENDPOINTS = {
     GetPermissions: "role/get-permissions",
   },
   Currency: {
-    GetAll: "exchange/currencies/",
+    GetAll: "exchange/exchange-currencies",
   },
   Area: {
     Add: "area/add",
