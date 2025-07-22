@@ -154,7 +154,7 @@ const HotelSettingsPage: React.FC = () => {
                                     <SelectContent>
                                         {/* Show current base currency first if it exists */}
                                         {settings?.baseCurrency && (
-                                            <SelectItem value={settings.baseCurrency}>
+                                            <SelectItem value={settings.baseCurrency} key={settings.baseCurrency}>
                                                 {settings.baseCurrency} - {currencies.find(c => c.code === settings.baseCurrency)?.name || 'Current Currency'}
                                             </SelectItem>
                                         )}
@@ -162,7 +162,7 @@ const HotelSettingsPage: React.FC = () => {
                                         {currencies
                                             .filter(currency => currency.code !== settings?.baseCurrency)
                                             .map((currency) => (
-                                                <SelectItem key={currency.id} value={currency.code}>
+                                                <SelectItem key={currency.code} value={currency.code}>
                                                     {currency.code} - {currency.name}
                                                 </SelectItem>
                                             ))
@@ -274,8 +274,8 @@ const HotelSettingsPage: React.FC = () => {
                                     <div>
                                         <span className="text-gray-600">Late Fee:</span>
                                         <p className="font-medium">
-                                            {settings.lateFeeAmount !== null && settings.lateFeeType ? 
-                                                `${settings.lateFeeAmount} ${settings.lateFeeType === LateFeeType.PERCENTAGE ? '%' : settings.baseCurrency}` 
+                                            {settings.lateFeeAmount !== null && settings.lateFeeType ?
+                                                `${settings.lateFeeAmount} ${settings.lateFeeType === LateFeeType.PERCENTAGE ? '%' : settings.baseCurrency}`
                                                 : 'Not set'
                                             }
                                         </p>
