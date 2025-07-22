@@ -333,7 +333,7 @@ const CheckOutDialog = ({
                                         </div>
                                     ) : automaticFeeInfo ? (
                                         automaticFeeInfo.fee > 0 ? (
-                                            <div className="p-3 bg-hms-accent-35 border border-hms-accent rounded-lg">
+                                            <div className="p-3 bg-hms-accent/15 border border-hms-accent rounded-lg">
                                                 <div className="text-sm">
                                                     <p className="font-medium ">Late Checkout Fee</p>
                                                     <p className="text-hms-primary mt-1">
