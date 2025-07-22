@@ -8,6 +8,7 @@ import { login } from '@/services/Auth';
 import { login as loginAction } from '@/redux/slices/authSlice';
 import { LoginRequest } from '@/validation/schemas';
 import { Mail, Lock, Loader2 } from 'lucide-react';
+import { setCurrency } from '@/redux/slices/currencySlice';
 
 const Login: React.FC = () => {
     const dispatch = useDispatch();
@@ -37,11 +38,13 @@ const Login: React.FC = () => {
 
         try {
             const response = await login(credentials);
-
             dispatch(loginAction({
                 accessToken: response.data.accessToken,
                 permissions: response.data.permissions,
                 refreshToken: response.data.refreshToken,
+            }));
+            dispatch(setCurrency({
+                currency: response.data.baseCurrency,
             }));
 
             // Navigate to intended destination or home

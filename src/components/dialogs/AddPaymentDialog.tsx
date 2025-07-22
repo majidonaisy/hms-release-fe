@@ -11,11 +11,12 @@ import { ScrollArea } from "@/components/atoms/ScrollArea";
 import { Search, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { getUnsetledCharges, addPayment } from "@/services/Charges";
-import { getAllCurrencies } from "@/services/Currency";
+import { convertRate, getAllCurrencies } from "@/services/Currency";
 import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
 import { Currency } from '@/validation/schemas/Currency';
 import { format } from 'date-fns';
+import { store } from '@/redux/store';
 
 interface PaymentChargeItem {
     id: string;
@@ -44,10 +45,12 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
     const [selectedItems, setSelectedItems] = useState<PaymentChargeItem[]>([]);
     const [reservationDetails, setReservationDetails] = useState<SingleReservation | null>(null);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [exchangeRate, setExchangeRate] = useState(0);
     const [loadingCharges, setLoadingCharges] = useState(true);
     const [loadingReservation, setLoadingReservation] = useState(true);
     const [loadingCurrencies, setLoadingCurrencies] = useState(true);
-
+    const [loadingExchangeRate, setLoadingExchangeRate] = useState(false);
+    const baseCurrency = store.getState().currency.currency || 'USD'; // Default to USD if not set
     const paymentMethods = [
         { value: 'cash', label: 'Cash' },
         { value: 'credit_card', label: 'Credit Card' },
@@ -150,13 +153,53 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
             setSearchText('');
             setSortBy('name');
             setPaymentMethod('');
-            setSelectedCurrency('');
+            setSelectedCurrency(baseCurrency);
             setNotes('');
             setSelectedItems([]);
+            setExchangeRate(1);
         }
-    }, [open]);
+    }, [open, baseCurrency]);
 
+    const convert = useCallback(async (baseCurrency: string, targetCurrency: string, amount: number) => {
+        try {
+            setLoadingExchangeRate(true);
+            const response = await convertRate({ baseCurrency, targetCurrency, amount });
+            console.log('response', response)
+            setExchangeRate((response as any).data.convertedAmount);
+            return response;
+        } catch (error: any) {
+            console.error('Failed to convert currency:', error);
+            toast.error(error.userMessage || 'Failed to convert currency');
+            throw error;
+        } finally {
+            setLoadingExchangeRate(false);
+        }
+    }, []);
 
+    useEffect(() => {
+        if (selectedCurrency && totalAmount > 0 && selectedCurrency !== baseCurrency) {
+            convert(baseCurrency, selectedCurrency, totalAmount);
+        } else if (selectedCurrency === baseCurrency) {
+            setExchangeRate(totalAmount); // Show the total amount for base currency
+        }
+    }, [totalAmount, selectedCurrency, baseCurrency, convert]);
+
+    const formatCurrency = (amount: number, currencyCode: string = 'USD') => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currencyCode,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    };
+
+    // Alternative helper for just adding commas without currency symbol
+    const formatNumber = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    };
 
 
     // Filter and sort charge items
@@ -405,7 +448,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                             <Separator className="my-4" />
                             <div className="flex justify-between items-center text-lg font-bold bg-hms-accent/15 p-3 rounded-lg">
                                 <span>Selected Total</span>
-                                <span className="text-hms-primary">${totalAmount.toFixed(2)} USD</span>
+                                <span className="text-hms-primary">{formatCurrency(totalAmount, baseCurrency)}</span>
                             </div>
                         </div>
 
@@ -417,18 +460,40 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                                 {/* Currency Selection */}
                                 <div>
                                     <Label htmlFor="currency">Currency</Label>
-                                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select currency" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {currencies.map((currency) => (
-                                                <SelectItem key={currency.id} value={currency.id}>
-                                                    {currency.code} - {currency.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <div className='flex items-center gap-2'>
+
+                                        <Input
+                                            id="exchangeRate"
+                                            type="text"
+                                            value={loadingExchangeRate ? '' : formatNumber(exchangeRate)}
+                                            placeholder={loadingExchangeRate ? 'Loading...' : `0.00 ${selectedCurrency}`}
+                                            disabled
+                                            className="text-right font-mono"
+                                        />
+
+                                        <Select value={selectedCurrency} onValueChange={(selectedCurrencyCode) => {
+                                            console.log('selectedCurrencyCode', selectedCurrencyCode)
+                                            setSelectedCurrency(selectedCurrencyCode)
+
+                                            if (selectedCurrencyCode === baseCurrency) {
+                                                setExchangeRate(totalAmount); // Show total amount for base currency
+                                            } else if (totalAmount > 0) {
+                                                convert(baseCurrency, selectedCurrencyCode, totalAmount)
+                                            }
+                                        }}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select currency" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value={baseCurrency}>{baseCurrency}</SelectItem>
+                                                {currencies.map((currency) => (
+                                                    <SelectItem key={currency.id} value={currency.code}>
+                                                        {currency.code} - {currency.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
 
@@ -465,16 +530,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                         </div>
                     </div>
 
-                    {/* Total Amount - Always Visible */}
-                    {/* <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                        <div className="flex justify-between items-center text-xl font-bold">
-                            <span>Total Amount</span>
-                            <span className="text-hms-primary">${totalAmount.toFixed(2)} USD</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                            {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
-                        </div>
-                    </div> */}
+
 
                     {/* Confirm Payment Button - Always Visible */}
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">

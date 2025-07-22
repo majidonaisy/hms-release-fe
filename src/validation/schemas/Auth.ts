@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { base64, z } from "zod/v4";
 
 export const LoginRequestSchema = z.object({
   username: z.string("Please enter a valid username"),
@@ -17,6 +17,7 @@ export const LoginResponseSchema = z.object({
     permissions: z.array(PermissionsSchema).optional(),
     accessToken: z.string(),
     refreshToken: z.string(),
+    baseCurrency: z.string(),
     // user: z.object({
     //   id: z.string(),
     //   email: z.string(),

@@ -10,3 +10,4 @@ export * from "./housekeeping";
 export * from "./maintenance";
 export * from "./charges";
 export * from "./payments";
+export * from "./Hotel";

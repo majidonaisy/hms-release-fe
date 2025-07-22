@@ -5,6 +5,7 @@ import { addRole, getRoles } from '@/services/Role';
 import { getRatePlans } from '@/services/RatePlans';
 import { useNavigate } from 'react-router-dom';
 import { DashboardCard } from '@/components/Templates/DashboardCard';
+import HotelSettingsCard from '@/components/Templates/HotelSettingsCard';
 import { toast } from 'sonner';
 import { useDialog } from '@/context/useDialog';
 import { GetRoomTypesResponse, AddRoomTypeRequest } from '@/validation/schemas/RoomType';
@@ -219,6 +220,16 @@ const Dashboard = () => {
                     createButtonText="New role"
                     viewButtonText="View roles"
                 />
+
+                <HotelSettingsCard
+                    title="Hotel Settings"
+                    description="Configure general hotel settings like currency, check-in/out times, and late fees."
+                    imageSrc="https://images.unsplash.com/photo-1549294413-26f195200c16?q=80&w=2070"
+                    imageAlt="Hotel Settings"
+                    onManageClick={() => navigate('/hotel-settings')}
+                    manageButtonText="Manage Settings"
+                />
+
             </div>
         </div>
     );

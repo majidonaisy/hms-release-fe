@@ -94,6 +94,12 @@ export const ENDPOINTS = {
   },
   Currency: {
     GetAll: "exchange/exchange-currencies",
+    Convert: "exchange/convert",
+    
+  },
+  Hotel: {
+    Get: "hotel/",
+    Update: "hotel/update",
   },
   Area: {
     Add: "area/add",
