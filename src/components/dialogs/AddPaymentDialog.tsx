@@ -153,12 +153,28 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
             setSearchText('');
             setSortBy('name');
             setPaymentMethod('');
-            setSelectedCurrency('');
+            setSelectedCurrency(baseCurrency);
             setNotes('');
             setSelectedItems([]);
-            setExchangeRate(0);
+            setExchangeRate(1);
         }
-    }, [open,baseCurrency]);
+    }, [open, baseCurrency]);
+
+    const convert = useCallback(async (baseCurrency: string, targetCurrency: string, amount: number) => {
+        try {
+            setLoadingExchangeRate(true);
+            const response = await convertRate({ baseCurrency, targetCurrency, amount });
+            console.log('response', response)
+            setExchangeRate((response as any).data.convertedAmount);
+            return response;
+        } catch (error: any) {
+            console.error('Failed to convert currency:', error);
+            toast.error(error.userMessage || 'Failed to convert currency');
+            throw error;
+        } finally {
+            setLoadingExchangeRate(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (selectedCurrency && totalAmount > 0 && selectedCurrency !== baseCurrency) {
@@ -166,8 +182,24 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         } else if (selectedCurrency === baseCurrency) {
             setExchangeRate(totalAmount); // Show the total amount for base currency
         }
-    }, [totalAmount, selectedCurrency, baseCurrency]);
+    }, [totalAmount, selectedCurrency, baseCurrency, convert]);
 
+    const formatCurrency = (amount: number, currencyCode: string = 'USD') => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currencyCode,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    };
+
+    // Alternative helper for just adding commas without currency symbol
+    const formatNumber = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    };
 
 
     // Filter and sort charge items
@@ -196,22 +228,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
             setSelectedItems(prev => prev.filter(selected => selected.id !== item.id));
         } else {
             setSelectedItems(prev => [...prev, item]);
-        }
-    };
-
-    const convert = async (baseCurrency: string, targetCurrency: string, amount: number) => {
-        try {
-            setLoadingExchangeRate(true);
-            const response = await convertRate({ baseCurrency, targetCurrency, amount });
-            console.log('response', response)
-            setExchangeRate(response.data.convertedAmount);
-            return response;
-        } catch (error: any) {
-            console.error('Failed to convert currency:', error);
-            toast.error(error.userMessage || 'Failed to convert currency');
-            throw error;
-        } finally {
-            setLoadingExchangeRate(false);
         }
     };
 
@@ -432,7 +448,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                             <Separator className="my-4" />
                             <div className="flex justify-between items-center text-lg font-bold bg-hms-accent/15 p-3 rounded-lg">
                                 <span>Selected Total</span>
-                                <span className="text-hms-primary">${totalAmount.toFixed(2)} USD</span>
+                                <span className="text-hms-primary">{formatCurrency(totalAmount, baseCurrency)}</span>
                             </div>
                         </div>
 
@@ -445,14 +461,16 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                                 <div>
                                     <Label htmlFor="currency">Currency</Label>
                                     <div className='flex items-center gap-2'>
-                                        <Input
-                                        className='w-16'
-                                            id="exchangeRate"
-                                            type="number"
-                                            value={exchangeRate}
-                                            disabled
 
+                                        <Input
+                                            id="exchangeRate"
+                                            type="text"
+                                            value={loadingExchangeRate ? '' : formatNumber(exchangeRate)}
+                                            placeholder={loadingExchangeRate ? 'Loading...' : `0.00 ${selectedCurrency}`}
+                                            disabled
+                                            className="text-right font-mono"
                                         />
+
                                         <Select value={selectedCurrency} onValueChange={(selectedCurrencyCode) => {
                                             console.log('selectedCurrencyCode', selectedCurrencyCode)
                                             setSelectedCurrency(selectedCurrencyCode)
@@ -512,7 +530,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                         </div>
                     </div>
 
-                   
+
 
                     {/* Confirm Payment Button - Always Visible */}
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">
