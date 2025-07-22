@@ -1,5 +1,5 @@
-import { Dashboard, HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Home, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign } from "lucide-react";
+import { HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -11,11 +11,12 @@ import HousekeepingPage from "@/pages/Housekeeping/Housekeeping";
 import MaintenancePage from "@/pages/Maintenance/Maintenance";
 import NewGroupReservation from "@/pages/Reservations/NewGroupReservation";
 import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
+import HotelSettingsPage from "@/pages/management/HotelSettings";
 
 const RoutesList = () => {
 
     const homeRoutesList: HomeRouteConfig[] = [
-        
+
         {
             path: "/rooms",
             title: "Rooms",
@@ -275,6 +276,18 @@ const RoutesList = () => {
                     requiredPermissions: {
                         action: "read",
                         subject: "RoomTypes"
+                    }
+                },
+                {
+                    path: '/hotel-settings',
+                    title: "Hotel Settings",
+                    icon: <Settings className=" " />,
+                    component: HotelSettingsPage,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "manage",
+                        subject: "HotelSettings"
                     }
                 },
             ]
