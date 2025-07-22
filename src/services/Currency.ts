@@ -38,3 +38,4 @@ export const convertRate = async (data: { baseCurrency: string; targetCurrency: 
     };
   }
 };
+
