@@ -211,7 +211,7 @@ const CheckOutDialog = ({
                     <Button
                         onClick={handleCheckIn}
                         className="px-20"
-                        disabled={isLoading}
+                        disabled={isCheckoutDisabled}
                     >
                         {isLoading ? (
                             <>
