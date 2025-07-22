@@ -94,6 +94,7 @@ export const ENDPOINTS = {
   },
   Currency: {
     GetAll: "exchange/exchange-currencies",
+    Convert: "exchange/convert",
   },
   Area: {
     Add: "area/add",

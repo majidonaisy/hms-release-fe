@@ -3,7 +3,7 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice";
-
+import currencyReducer from "./slices/currencySlice";
 // Persist configuration for auth slice
 const authPersistConfig = {
   key: "auth",
@@ -16,6 +16,7 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
+    currency: currencyReducer, // Importing currency slice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
