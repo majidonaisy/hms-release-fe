@@ -161,6 +161,12 @@ const CheckOutDialog = ({
             setSettlingFee(true);
             setError(null);
 
+            let body: {
+                fee?: number;
+                currencyId?: string;
+                paymentMethod?: string;
+            } = {};
+
             if (feeMode === 'manual') {
                 // Validate manual fee inputs
                 if (!lateCheckoutFee || parseFloat(lateCheckoutFee) <= 0) {
@@ -176,24 +182,33 @@ const CheckOutDialog = ({
                     return;
                 }
 
-                // Settle manual fee
-                await settleLateCheckoutFee(reservationId, {
+                // Prepare manual fee body
+                body = {
                     fee: parseFloat(lateCheckoutFee),
                     currencyId: selectedCurrency,
                     paymentMethod: paymentMethod,
-                });
+                };
 
                 toast.success(`Late checkout fee of ${parseFloat(lateCheckoutFee).toFixed(2)} ${selectedCurrency} has been settled`);
             } else {
-                // Settle automatic fee
+                // Validate automatic fee
                 if (!automaticFeeInfo || automaticFeeInfo.fee <= 0) {
                     setError('No automatic late checkout fee is applicable');
                     return;
                 }
 
-                await settleLateCheckoutFee(reservationId, {});
+                // Prepare automatic fee body
+                body = {
+                    fee: automaticFeeInfo.fee,
+                    currencyId: automaticFeeInfo.currencyId,
+                    paymentMethod: undefined, // Optional for automatic fees
+                };
+
                 toast.success(`Automatic late checkout fee of ${automaticFeeInfo.fee.toFixed(2)} ${automaticFeeInfo.currencyId} has been settled`);
             }
+
+            // Send the same body structure for both manual and automatic
+            await settleLateCheckoutFee(reservationId, {body});
 
             setIsLateCheckoutFeeSettled(true);
         } catch (error: any) {

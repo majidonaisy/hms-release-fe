@@ -115,9 +115,11 @@ export const voidPayments = async (data: VoidPaymentsRequest): Promise<VoidPayme
 
 // Late checkout fee interfaces and functions
 export interface SettleLateCheckoutFeeRequest {
-  fee?: number;
-  currencyId?: string;
-  paymentMethod?: string;
+  body: {
+    fee?: number;
+    currencyId?: string;
+    paymentMethod?: string;
+  };
 }
 
 export interface SettleLateCheckoutFeeResponse {
