@@ -115,9 +115,8 @@ export const ExportPaymentRequestSchema = z.object({
 
 // Void Payments Request
 export const VoidPaymentsRequestSchema = z.object({
-  reservationId: z.string().min(1, "Reservation ID is required"),
-  paymentIds: z.array(z.string().min(1)).min(1, "At least one payment ID is required"),
-  voidReason: z.string().optional(),
+  ids: z.array(z.string().min(1)).min(1, "At least one payment ID is required"),
+  voidReason: z.string().min(1, "Void reason is required"),
 });
 
 // Void Payments Response

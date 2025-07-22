@@ -98,7 +98,7 @@ export const getPayments = async (reservationId: string): Promise<APIPaymentResp
 export const voidPayments = async (data: VoidPaymentsRequest): Promise<VoidPaymentsResponse> => {
   try {
     const response = await apiClient({
-      method: "POST",
+      method: "PUT",
       endpoint: ENDPOINTS.Folio.VoidPayments,
       data,
       baseURL,
