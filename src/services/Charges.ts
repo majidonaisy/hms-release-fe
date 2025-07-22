@@ -112,3 +112,65 @@ export const voidPayments = async (data: VoidPaymentsRequest): Promise<VoidPayme
     };
   }
 };
+
+// Late checkout fee interfaces and functions
+export interface SettleLateCheckoutFeeRequest {
+  fee?: number;
+  currencyId?: string;
+  paymentMethod?: string;
+}
+
+export interface SettleLateCheckoutFeeResponse {
+  status: number;
+  message: string;
+  data: {
+    success: boolean;
+    folioItemId?: string;
+  };
+}
+
+export interface LateCheckoutFeeInfo {
+  fee: number;
+  currencyId: string;
+}
+
+export interface GetLateCheckoutFeeResponse {
+  status: number;
+  message: string;
+  data: LateCheckoutFeeInfo;
+}
+
+export const settleLateCheckoutFee = async (reservationId: string, data: SettleLateCheckoutFeeRequest): Promise<SettleLateCheckoutFeeResponse> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: `${ENDPOINTS.Folio.SettleLateCheckoutFee}/${reservationId}`,
+      data,
+      baseURL,
+    });
+    return response as SettleLateCheckoutFeeResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to settle late checkout fee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const getLateCheckoutFee = async (reservationId: string): Promise<GetLateCheckoutFeeResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Folio.GetLateCheckoutFee}/${reservationId}`,
+      baseURL,
+    });
+    return response as GetLateCheckoutFeeResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get late checkout fee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

@@ -95,7 +95,6 @@ export const ENDPOINTS = {
   Currency: {
     GetAll: "exchange/exchange-currencies",
     Convert: "exchange/convert",
-    
   },
   Hotel: {
     Get: "hotel/",
@@ -114,5 +113,7 @@ export const ENDPOINTS = {
     AddPayment: "folio-item/settle",
     ViewPayment: "folio-item/get-handled-folio-items",
     VoidPayments: "folio-item/void",
+    SettleLateCheckoutFee: "folio-item/settle-late-checkout",
+    GetLateCheckoutFee: "folio-item/late-checkout-fee",
   },
 };
