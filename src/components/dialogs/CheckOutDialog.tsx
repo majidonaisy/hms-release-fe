@@ -191,13 +191,11 @@ const CheckOutDialog = ({
 
                 toast.success(`Late checkout fee of ${parseFloat(lateCheckoutFee).toFixed(2)} ${selectedCurrency} has been settled`);
             } else {
-                // Validate automatic fee
                 if (!automaticFeeInfo || automaticFeeInfo.fee <= 0) {
                     setError('No automatic late checkout fee is applicable');
                     return;
                 }
 
-                // Prepare automatic fee body
                 body = {
                     fee: automaticFeeInfo.fee,
                     currencyId: automaticFeeInfo.currencyId,
@@ -207,7 +205,6 @@ const CheckOutDialog = ({
                 toast.success(`Automatic late checkout fee of ${automaticFeeInfo.fee.toFixed(2)} ${automaticFeeInfo.currencyId} has been settled`);
             }
 
-            // Send the same body structure for both manual and automatic
             await settleLateCheckoutFee(reservationId, {body});
 
             setIsLateCheckoutFeeSettled(true);

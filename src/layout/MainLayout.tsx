@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, Link, Outlet, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, } from '@/components/Organisms/Sidebar'
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
@@ -32,6 +32,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                 ? prevOpenTabs.filter((tab) => tab !== path)
                 : [...prevOpenTabs, path]
         );
+    };
+
+    const handleReload = () => {
+        window.location.reload();
     };
 
     // Render menu items with subroute support
@@ -172,6 +176,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         </div>
                         <div className='flex items-center gap-1'>
                             <div className="flex items-center gap-3">
+                                {/* Add Reload Button */}
+                                <Button
+                                    variant='outline'
+                                    size="sm"
+                                    onClick={handleReload}
+                                    className='h-7'
+                                    title="Refresh page"
+                                >
+                                    <RefreshCw size={16} />
+                                </Button>
                                 <Button
                                     variant='primaryOutline'
                                     onClick={() => setOpenReservationDialog(true)}
