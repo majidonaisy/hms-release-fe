@@ -26,6 +26,7 @@ export const ENDPOINTS = {
     GetById: "guest/get",
     Update: "guest/update",
     Delete: "guest/delete",
+    GetCurrentGuests: 'reservation/get-current-guests'
   },
   GroupProfile: {
     AddGroupProfile: "group-profile/add",

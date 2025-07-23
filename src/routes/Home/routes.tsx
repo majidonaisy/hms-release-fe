@@ -48,7 +48,7 @@ const RoutesList = () => {
             title: "Current Guests",
             icon: <Users className=" " />,
             component: CurrentGuestList,
-            isShown: false,
+            isShown: true,
             requiredPermissions: {
                 action: "read",
                 subject: "Guest"

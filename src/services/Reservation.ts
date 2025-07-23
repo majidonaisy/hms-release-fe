@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
+import { GetCurrentGuestsResponse } from "@/validation";
 import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, GetReservationByGuestId, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 import { GetSingleReservationResponse } from "@/validation/schemas/SingleReservation";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
@@ -198,6 +199,24 @@ export const getReservationByGuestId = async (guestId: string): Promise<GetReser
     return response as GetReservationByGuestId;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+
+export const getCurrentGuests = async (): Promise<GetCurrentGuestsResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Guest.GetCurrentGuests,
+      baseURL,
+    });
+    return response as GetCurrentGuestsResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get guests";
     throw {
       userMessage: errorMessage,
       originalError: error,
