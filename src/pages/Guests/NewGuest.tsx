@@ -350,7 +350,7 @@ const NewGuest = () => {
                             <Button onClick={() => { setGuestCreatedDialog(false); navigate('/guests-profile') }} variant='background'>
                                 Maybe Later
                             </Button>
-                            <Button onClick={() => navigate('/new-reservation')}>
+                            <Button onClick={() => navigate('/new-reservation/new-individual-reservation')}>
                                 Create Reservation
                             </Button>
                         </DialogFooter>
