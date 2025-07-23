@@ -7,10 +7,10 @@ const RatePlanShape = z.object({
   name: z.string(),
   baseAdjType: z.enum(["PERCENT", "FIXED"]),
   baseAdjVal: z.number(),
-  currencyId: z.string(),
+  // currencyId: z.string(),
   isActive: z.boolean(),
   description: z.string().optional(),
-  basePrice: z.number().default(0),
+  // basePrice: z.number().default(0),
   roomTypeId: z.string().optional(),
   isFeatured: z.boolean().default(false),
   createdAt: z.date(),
@@ -20,12 +20,12 @@ const RatePlanShape = z.object({
 export const AddRatePlanSchema = z.object({
   name: z.string().min(1, "Name is required"),
   code: z.string().min(1, "Code is required"),
-  basePrice: z.number().min(0.01, "Base price must be greater than zero"),
+  // basePrice: z.number().min(0.01, "Base price must be greater than zero"),
   baseAdjType: z.enum(["PERCENT", "FIXED"], {
     message: "Adjustment type must be either PERCENT or FIXED",
   }),
   baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0").max(999,"Adjustment value must be less than 999"),
-  currencyId: z.string().min(1, "Currency is required"),
+  // currencyId: z.string().min(1, "Currency is required"),
 });
 
 // No need for separate API schema since we're keeping everything as numbers

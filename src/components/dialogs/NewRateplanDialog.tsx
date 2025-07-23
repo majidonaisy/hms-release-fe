@@ -24,10 +24,10 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   const [formData, setFormData] = useState<AddRatePlanRequest>({
     name: '',
     code: '',
-    basePrice: 0,
+    // basePrice: 0,
     baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
     baseAdjVal: 0,
-    currencyId: 'cmcx9kq150041k6zcean3uses',
+    // currencyId: 'cmcx9kq150041k6zcean3uses',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,19 +58,19 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
         setFormData({
           name: editData.name || '',
           code: editData.code || '',
-          basePrice: editData.basePrice || 0,
+          // basePrice: editData.basePrice || 0,
           baseAdjType: editData.baseAdjType || 'PERCENT',
           baseAdjVal: editData.baseAdjVal || 0,
-          currencyId: editData.currencyId || 'cmcx9kq150041k6zcean3uses',
+          // currencyId: editData.currencyId || 'cmcx9kq150041k6zcean3uses',
         });
       } else {
         setFormData({
           name: '',
           code: '',
-          basePrice: 0,
+          // basePrice: 0,
           baseAdjType: 'PERCENT',
           baseAdjVal: 0,
-          currencyId: 'cmcx9kq150041k6zcean3uses',
+          // currencyId: 'cmcx9kq150041k6zcean3uses',
         });
       }
 
@@ -111,10 +111,10 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       const apiData: AddRatePlanRequest = {
         name: formData.name,
         code: formData.code,
-        basePrice: Number(formData.basePrice),
+        // basePrice: Number(formData.basePrice),
         baseAdjType: formData.baseAdjType,
         baseAdjVal: Number(formData.baseAdjVal),
-        currencyId: formData.currencyId,
+        // currencyId: formData.currencyId,
       };
 
       await addRatePlan(apiData);
@@ -128,10 +128,9 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       setFormData({
         name: '',
         code: '',
-        basePrice: 0,
         baseAdjType: 'PERCENT',
         baseAdjVal: 0,
-        currencyId: 'cmcx9kq150041k6zcean3uses',
+        // currencyId: 'cmcx9kq150041k6zcean3uses',
       });
 
       onOpenChange(false);
@@ -180,7 +179,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="basePrice">Base Price</Label>
             <Input
               id="basePrice"
@@ -200,7 +199,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               className={errors.basePrice ? "border-red-500" : ""}
             />
             {errors.basePrice && <p className="text-red-500 text-sm">{errors.basePrice}</p>}
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <Label htmlFor="baseAdjType">Adjustment Type</Label>
@@ -241,7 +240,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             {errors.baseAdjVal && <p className="text-red-500 text-sm">{errors.baseAdjVal}</p>}
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="currencyId">Currency</Label>
             <Select
               value={formData.currencyId}
@@ -273,7 +272,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               </SelectContent>
             </Select>
             {errors.currencyId && <p className="text-red-500 text-sm">{errors.currencyId}</p>}
-          </div>
+          </div> */}
 
           {errors.form && (
             <div className="bg-red-50 p-3 rounded-md text-red-600 flex items-center text-sm">
