@@ -52,11 +52,13 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
     const [loadingExchangeRate, setLoadingExchangeRate] = useState(false);
     const baseCurrency = store.getState().currency.currency || 'USD'; // Default to USD if not set
     const paymentMethods = [
-        { value: 'cash', label: 'Cash' },
-        { value: 'credit_card', label: 'Credit Card' },
-        { value: 'debit_card', label: 'Debit Card' },
-        { value: 'bank_transfer', label: 'Bank Transfer' },
-        { value: 'check', label: 'Check' },
+        { value: 'CASH', label: 'Cash' },
+        { value: 'CREDIT_CARD', label: 'Credit Card' },
+        { value: 'DEBIT_CARD', label: 'Debit Card' },
+        { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+        { value:"PAYPAL", label: "PayPal" },
+        { value: 'CHECK', label: 'Check' },
+        { value: 'OTHER', label: 'Other' }
     ];
 
 

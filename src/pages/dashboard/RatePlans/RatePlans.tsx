@@ -7,9 +7,15 @@ import { useDialog } from '@/context/useDialog';
 
 interface RatePlan {
   id: string;
+  hotelId: string;
+  code: string;
   name: string;
-  basePrice: number;
+  baseAdjType: "PERCENT" | "FIXED";
+  baseAdjVal: string; // Note: This comes as string from API
+  currencyId: string;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
   isFeatured?: boolean;
   roomType?: {
     name: string;
@@ -49,7 +55,8 @@ const RatePlans = () => {
     openDialog('ratePlan', {
       onRatePlanAdded: async () => {
         try {
-          await fetchRatePlans();
+          const response = await fetchRatePlans();
+          console.log('response :>> ', response);
           return Promise.resolve();
         } catch (error) {
           console.error('Error refreshing rate plans:', error);
@@ -85,11 +92,13 @@ const RatePlans = () => {
     }
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  const formatAdjustmentValue = (adjType: string, adjVal: string, currencyId: string): string => {
+    const value = parseFloat(adjVal);
+    if (adjType === "PERCENT") {
+      return `${value}%`;
+    } else {
+      return `${value} ${currencyId}`;
+    }
   };
 
   const ratePlanColumns: TableColumn<RatePlan>[] = [
@@ -98,14 +107,29 @@ const RatePlans = () => {
       label: 'Name',
     },
     {
-      key: 'roomType',
-      label: 'Room Type',
-      render: (item: RatePlan) => item.roomType?.name || 'N/A',
+      key: 'code',
+      label: 'Code',
     },
     {
-      key: 'basePrice',
-      label: 'Base Price',
-      render: (item: RatePlan) => formatCurrency(item.basePrice),
+      key: 'baseAdjType',
+      label: 'Adjustment Type',
+      render: (item: RatePlan) => (
+        <Badge className={item.baseAdjType === 'PERCENT' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}>
+          {item.baseAdjType === 'PERCENT' ? 'Percentage' : 'Fixed Amount'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'baseAdjVal',
+      label: 'Adjustment Value',
+      render: (item: RatePlan) => formatAdjustmentValue(item.baseAdjType, item.baseAdjVal, item.currencyId),
+    },
+    {
+      key: 'currencyId',
+      label: 'Currency',
+      render: (item: RatePlan) => (
+        <Badge variant="outline">{item.currencyId}</Badge>
+      ),
     },
     {
       key: 'isActive',
@@ -116,15 +140,7 @@ const RatePlans = () => {
         </Badge>
       ),
     },
-    {
-      key: 'isFeatured',
-      label: 'Featured',
-      render: (item: RatePlan) => (
-        item.isFeatured ?
-          <Badge className="bg-blue-100 text-blue-800">Featured</Badge> :
-          <span className="text-gray-500">-</span>
-      ),
-    }
+  
   ];
 
   const actions = [
