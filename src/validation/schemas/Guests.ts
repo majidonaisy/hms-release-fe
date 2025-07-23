@@ -212,6 +212,12 @@ export const GetGroupProfilesResponseSchema = z.object({
   }))
 })
 
+export const GetCurrentGuestsResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(GuestShape),
+});
+
 export type Guest = z.infer<typeof GuestShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
@@ -224,3 +230,4 @@ export type AddGroupProfileResponse = z.infer<typeof AddGroupProfileResponseSche
 export type LinkGuestsToGroupResponse = z.infer<typeof LinkGuestsToGroupResponseSchema>
 export type GetGroupProfilesResponse = z.infer<typeof GetGroupProfilesResponseSchema>
 export type GroupProfileResponse = z.infer<typeof GroupProfileResponseSchema>
+export type GetCurrentGuestsResponse = z.infer<typeof GetCurrentGuestsResponseSchema>;
