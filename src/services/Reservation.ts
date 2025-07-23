@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { GetCurrentGuestsResponse } from "@/validation";
-import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, GetReservationByGuestId, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
+import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 import { GetSingleReservationResponse } from "@/validation/schemas/SingleReservation";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
@@ -153,14 +153,14 @@ export const updateReservation = async (id: string, data: UpdateReservationReque
   }
 };
 
-export const getReservationById = async (reservationId: string): Promise<GetSingleReservationResponse> => {
+export const getReservationById = async (reservationId: string): Promise<GetReservationById> => {
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: `${ENDPOINTS.Reservations.GetId}/${reservationId}`,
       baseURL,
     });
-    return response as GetSingleReservationResponse;
+    return response as GetReservationById;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get reservation";
     throw {
@@ -185,16 +185,16 @@ export const cancelReservation = async (reservationId: string): Promise<any> => 
       originalError: error,
     };
   }
-}
+};
 
 export const getReservationByGuestId = async (guestId: string): Promise<GetReservationByGuestId> => {
-  console.log('called')
+  console.log("called");
   try {
     const response = await apiClient({
       method: "GET",
       endpoint: ENDPOINTS.Reservations.GetByGuestId,
       baseURL,
-      params: { guestId }
+      params: { guestId },
     });
     return response as GetReservationByGuestId;
   } catch (error: any) {
@@ -204,8 +204,7 @@ export const getReservationByGuestId = async (guestId: string): Promise<GetReser
       originalError: error,
     };
   }
-}
-
+};
 
 export const getCurrentGuests = async (): Promise<GetCurrentGuestsResponse> => {
   try {
@@ -222,4 +221,4 @@ export const getCurrentGuests = async (): Promise<GetCurrentGuestsResponse> => {
       originalError: error,
     };
   }
-}
+};

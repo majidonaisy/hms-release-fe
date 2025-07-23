@@ -20,6 +20,7 @@ import CheckInDialog from "@/components/dialogs/CheckInDialog"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import { toast } from "sonner"
 import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
+import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -61,6 +62,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [cancelReservationDialog, setCancelReservationDialog] = useState(false)
   const [reservationToCancel, setReservationToCancel] = useState('')
   const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
+  const [viewReservationDialog, setViewReservationDialog] = useState(false)
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -181,8 +183,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       const matchesSearch =
         !searchTerm ||
         reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) 
-   
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase())
+
 
       const matchesStatus = filterStatus === "all" || reservation.status === filterStatus;
 
@@ -565,6 +567,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         roomNumber={dialogReservation?.roomNumber || ''}
         bookingId={dialogReservation?.bookingId || ''}
       />
+      <ViewReservationDialog open={viewReservationDialog} setOpen={setViewReservationDialog} reservationId={dialogReservation?.id || ''} />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -577,7 +580,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         editReservation={() => { setEditReservationDialog(true) }}
         isCheckedIn={dialogReservation?.status?.toLowerCase() === 'checked_in' || dialogReservation?.status?.toLowerCase() === 'occupied'}
         isCheckedOut={dialogReservation?.status?.toLowerCase() === 'checked_out'}
-        viewPayments={() => setViewPaymentsDialog(true)} 
+        viewPayments={() => setViewPaymentsDialog(true)}
         guestId={dialogReservation?.guestId}
         roomNumber={dialogReservation?.roomNumber}
         roomType={dialogReservation?.roomType}
@@ -585,6 +588,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         checkOutDate={dialogReservation?.end?.toISOString()}
         stayDuration={dialogReservation ? calculateStayDuration(dialogReservation.start, dialogReservation.end) : ''}
         cancelReservation={() => setCancelReservationDialog(true)}
+        viewReservation={() => setViewReservationDialog(true)}
       />
       <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" />
     </TooltipProvider>
