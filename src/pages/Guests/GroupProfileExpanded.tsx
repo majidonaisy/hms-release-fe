@@ -2,7 +2,8 @@ import { Button } from "@/components/atoms/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import { getGroupProfileById } from "@/services/Guests";
 import { GroupProfileResponse } from "@/validation";
-import { ChevronLeft } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { ChevronLeft, Mail, Phone, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -181,7 +182,50 @@ const GroupProfileExpanded = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
-
+                        {group.LinkedGuests && group.LinkedGuests.length > 0 ? (
+                            <div className="space-y-3">
+                                {group.LinkedGuests.map((guest) => (
+                                    <div
+                                        key={guest.id}
+                                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                                        onClick={() => navigate(`/guests-profile/${guest.id}/view`)}
+                                    >
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage />
+                                            <AvatarFallback className="bg-hms-primary/10">
+                                                {guest.firstName.charAt(0)}{guest.lastName.charAt(0)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-gray-900">
+                                                {guest.firstName} {guest.lastName}
+                                            </p>
+                                            {guest.email && (
+                                                <div className="flex items-center gap-1 text-sm text-gray-500">
+                                                    <Mail className="h-3 w-3" />
+                                                    {guest.email}
+                                                </div>
+                                            )}
+                                            {guest.phoneNumber && (
+                                                <div className="flex items-center gap-1 text-sm text-gray-500">
+                                                    <Phone className="h-3 w-3" />
+                                                    {guest.phoneNumber}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <Button variant="ghost" size="sm">
+                                            <User className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center text-muted-foreground py-8">
+                                <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                <p className="text-lg font-medium">No linked guests</p>
+                                <p className="text-sm">This group profile has no linked individual guests yet.</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <Card className='p-3 gap-2'>

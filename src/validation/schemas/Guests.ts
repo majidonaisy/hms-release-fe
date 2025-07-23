@@ -49,7 +49,9 @@ const GroupProfileShape = z.object({
   notes: z.string(),
   hotelId: z.string(),
   createdAt: z.date(),
-  updatedAt: z.date()
+  updatedAt: z.date(),
+  // Add LinkedGuests field
+  LinkedGuests: z.array(GuestShape).optional(),
 });
 
 export const GroupProfileResponseSchema = z.object({
@@ -138,7 +140,27 @@ export const AddGroupProfileResponseSchema = z.object({
   message: z.string(),
   data: z.object({
     id: z.string(),
-    AddGroupProfileRequestSchema,
+    name: z.string(),
+    legalName: z.string(),
+    email: z.string(),
+    phone: z.string(),
+    primaryContact: z.object({
+      name: z.string(),
+      email: z.string(),
+      phone: z.string(),
+    }),
+    address: z.object({
+      city: z.string(),
+      country: z.string(),
+    }),
+    billingAddress: z.object({
+      city: z.string(),
+      country: z.string()
+    }),
+    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+    specialRequirements: z.string(),
+    isVip: z.boolean(),
+    notes: z.string(),
     hotelId: z.string(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -148,69 +170,14 @@ export const AddGroupProfileResponseSchema = z.object({
 export const LinkGuestsToGroupResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
-  data: z.object({
-    id: z.string(),
-    name: z.string(),
-    legalName: z.string(),
-    email: z.string(),
-    phone: z.string(),
-    primaryContact: z.object({
-      name: z.string(),
-      email: z.string(),
-      phone: z.string(),
-    }),
-    address: z.object({
-      city: z.string(),
-      country: z.string(),
-    }),
-    billingAddress: z.object({
-      city: z.string(),
-      country: z.string()
-    }),
-    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
-    specialRequirements: z.string(),
-    isVip: z.boolean(),
-    notes: z.string(),
-    hotelId: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    status: z.enum(["ACTIVE", "INACTIVE"]),
-  })
+  data: GroupProfileShape
 });
 
 export const GetGroupProfilesResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
-  data: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    legalName: z.string(),
-    email: z.string(),
-    phone: z.string(),
-    primaryContact: z.object({
-      name: z.string(),
-      email: z.string(),
-      phone: z.string(),
-    }),
-    address: z.object({
-      city: z.string(),
-      country: z.string(),
-    }),
-    billingAddress: z.object({
-      city: z.string(),
-      country: z.string()
-    }),
-    businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
-    specialRequirements: z.string(),
-    isVip: z.boolean(),
-    notes: z.string(),
-    hotelId: z.string(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    status: z.enum(["ACTIVE", "INACTIVE"]),
-    LinkedGuests: z.array(GuestShape),
-  }))
-})
+  data: z.array(GroupProfileShape)
+});
 
 export const GetCurrentGuestsResponseSchema = z.object({
   status: z.number(),
@@ -219,6 +186,7 @@ export const GetCurrentGuestsResponseSchema = z.object({
 });
 
 export type Guest = z.infer<typeof GuestShape>;
+export type GroupProfile = z.infer<typeof GroupProfileShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
 export type GetGuestsResponse = z.infer<typeof GetGuestsResponseSchema>;
