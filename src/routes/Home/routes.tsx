@@ -133,7 +133,7 @@ const RoutesList = () => {
             isShown: true,
             requiredPermissions: {
                 action: "read",
-                subject: "Calendar"
+                subject: "Reservation"
             }
         },
         {
