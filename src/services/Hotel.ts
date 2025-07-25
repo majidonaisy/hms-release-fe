@@ -3,7 +3,7 @@ import { ENDPOINTS } from "@/api/endpoints";
 import { HotelSettingsResponse, UpdateHotelSettingsRequest } from "@/validation/schemas/Hotel";
 
 const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL + "/" ;
-
+// Alaa was here
 export const getHotelSettings = async (): Promise<HotelSettingsResponse> => {
   try {
     const response = await apiClient({
