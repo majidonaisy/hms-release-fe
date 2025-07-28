@@ -31,11 +31,13 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: #FF8400;
-  --chart-2: #0EA5E9;
-  --chart-3: #D732A8;
-  --chart-4: #AB32D7;
-  --chart-5: #868686;
+  --chart-1: #1fad4e;
+  --chart-2: #808080;
+  --chart-3: #1773cf;
+  --chart-4: #f2a60d;
+  --chart-5: #de2121;
+  --chart-6: #ad361f;
+  --chart-7: #f2cc0d;
   --radius: 0.625rem;
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: var(--color-hms-primary);
@@ -72,6 +74,8 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);  
+  --color-chart-7: var(--chart-7);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -85,37 +89,56 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+
 @layer base {
   :root {
     /* shadcn/ui color variables mapped to HMS colors */
-    --background: #6C0F23; /* hms-background */
-    --foreground: #1E130B; /* hms-primary */
-    
-    --card: #FFF7E9; /* hms-background */
-    --card-foreground: #1E130B; /* hms-primary */
-    
-    --popover: #FFF7E9; /* hms-background */
-    --popover-foreground: #1E130B; /* hms-primary */
-    
-    --primary: #1E130B; /* hms-primary */
-    --primary-foreground: #FFF7E9; /* hms-background */
-    
-    --secondary: #D9AC96; /* hms-accent */
-    --secondary-foreground: #1E130B; /* hms-primary */
-    
-    --muted: #D9AC96; /* hms-accent */
-    --muted-foreground: #6C0F23; /* hms-secondary */
-    
-    --accent: #D9AC96; /* hms-accent */
-    --accent-foreground: #1E130B; /* hms-primary */
-    
-    --destructive: #dc2626; /* Keep red for destructive actions */
+    --background: #6C0F23;
+    /* hms-background */
+    --foreground: #1E130B;
+    /* hms-primary */
+
+    --card: #FFF7E9;
+    /* hms-background */
+    --card-foreground: #1E130B;
+    /* hms-primary */
+
+    --popover: #FFF7E9;
+    /* hms-background */
+    --popover-foreground: #1E130B;
+    /* hms-primary */
+
+    --primary: #1E130B;
+    /* hms-primary */
+    --primary-foreground: #FFF7E9;
+    /* hms-background */
+
+    --secondary: #D9AC96;
+    /* hms-accent */
+    --secondary-foreground: #1E130B;
+    /* hms-primary */
+
+    --muted: #D9AC96;
+    /* hms-accent */
+    --muted-foreground: #6C0F23;
+    /* hms-secondary */
+
+    --accent: #D9AC96;
+    /* hms-accent */
+    --accent-foreground: #1E130B;
+    /* hms-primary */
+
+    --destructive: #dc2626;
+    /* Keep red for destructive actions */
     --destructive-foreground: #fef2f2;
-    
-    --border: #D9AC96; /* hms-accent */
-    --input: #D9AC96; /* hms-accent */
-    --ring: #1E130B; /* hms-primary */
-    
+
+    --border: #D9AC96;
+    /* hms-accent */
+    --input: #D9AC96;
+    /* hms-accent */
+    --ring: #1E130B;
+    /* hms-primary */
+
     --radius: 0.5rem;
   }
 }
