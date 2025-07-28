@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useMemo, useEffect } from "react"
 import { format, addDays, startOfWeek, differenceInDays, isToday } from "date-fns"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Circle } from "lucide-react"
 import { Button } from "../components/atoms/Button"
 import { Input } from "../components/atoms/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/molecules/Select"
@@ -178,18 +178,22 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     return flattened;
   }, [filteredRoomsByType]);
 
+  // Replace filteredReservations logic to make status filter functional
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
       const matchesSearch =
         !searchTerm ||
         reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase())
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase());
 
-
-      const matchesStatus = filterStatus === "all" || reservation.status === filterStatus;
+      // Normalize status for comparison
+      const normalizedStatus = reservation.status?.toLowerCase();
+      let matchesStatus = true;
+      if (filterStatus !== "all") {
+        matchesStatus = normalizedStatus === filterStatus.toLowerCase();
+      }
 
       const overlapsWithWeek = reservation.start <= weekEnd && reservation.end >= weekStart;
-
       const hasValidRoomNumber = validRoomNumbers.has(reservation.roomNumber);
 
       return matchesSearch && matchesStatus && overlapsWithWeek && hasValidRoomNumber;
@@ -227,12 +231,33 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       "CHECKED_IN": "bg-chart-1/20 border-l-4 border-chart-1",
       "CHECKED_OUT": "bg-chart-2/20 border-l-4 border-chart-2",
       // DRAFT: "bg-chart-3/20 border-l-4 border-chart-3",
-      "CONFIRMED": "bg-chart-4/20 border-l-4 border-chart-4",
-      "CANCELLED": "bg-chart-5/20 border-l-4 border-chart-5",
+      "CONFIRMED": "bg-chart-3/20 border-l-4 border-chart-3",
+      // "CANCELLED": "bg-chart-4/20 border-l-4 border-chart-4",
       // NO_SHOW: "bg-chart-5/20 border-l-4 border-chart-5",
-      "HELD": "bg-chart-5/20 border-l-4 border-chart-5",
+      "HELD": "bg-chart-4/20 border-l-4 border-chart-4",
     };
     return colors[status as keyof typeof colors] || colors.HELD;
+  };
+
+  const getRoomStatusColor = (status: string) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "text-chart-1 fill-chart-1";
+      case "OCCUPIED":
+        return "text-chart-5 fill-chart-5";
+      case "MAINTENANCE":
+        return "text-chart-4 fill-chart-4";
+      case "DIRTY":
+        return "text-chart-6 fill-chart-6";
+      case "CLEANING":
+        return "text-chart-7 fill-chart-7";
+      case "RESERVED":
+        return "text-chart-3 fill-chart-3";
+      case "OUT_OF_SERVICE":
+        return "text-chart-2 fill-chart-2";
+      default:
+        return "text-gray-500 fill-gray-500";
+    }
   };
 
   const calculateStayDuration = (start: Date, end: Date): string => {
@@ -343,19 +368,16 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
           <div className="flex items-center justify-between gap-4">
             <div className="flex gap-2 text-sm w-full">
-              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
                 <span className="text-xs">Checked In</span>
               </div>
-              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
                 <span className="text-xs">Checked Out</span>
               </div>
-              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
                 <span className="text-xs">Confirmed</span>
               </div>
-              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
-                <span className="text-xs">Canceled</span>
-              </div>
-              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/5 ">
+              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
                 <span className="text-xs">Held</span>
               </div>
             </div>
@@ -374,11 +396,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="HELD">Held</SelectItem>
-                  <SelectItem value="OCCUPIED">Occupied</SelectItem>
                   <SelectItem value="CHECKED_IN">Checked In</SelectItem>
                   <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
-                  <SelectItem value="BLOCKED">Blocked</SelectItem>
+                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  <SelectItem value="HELD">Held</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -473,8 +494,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                   {"type" in item && item.type === "header" ? (
                     <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
                   ) : (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
+                      <span
+                        className={`text-xs gap-1 font-medium flex items-center ${getRoomStatusColor((item as Room).status)}`}
+                        style={{ minWidth: 70, textAlign: 'center' }}
+                      >
+                        <Circle className={`${getRoomStatusColor((item as Room).status)} size-1`} />
+                        {(item as Room).status}
+                      </span>
                     </div>
                   )}
                 </div>
