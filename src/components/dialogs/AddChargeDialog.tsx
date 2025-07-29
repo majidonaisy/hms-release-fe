@@ -26,6 +26,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
     const [unitPrice, setUnitPrice] = useState('');
     const [description, setDescription] = useState('');
     const [reservationDetails, setReservationDetails] = useState<SingleReservation | null>(null);
+    const [receiptId, setReceiptId] = useState('');
     const [isLoadingReservation, setIsLoadingReservation] = useState(false);
 
     const itemTypes = [
@@ -85,6 +86,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                 unitPrice: parseFloat(unitPrice),
                 itemType,
                 description: description.trim() || undefined,
+                receiptId
             };
 
             await addCharges(chargeRequest);
@@ -95,6 +97,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
             setItemType('');
             setAmount('');
             setUnitPrice('');
+            setReceiptId('');
             setDescription('');
             setOpen(false);
         } catch (error: any) {
@@ -110,6 +113,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
         setAmount('');
         setUnitPrice('');
         setDescription('');
+        setReceiptId('');
         setOpen(false);
     };
 
@@ -123,8 +127,24 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
             const response = await getReservationById(reservationId);
 
             // Handle both direct data response and wrapped response
-            const reservationData = 'data' in response && response.data ? response.data : response;
-            setReservationDetails(reservationData as SingleReservation);
+            let reservationObj: any = response;
+            if (reservationObj && typeof reservationObj === 'object' && !('id' in reservationObj) && 'data' in reservationObj && reservationObj.data) {
+                reservationObj = reservationObj.data;
+            }
+            if (reservationObj && typeof reservationObj === 'object' && 'id' in reservationObj) {
+                const reservationData: SingleReservation = {
+                    ...reservationObj,
+                    checkIn: reservationObj.checkIn instanceof Date ? reservationObj.checkIn.toISOString() : typeof reservationObj.checkIn === 'string' ? reservationObj.checkIn : '',
+                    checkOut: reservationObj.checkOut instanceof Date ? reservationObj.checkOut.toISOString() : typeof reservationObj.checkOut === 'string' ? reservationObj.checkOut : '',
+                    createdAt: reservationObj.createdAt instanceof Date ? reservationObj.createdAt.toISOString() : typeof reservationObj.createdAt === 'string' ? reservationObj.createdAt : '',
+                    updatedAt: reservationObj.updatedAt instanceof Date ? reservationObj.updatedAt.toISOString() : typeof reservationObj.updatedAt === 'string' ? reservationObj.updatedAt : '',
+                    receiptId: typeof reservationObj.receiptId === 'string' ? reservationObj.receiptId : '',
+                    status: typeof reservationObj.status === 'string' && ["CHECKED_IN","CHECKED_OUT","DRAFT","CONFIRMED","CANCELLED","NO_SHOW","HELD"].includes(reservationObj.status) ? reservationObj.status as SingleReservation["status"] : "DRAFT",
+                };
+                setReservationDetails(reservationData);
+            } else {
+                setReservationDetails(null);
+            }
         } catch (error: any) {
             console.error('Failed to fetch reservation details:', error);
             toast.error(error.userMessage || 'Failed to fetch reservation details');
@@ -144,6 +164,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
             setAmount('');
             setUnitPrice('');
             setDescription('');
+            setReceiptId('');
             setReservationDetails(null);
         }
     }, [open, reservationId, getReservation]);
@@ -273,6 +294,19 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
                             className="mt-2 resize-none"
+                        />
+                    </div>
+
+                    {/* Receipt ID */}
+                    <div className=" rounded-lg ">
+                        <Label htmlFor="receiptId" className="text-base font-semibold">Receipt ID</Label>
+                        <Input
+                            id="receiptId"
+                            type="text"
+                            placeholder="Receipt ID"
+                            value={receiptId}
+                            onChange={(e) => setReceiptId(e.target.value)}
+                            className="mt-2"
                         />
                     </div>
 

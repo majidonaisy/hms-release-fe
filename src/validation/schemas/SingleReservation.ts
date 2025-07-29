@@ -27,6 +27,7 @@ export const SingleReservationShape = z.object({
   createdAt: z.string(), // ISO date string
   updatedAt: z.string(), // ISO date string
   rooms: z.array(SingleReservationRoomShape),
+  receiptId: z.string(),
   guest: SingleReservationGuestShape,
 });
 
