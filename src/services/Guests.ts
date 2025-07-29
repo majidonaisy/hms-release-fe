@@ -1,8 +1,8 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, GroupProfileResponse, LinkGuestsToGroupResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
-const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 
+const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
   try {
     const response = await apiClient({
@@ -21,7 +21,55 @@ export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse>
   }
 };
 
-interface GetGuestsParams {
+// Guests Service
+export interface GuestSearchParams {
+  q?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const searchGuests = async (params: GuestSearchParams) => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Guest.Search,
+      baseURL,
+      params,
+    });
+    return response;
+  } catch (error: any) {
+    throw {
+      userMessage: error.response?.data?.message || "Failed to search guests",
+      originalError: error,
+    };
+  }
+};
+
+// GroupProfile Service
+export interface GroupProfileSearchParams {
+  q?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const searchGroupProfiles = async (params: GroupProfileSearchParams) => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.GroupProfile.Search,
+      baseURL,
+      params,
+    });
+    return response;
+  } catch (error: any) {
+    throw {
+      userMessage: error.response?.data?.message || "Failed to search group profiles",
+      originalError: error,
+    };
+  }
+};
+
+export interface GetGuestsParams {
   page?: number;
   limit?: number;
 }

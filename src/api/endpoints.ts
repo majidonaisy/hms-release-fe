@@ -22,19 +22,21 @@ export const ENDPOINTS = {
   },
   Guest: {
     Add: "guest/add",
-    GetAll: "guest/get",
+    GetAll: "guest/get", // gets all guests
     GetById: "guest/get",
     Update: "guest/update",
     Delete: "guest/delete",
-    GetCurrentGuests: 'reservation/get-current-guests'
+    GetCurrentGuests: 'reservation/get-current-guests',
+    Search: "guest/search", // search guests
   },
   GroupProfile: {
     AddGroupProfile: "group-profile/add",
     LinkGuestsToGroup: "group-profile/link",
-    GetGroupProfiles: "group-profile/get",
+    GetGroupProfiles: "group-profile/get", // gets all group profiles
     GetGroupProfileById: "group-profile/get",
     DeleteGroupProfile: "group-profile/delete",
     UpdateGroupProfile: "group-profile/update",
+    Search: "group-profile/search", // search group profiles
   },
   RatePlan: {
     Add: "ratePlan/add",

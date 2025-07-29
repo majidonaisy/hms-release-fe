@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest, getGroupProfiles, getGuests } from "@/services/Guests"
+import { searchGuests, searchGroupProfiles } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
 import DataTable, { type ActionMenuItem, defaultRenderers, type TableColumn } from "@/components/Templates/DataTable"
@@ -25,27 +26,57 @@ type CombinedGuestData = {
 
 const GuestProfile = () => {
     const navigate = useNavigate()
-    const [currentPage, setCurrentPage] = useState(1)
-    const [guests, setGuests] = useState<GetGuestsResponse["data"]>([])
-    const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
-    const [groupProfiles, setGroupProfiles] = useState<GetGroupProfilesResponse["data"]>([])
-    const [combinedData, setCombinedData] = useState<CombinedGuestData[]>([])
-    console.log(combinedData)
-    const [loading, setLoading] = useState(false)
-    const [openGuestDialog, setOpenGuestDialog] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(5); // Default page size
+    const [searchTerm, setSearchTerm] = useState("");
+    const [guests, setGuests] = useState<GetGuestsResponse["data"]>([]);
+    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+    const [groupProfiles, setGroupProfiles] = useState<GetGroupProfilesResponse["data"]>([]);
+    const [combinedData, setCombinedData] = useState<CombinedGuestData[]>([]);
+    const [pagination, setPagination] = useState<{
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+        hasNext: boolean;
+        hasPrevious: boolean;
+    } | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [openGuestDialog, setOpenGuestDialog] = useState(false);
 
     useEffect(() => {
         const handleGetGuests = async () => {
-            setLoading(true)
+            setLoading(true);
             try {
-                const response = await getGuests()
-                setGuests(response.data)
+                const response = searchTerm
+                    ? (await searchGuests({ q: searchTerm, page: currentPage, limit: pageSize }) as GetGuestsResponse)
+                    : await getGuests({ page: currentPage, limit: pageSize });
+                setGuests(response.data);
+                if (response.pagination) {
+                    setPagination({
+                        totalItems: response.pagination.total,
+                        totalPages: response.pagination.totalPages,
+                        currentPage: response.pagination.page,
+                        pageSize: response.pagination.pageSize,
+                        hasNext: response.pagination.hasNextPage,
+                        hasPrevious: response.pagination.hasPreviousPage,
+                    });
+                } else {
+                    setPagination({
+                        totalItems: response.data.length,
+                        totalPages: 1,
+                        currentPage,
+                        pageSize,
+                        hasNext: false,
+                        hasPrevious: false,
+                    });
+                }
             } catch (error) {
-                console.error(error)
+                console.error(error);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        }        
 
         const handleGetRoomTypes = async () => {
             setLoading(true)
@@ -60,14 +91,16 @@ const GuestProfile = () => {
         }
 
         const handleGetGroupProfiles = async () => {
-            setLoading(true)
+            setLoading(true);
             try {
-                const response = await getGroupProfiles()
-                setGroupProfiles(response.data)
+                const response = searchTerm
+                    ? (await searchGroupProfiles({ q: searchTerm, page: currentPage, limit: pageSize }) as GetGroupProfilesResponse)
+                    : await getGroupProfiles({ page: currentPage, limit: pageSize });
+                setGroupProfiles(response.data);
             } catch (error) {
-                console.error(error)
+                console.error(error);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
 
@@ -76,7 +109,7 @@ const GuestProfile = () => {
             handleGetRoomTypes(),
             handleGetGroupProfiles(),
         ])
-    }, [])
+    }, [searchTerm, currentPage])
 
     useEffect(() => {
         const transformedGuests: CombinedGuestData[] = guests.map(guest => ({
@@ -208,11 +241,11 @@ const GuestProfile = () => {
             setLoading(true);
             if (item.isGroup) {
                 await deleteGroupProfile(item.id);
-                const groupResponse = await getGroupProfiles();
+                const groupResponse = await getGroupProfiles({ page: currentPage, limit: pageSize });
                 setGroupProfiles(groupResponse.data);
             } else {
                 await deleteGuest(item.id);
-                const guestResponse = await getGuests();
+                const guestResponse = await getGuests({ page: currentPage, limit: pageSize });
                 setGuests(guestResponse.data);
             }
         } catch (error) {
@@ -232,6 +265,15 @@ const GuestProfile = () => {
 
     return (
         <>
+            <div style={{ marginBottom: 16 }}>
+                <input
+                    type="text"
+                    placeholder="Search guests..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    style={{ padding: 8, width: 300 }}
+                />
+            </div>
             <DataTable
                 data={combinedData}
                 loading={loading}
@@ -250,14 +292,14 @@ const GuestProfile = () => {
                     searchPlaceholder: "Search guests...",
                     searchFields: ["name", "email"],
                 }}
-                pagination={{
-                    currentPage,
-                    totalPages: Math.ceil(combinedData.length / 10),
-                    totalItems: combinedData.length,
+                pagination={pagination ? {
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalItems: pagination.totalItems,
                     onPageChange: setCurrentPage,
                     showPreviousNext: true,
                     maxVisiblePages: 7,
-                }}
+                } : undefined}
                 deleteConfig={{
                     onDelete: handleDeleteGuest,
                     getDeleteTitle: (item) => item ? (item.isGroup ? "Delete Group Profile" : "Delete Guest") : "Delete Item",

@@ -51,7 +51,7 @@ const CheckInDialog = ({
             const targetReservationId = reservationId || ""
             await checkIn(targetReservationId, depositAmount)
 
-            onCheckInComplete?.()
+            onCheckInComplete?.();
             setOpen(false)
             toast(
                 "Success!", {

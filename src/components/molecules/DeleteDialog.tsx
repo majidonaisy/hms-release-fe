@@ -12,6 +12,7 @@ interface DeleteDialogProps {
     onCancel: () => void;
     loading?: boolean;
     destructive?: boolean;
+    refetchReservations?: () => void;
 }
 
 const DeleteDialog: React.FC<DeleteDialogProps> = ({
@@ -23,10 +24,14 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
     onConfirm,
     onCancel,
     loading = false,
-    destructive = true
+    destructive = true,
+    refetchReservations
 }) => {
     const handleConfirm = () => {
         onConfirm();
+        if (refetchReservations) {
+            refetchReservations();
+        }
     };
 
     const handleCancel = () => {

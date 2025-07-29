@@ -77,7 +77,6 @@ const CheckOutDialog = ({
         }
     }, []);
 
-    // Fetch automatic late checkout fee info
     const fetchAutomaticFeeInfo = useCallback(async () => {
         if (!reservationId) return;
 
@@ -87,7 +86,6 @@ const CheckOutDialog = ({
             setAutomaticFeeInfo(response.data);
         } catch (error: any) {
             console.error('Failed to fetch automatic fee info:', error);
-            // Don't show error toast as this is optional information
             setAutomaticFeeInfo(null);
         } finally {
             setLoadingAutomaticFee(false);
@@ -118,7 +116,7 @@ const CheckOutDialog = ({
         try {
             const targetReservationId = reservationId || '';
             await checkOut(targetReservationId);
-            onCheckOutComplete?.();
+            onCheckOutComplete?.(); // This will trigger refreshReservations in parent
             setOpen(false);
         } catch (error: any) {
             console.error('Check-out failed:', error);
