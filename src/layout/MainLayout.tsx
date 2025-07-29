@@ -9,6 +9,7 @@ import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
 import { useRole } from '@/context/CASLContext';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
+import { logoutService } from '@/services/Auth';
 
 interface MainLayoutProps {
     routes: any[];
@@ -36,6 +37,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
 
     const handleReload = () => {
         window.location.reload();
+    };
+
+    const handleLogout = async () => {
+        await logoutService();
+        dispatch(logout());
+        navigate("/auth/login");
     };
 
     // Render menu items with subroute support
@@ -158,7 +165,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200" onClick={() => { dispatch(logout()); navigate("/auth/login"); }}>
+                                    <Button className="w-full transition-all duration-200" onClick={() => handleLogout()}>
                                         <LogOut className="!size-4" />
                                         <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
                                     </Button>

@@ -393,7 +393,7 @@ const DataTable = <T,>({
         {/* Header Section */}
         <div className="mb-6">
           {/* Title with Count */}
-          <div className="flex items-centergap-2 mb-4">
+          <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-3 mb-6">
               <Button
                 variant="ghost"

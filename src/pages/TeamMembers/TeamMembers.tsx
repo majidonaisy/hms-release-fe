@@ -97,11 +97,11 @@ const TeamMembers = () => {
             className: 'text-gray-600'
         },
         {
-            key: 'isActive',
+            key: 'isOnline',
             label: 'Status',
-            render: (_item, value) => (
-                <Badge className={`${getStatusColor(value)}`}>
-                    • {value ? 'Active' : 'Inactive'}
+            render: (item) => (
+                <Badge className={`${getStatusColor(item.online)}`}>
+                    • {item.online ? 'Online' : 'Offline'}
                 </Badge>
             )
         },
