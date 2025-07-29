@@ -40,6 +40,7 @@ export type UIReservation = {
   roomType: string
   ratePlanId?: string
   roomTypeId?: string
+  identification?: string
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {

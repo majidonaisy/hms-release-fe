@@ -76,25 +76,13 @@ export const UpdateReservationRequestSchema = z.object({
   ratePlanId: z.string(),
 });
 
-export const CheckInRequest = z.object({
-  // actualCheckInTime: z.string().transform((val) => new Date(val)),
-  actualCheckInTime: z.date(),
-  notes: z.string(),
-});
-
-export const CheckInResponse = z.object({
+export const CheckInResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
   data: z.object({}),
 });
 
-export const CheckOutRequest = z.object({
-  // actualCheckInTime: z.string().transform((val) => new Date(val)),
-  actualCheckInTime: z.date(),
-  notes: z.string(),
-});
-
-export const CheckOutResponse = z.object({
+export const CheckOutResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
   data: z.object({}),
@@ -186,10 +174,8 @@ export type AddReservationRequest = z.infer<typeof AddReservationRequestSchema>;
 export type AddGroupReservationRequest = z.infer<typeof AddGroupReservationRequestSchema>;
 export type ReservationResponse = z.infer<typeof ReservationResponseSchema>;
 export type UpdateReservationRequest = z.infer<typeof UpdateReservationRequestSchema>;
-export type CheckInRequest = z.infer<typeof CheckInRequest>;
-export type CheckInResponse = z.infer<typeof CheckInResponse>;
-export type CheckOutRequest = z.infer<typeof CheckOutRequest>;
-export type CheckOutResponse = z.infer<typeof CheckOutResponse>;
+export type CheckInResponse = z.infer<typeof CheckInResponseSchema>;
+export type CheckOutResponse = z.infer<typeof CheckOutResponseSchema>;
 export type GetNightPriceResponse = z.infer<typeof GetNightPriceResponseSchema>;
 export type GetReservationByGuestId = z.infer<typeof GetReservationByGuestIdSchema>;
 export type GetReservationById = z.infer<typeof ReservationByIdShape>;

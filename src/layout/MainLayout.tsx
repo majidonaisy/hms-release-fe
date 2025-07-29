@@ -25,6 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     // Get current active route
     const activeRouteSeg = location.pathname.split('/').pop() || '';
     const activeRoute = decodeURIComponent(activeRouteSeg);
+    const [loading, setLoading] = useState(false);
 
     // Handle toggle for subroutes
     const handleToggle = (path: string) => {
@@ -40,9 +41,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     };
 
     const handleLogout = async () => {
-        await logoutService();
-        dispatch(logout());
-        navigate("/auth/login");
+        setLoading(true);
+        try {
+            await logoutService();
+            dispatch(logout());
+            navigate("/auth/login");
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Render menu items with subroute support
@@ -165,9 +173,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton tooltip="Log Out" asChild>
-                                    <Button className="w-full transition-all duration-200" onClick={() => handleLogout()}>
+                                    <Button disabled={loading} className="w-full transition-all duration-200" onClick={() => handleLogout()}>
                                         <LogOut className="!size-4" />
-                                        <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">Log Out</span>
+                                        <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">{loading ? "Logging out..." : "Log Out"}</span>
                                     </Button>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
