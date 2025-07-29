@@ -168,24 +168,24 @@ const ChooseReservationOptionDialog = ({
 
                     {/* Check-In */}
                     <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedIn
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedIn || isCheckedOut
                             ? "bg-gray-50 opacity-50 cursor-not-allowed"
                             : "hover:bg-gray-50"
                             }`}
                         onClick={() => {
-                            if (!isCheckedIn) {
+                            if (!isCheckedIn && !isCheckedOut) {
                                 setOpen(false);
                                 checkIn();
                             }
                         }}
                     >
                         <div className="flex items-center gap-3">
-                            <LogIn className={`h-5 w-5 ${isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>
+                            <LogIn className={`h-5 w-5 ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
+                            <span className={`font-medium ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>
                                 Check-In
                             </span>
                         </div>
-                        <span className={isCheckedIn ? "text-gray-300" : "text-gray-400"}>
+                        <span className={isCheckedIn || isCheckedOut ? "text-gray-300" : "text-gray-400"}>
                             <ChevronRight size={15} />
                         </span>
                     </div>

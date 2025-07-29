@@ -85,10 +85,27 @@ export const AddGuestResponseSchema = z.object({
 });
 
 // Get Guests
+export const PaginationSchema = z.object({
+  page: z.number(),
+  pageSize: z.number(),
+  total: z.number(),
+  totalPages: z.number(),
+  hasNextPage: z.boolean(),
+  hasPreviousPage: z.boolean(),
+});
+
+export const SearchMetaSchema = z.object({
+  query: z.string(),
+  searchableFields: z.array(z.string()),
+  executionTime: z.number(),
+});
+
 export const GetGuestsResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
   data: z.array(GuestShape),
+  pagination: PaginationSchema.optional(),
+  searchMeta: SearchMetaSchema.optional(),
 });
 
 export const GetGuestByIdResponseSchema = z.object({
@@ -189,6 +206,8 @@ export type Guest = z.infer<typeof GuestShape>;
 export type GroupProfile = z.infer<typeof GroupProfileShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
 export type AddGuestResponse = z.infer<typeof AddGuestResponseSchema>;
+export type Pagination = z.infer<typeof PaginationSchema>;
+export type SearchMeta = z.infer<typeof SearchMetaSchema>;
 export type GetGuestsResponse = z.infer<typeof GetGuestsResponseSchema>;
 export type GetGuestByIdResponse = z.infer<typeof GetGuestByIdResponseSchema>;
 export type UpdateGuestRequest = z.infer<typeof UpdateGuestRequestSchema>;

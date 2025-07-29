@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../components/atoms/Tooltip"
 import { ScrollArea } from "@/components/atoms/ScrollArea"
 import { Room } from "@/validation"
-import { getRooms } from "@/services/Rooms"
 import { cancelReservation, getReservations } from "@/services/Reservation"
 import { ReservationResponse } from "@/validation/schemas/Reservations"
 import CheckOutDialog from "../components/dialogs/CheckOutDialog"
@@ -70,7 +69,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
         const apiReservations = response.data.reservations;
 
-        // Extract all rooms from the reservation response
         const extractedRooms: Room[] = [];
         const seenRoomIds = new Set<string>();
 
@@ -229,14 +227,27 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const getStatusColor = (status: string) => {
     const colors = {
       "CHECKED_IN": "bg-chart-1/20 border-l-4 border-chart-1",
-      "CHECKED_OUT": "bg-chart-2/20 border-l-4 border-chart-2",
+      "CHECKED_OUT": "bg-chart-5/20 border-l-4 border-chart-5",
       // DRAFT: "bg-chart-3/20 border-l-4 border-chart-3",
-      "CONFIRMED": "bg-chart-3/20 border-l-4 border-chart-3",
+      // "CONFIRMED": "bg-chart-3/20 border-l-4 border-chart-3",
       // "CANCELLED": "bg-chart-4/20 border-l-4 border-chart-4",
       // NO_SHOW: "bg-chart-5/20 border-l-4 border-chart-5",
-      "HELD": "bg-chart-4/20 border-l-4 border-chart-4",
+      "HELD": "bg-chart-3/20 border-l-4 border-chart-3",
     };
     return colors[status as keyof typeof colors] || colors.HELD;
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case "CHECKED_IN":
+        return "Checked In";
+      case "CHECKED_OUT":
+        return "Checked Out";
+      case "HELD":
+        return "Held";
+      default:
+        return status;
+    }
   };
 
   const getRoomStatusColor = (status: string) => {
@@ -368,16 +379,16 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
           <div className="flex items-center justify-between gap-4">
             <div className="flex gap-2 text-sm w-full">
-              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
+              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
                 <span className="text-xs">Checked In</span>
               </div>
-              <div className="flex items-center bg-chart-2/20 border-l-chart-2 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
+              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
                 <span className="text-xs">Checked Out</span>
               </div>
-              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
+              {/* <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
                 <span className="text-xs">Confirmed</span>
-              </div>
-              <div className="flex items-center bg-chart-4/20 border-l-chart-4 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
+              </div> */}
+              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
                 <span className="text-xs">Held</span>
               </div>
             </div>
@@ -395,10 +406,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="CHECKED_IN">Checked In</SelectItem>
                   <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                  {/* <SelectItem value="CONFIRMED">Confirmed</SelectItem> */}
                   <SelectItem value="HELD">Held</SelectItem>
                 </SelectContent>
               </Select>
@@ -547,7 +558,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                       }}
                     >
                       <div className="truncate font-medium">{event.guestName}</div>
-                      <div className="truncate text-xs opacity-75">{event.status}</div>
+                      <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -568,8 +579,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </ScrollArea>
         </div>
       </div>
-      <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
-      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} />
+      <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} />
+      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckOutComplete={refreshReservations} />
       <EditReservationDialog
         open={editReservationDialog}
         setOpen={setEditReservationDialog}
@@ -618,7 +629,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         cancelReservation={() => setCancelReservationDialog(true)}
         viewReservation={() => setViewReservationDialog(true)}
       />
-      <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" />
+      <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" refetchReservations={refreshReservations} />
     </TooltipProvider>
   );
 };
