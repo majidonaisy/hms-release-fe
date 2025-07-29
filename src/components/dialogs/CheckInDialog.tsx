@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { useDropzone } from 'react-dropzone';
+import { AlertCircle, Loader2, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
 import { Button } from "@/components/atoms/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
@@ -30,12 +31,40 @@ const CheckInDialog = ({
     const [deposit, setDeposit] = useState<string>("")
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null);
+    const [identificationFiles, setIdentificationFiles] = useState<File[]>([]);
+    const [identificationData, setIdentificationData] = useState<any>(null);
+    const [uploadingIdentification, setUploadingIdentification] = useState(false);
+
+    const {
+        getRootProps: getIdentificationRootProps,
+        getInputProps: getIdentificationInputProps,
+        isDragActive: isIdentificationDragActive
+    } = useDropzone({
+        maxFiles: 1,
+        onDrop: async (acceptedFiles) => {
+            setUploadingIdentification(true);
+            setError(null);
+            if (acceptedFiles.length === 0) {
+                setIdentificationFiles([]);
+                setIdentificationData(null);
+                setUploadingIdentification(false);
+                return;
+            }
+            const file = acceptedFiles[0];
+            setIdentificationFiles([file]);
+            setIdentificationData(file);
+            setUploadingIdentification(false);
+        }
+    });
 
     useEffect(() => {
         if (open) {
-            setDeposit("")
-            setIsLoading(false)
+            setDeposit("");
+            setIsLoading(false);
             setError(null);
+            setIdentificationFiles([]);
+            setIdentificationData(null);
+            setUploadingIdentification(false);
         }
     }, [open])
 
@@ -45,19 +74,23 @@ const CheckInDialog = ({
             return
         }
 
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-            const depositAmount = Number.parseFloat(deposit)
-            const targetReservationId = reservationId || ""
-            await checkIn(targetReservationId, depositAmount)
+            const depositAmount = Number.parseFloat(deposit);
+            const targetReservationId = reservationId || "";
+            await checkIn(
+                targetReservationId,
+                depositAmount,
+                identificationData || {}
+            );
 
             onCheckInComplete?.();
-            setOpen(false)
+            setOpen(false);
             toast(
                 "Success!", {
                 description: "Check-in was successful"
             }
-            )
+            );
         } catch (error: any) {
             console.error('Check-in failed:', error);
 
@@ -85,7 +118,7 @@ const CheckInDialog = ({
             setError(errorMessage);
             onError?.(errorMessage);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
 
@@ -155,10 +188,60 @@ const CheckInDialog = ({
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="deposit" className="text-sm font-semibold">
-                            Deposit
-                        </Label>
-                        <Input type='number' value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+                        <Label htmlFor="deposit" className="text-sm font-semibold">Deposit</Label>
+                        <Input
+                            id="deposit"
+                            type="number"
+                            value={deposit}
+                            onChange={e => setDeposit(e.target.value)}
+                            placeholder="Enter deposit amount"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Identification</Label>
+                        <div
+                            {...getIdentificationRootProps()}
+                            className={`border border-gray-600 h-24 p-4 rounded-md cursor-pointer flex items-center justify-center hover:bg-accent/50 transition-colors bg-white`}
+                        >
+                            <input {...getIdentificationInputProps()} />
+                            {uploadingIdentification ? (
+                                <p className="text-center text-gray-500">Uploading file...</p>
+                            ) : (
+                                <p className="text-center text-gray-500">
+                                    {isIdentificationDragActive ? "Drop the file here..." : "Drag & drop a file here, or click to select file"}
+                                </p>
+                            )}
+                        </div>
+                        <div className="mt-2">
+                            {identificationFiles.length === 0 && (
+                                <p className="text-sm text-gray-500">No file selected.</p>
+                            )}
+                            {identificationFiles.length > 0 && (
+                                <ul className="flex flex-wrap gap-3">
+                                    {identificationFiles.map((fileObj, index) => (
+                                        <li key={index} className="flex items-center gap-1 p-2 border rounded-md">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-12 h-12 bg-gray-100 flex items-center justify-center rounded">
+                                                    <span className="text-xs">{fileObj.name.split('.').pop()}</span>
+                                                </div>
+                                                <span className="text-sm overflow-hidden text-ellipsis max-w-40">{fileObj.name}</span>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIdentificationFiles([]);
+                                                    setIdentificationData(null);
+                                                    setError(null);
+                                                }}
+                                                className="h-7 w-7"
+                                            >
+                                                <X/>
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
 
                     <Card className="bg-hms-accent/15">
@@ -174,19 +257,27 @@ const CheckInDialog = ({
                                     {deposit ? `$${parseFloat(deposit).toFixed(2)}` : "$0.00"}
                                 </p>
                             </div>
+                            {identificationFiles.length > 0 && (
+                                <div className="mt-2">
+                                    <Label className="text-gray-600 text-xs">Identification File</Label>
+                                    <p className="text-sm text-gray-700">
+                                        <strong>Name:</strong> {identificationFiles[0].name}<br />
+                                        <strong>Type:</strong> {identificationFiles[0].type || 'Unknown'}
+                                    </p>
+                                </div>
+                            )}
                             <p className="text-sm text-gray-700">
                                 This amount will be held for the guest's stay.
                             </p>
                         </CardContent>
                     </Card>
-
                 </div>
 
                 <div className="mt-6 pt-4 border-t text-center">
                     <Button
                         onClick={handleCheckIn}
                         className="px-20"
-                        disabled={isLoading || !deposit}
+                        disabled={isLoading || !deposit || !identificationData}
                     >
                         {isLoading ? (
                             <>

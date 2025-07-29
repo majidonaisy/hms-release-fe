@@ -77,13 +77,13 @@ export const getReservations = async (startDate?: Date, endDate?: Date, paginati
   }
 };
 
-export const checkIn = async (reservationId: string, deposit: number): Promise<any> => {
+export const checkIn = async (reservationId: string, deposit: number, identification: JSON): Promise<any> => {
   try {
     const response = await apiClient({
       method: "POST",
       endpoint: `${ENDPOINTS.Reservations.CheckIn}/${reservationId}`,
       baseURL,
-      data: { deposit },
+      data: { deposit, identification },
     });
     return response;
   } catch (error: any) {
