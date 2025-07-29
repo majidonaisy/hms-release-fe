@@ -1,5 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import { useDebounce } from "@/hooks/useDebounce"
 import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
@@ -12,11 +13,13 @@ import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse } from "@/val
 import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { getGuests } from "@/services/Guests"
+import { searchGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
 import { addReservation, getNightPrice, getReservations } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
+import { Input } from "@/components/atoms/Input"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
@@ -51,6 +54,9 @@ export default function NewIndividualReservation() {
     });
     const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
+    const [guestSearch, setGuestSearch] = useState("");
+    const [guestSearchLoading, setGuestSearchLoading] = useState(false);
+    const debouncedGuestSearch = useDebounce(guestSearch, 300);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
@@ -68,7 +74,7 @@ export default function NewIndividualReservation() {
 
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
 
-    const getAvailableRoomsForDates = async (checkIn: Date, checkOut: Date) => {
+    const getAvailableRoomsForDates = useCallback(async (checkIn: Date, checkOut: Date) => {
         try {
             const reservationsResponse = await getReservations(checkIn, checkOut);
 
@@ -108,13 +114,13 @@ export default function NewIndividualReservation() {
                 description: "Failed to fetch available rooms"
             });
         }
-    };
+    }, [rooms]);
 
     useEffect(() => {
         if (formData.checkIn && formData.checkOut && rooms.length > 0) {
             getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
         }
-    }, [formData.checkIn, formData.checkOut, rooms]);
+    }, [formData.checkIn, formData.checkOut, rooms, getAvailableRoomsForDates]);
 
     const handleRoomSelection = async (roomId: string) => {
         if (!formData.roomIds?.includes(roomId)) {
@@ -212,11 +218,14 @@ export default function NewIndividualReservation() {
         };
 
         const handleGetGuests = async () => {
+            setLoading(true);
             try {
                 const guests = await getGuests();
                 setGuests(guests.data);
             } catch (error) {
                 console.error(error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -233,6 +242,23 @@ export default function NewIndividualReservation() {
         handleGetGuests();
         handleGetRatePlans();
     }, []);
+
+    useEffect(() => {
+        const fetchGuests = async (searchTerm: string) => {
+            setGuestSearchLoading(true);
+            try {
+                const guests = searchTerm
+                  ? (await searchGuests({ q: searchTerm }) as GetGuestsResponse)
+                  : await getGuests();
+                setGuests(guests.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setGuestSearchLoading(false);
+            }
+        };
+        fetchGuests(debouncedGuestSearch);
+    }, [debouncedGuestSearch]);
 
     const filteredAvailableRooms = getFilteredAvailableRooms();
 
@@ -285,11 +311,30 @@ export default function NewIndividualReservation() {
                                         <SelectValue placeholder="Select Guest" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {guests.map((guest) => (
-                                            <SelectItem key={guest.id} value={guest.id}>
-                                                {guest.firstName} {guest.lastName}
+                                        <div className="p-2">
+                                            <Input
+                                                type="text"
+                                                className="w-full border border-slate-300 rounded px-2 py-1 mb-2"
+                                                placeholder="Search guests..."
+                                                value={guestSearch}
+                                                onChange={e => setGuestSearch(e.target.value)}
+                                            />
+                                        </div>
+                                        {guestSearchLoading || loading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading guests...
                                             </SelectItem>
-                                        ))}
+                                        ) : guests.length > 0 ? (
+                                            guests.map((guest) => (
+                                                <SelectItem key={guest.id} value={guest.id}>
+                                                    {guest.firstName} {guest.lastName}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-results" disabled>
+                                                No guests found.
+                                            </SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <div className="flex justify-center pt-4">

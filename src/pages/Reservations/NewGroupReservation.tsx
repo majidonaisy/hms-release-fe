@@ -1,5 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import { useDebounce } from "@/hooks/useDebounce"
 import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
@@ -7,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon, Check, ChevronLeft, X } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
-import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse } from "@/validation"
+import { GetRatePlansResponse, GetRoomsResponse } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
-import { getGroupProfiles, getGuests } from "@/services/Guests"
+import { getGroupProfiles } from "@/services/Guests"
+import type { GetGroupProfilesResponse } from "@/validation/schemas/Guests"
+import { searchGroupProfiles } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
 import { addGroupReservation, getNightPrice, getReservations } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
@@ -72,10 +75,12 @@ export default function NewGroupReservation() {
     const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [groupProfiles, setGroupProfiles] = useState<GroupProfile[]>([]);
+    const [groupProfileSearch, setGroupProfileSearch] = useState("");
+    const [groupProfileSearchLoading, setGroupProfileSearchLoading] = useState(false);
+    const debouncedGroupProfileSearch = useDebounce(groupProfileSearch, 300);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
-    const [selectedGuest, setSelectedGuest] = useState<string>("");
-    const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
+    // Removed unused selectedGuest and selectedRooms
 
     const handleInputChange = (field: keyof GroupReservationRequest, value: any) => {
         setFormData(prev => ({
@@ -84,7 +89,7 @@ export default function NewGroupReservation() {
         }));
     };
 
-    const getAvailableRoomsForDates = async (checkIn: Date, checkOut: Date) => {
+    const getAvailableRoomsForDates = useCallback(async (checkIn: Date, checkOut: Date) => {
         try {
             const reservationsResponse = await getReservations(checkIn, checkOut);
             const reservedRoomIds = new Set<string>();
@@ -120,13 +125,13 @@ export default function NewGroupReservation() {
                 description: "Failed to fetch available rooms"
             });
         }
-    };
+    }, [rooms]);
 
     useEffect(() => {
         if (formData.checkIn && formData.checkOut && rooms.length > 0) {
             getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
         }
-    }, [formData.checkIn, formData.checkOut, rooms]);
+    }, [formData.checkIn, formData.checkOut, rooms, getAvailableRoomsForDates]);
 
     const handleGuestRoomAssignment = (guestId: string, roomIds: string[]) => {
         setFormData(prev => ({
@@ -153,8 +158,7 @@ export default function NewGroupReservation() {
         const assignedRoomIds = Object.values(formData.guestsAndRooms).flat();
         return availableRooms.filter(room =>
             (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
-            !assignedRoomIds.includes(room.id) &&
-            !selectedRooms.includes(room.id)
+            !assignedRoomIds.includes(room.id)
         );
     };
 
@@ -200,12 +204,17 @@ export default function NewGroupReservation() {
             }
         };
 
-        const handleGetGroupProfiles = async () => {
+        const handleGetGroupProfiles = async (q?: string) => {
             try {
-                const groupProfiles = await getGroupProfiles();
+                setGroupProfileSearchLoading(true);
+                const groupProfiles = q
+                  ? (await searchGroupProfiles({ q }) as GetGroupProfilesResponse)
+                  : await getGroupProfiles();
                 setGroupProfiles(groupProfiles.data);
             } catch (error) {
                 console.error(error);
+            } finally {
+                setGroupProfileSearchLoading(false);
             }
         };
 
@@ -216,6 +225,23 @@ export default function NewGroupReservation() {
         ])
             .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        const fetchProfiles = async (searchTerm: string) => {
+            setGroupProfileSearchLoading(true);
+            try {
+                const groupProfiles = searchTerm
+                  ? (await searchGroupProfiles({ q: searchTerm }) as GetGroupProfilesResponse)
+                  : await getGroupProfiles();
+                setGroupProfiles(groupProfiles.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setGroupProfileSearchLoading(false);
+            }
+        };
+        fetchProfiles(debouncedGroupProfileSearch);
+    }, [debouncedGroupProfileSearch]);
 
     const filteredAvailableRooms = getFilteredAvailableRooms();
 
@@ -272,7 +298,16 @@ export default function NewGroupReservation() {
                                         <SelectValue placeholder="Select Group Profile" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loading ? (
+                                        <div className="p-2">
+                                            <input
+                                                type="text"
+                                                className="w-full border border-slate-300 rounded px-2 py-1 mb-2"
+                                                placeholder="Search group profiles..."
+                                                value={groupProfileSearch}
+                                                onChange={e => setGroupProfileSearch(e.target.value)}
+                                            />
+                                        </div>
+                                        {groupProfileSearchLoading || loading ? (
                                             <SelectItem value="loading" disabled>
                                                 Loading...
                                             </SelectItem>
