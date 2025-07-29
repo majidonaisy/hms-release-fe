@@ -3,6 +3,7 @@ export const ENDPOINTS = {
     Login: "auth/login",
     AddUser: "auth/add-user",
     RefreshToken: "auth/refresh",
+    Logout: "auth/logout",
   },
   RoomType: {
     Add: "roomtype/add",
@@ -22,21 +23,21 @@ export const ENDPOINTS = {
   },
   Guest: {
     Add: "guest/add",
-    GetAll: "guest/get", // gets all guests
+    GetAll: "guest/get",
     GetById: "guest/get",
     Update: "guest/update",
     Delete: "guest/delete",
     GetCurrentGuests: 'reservation/get-current-guests',
-    Search: "guest/search", // search guests
+    Search: "guest/search",
   },
   GroupProfile: {
     AddGroupProfile: "group-profile/add",
     LinkGuestsToGroup: "group-profile/link",
-    GetGroupProfiles: "group-profile/get", // gets all group profiles
+    GetGroupProfiles: "group-profile/get",
     GetGroupProfileById: "group-profile/get",
     DeleteGroupProfile: "group-profile/delete",
     UpdateGroupProfile: "group-profile/update",
-    Search: "group-profile/search", // search group profiles
+    Search: "group-profile/search",
   },
   RatePlan: {
     Add: "ratePlan/add",

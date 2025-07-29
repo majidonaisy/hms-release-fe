@@ -20,6 +20,7 @@ const EmployeeShape = z.object({
       name: z.string(),
     })
   ),
+  online: z.boolean()
 });
 
 export const PaginationSchema = z.object({
