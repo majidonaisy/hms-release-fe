@@ -156,14 +156,23 @@ const ChooseReservationOptionDialog = ({
 
                     {/* Add Charges */}
                     <div
-                        className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
-                        onClick={() => { setOpen(false); addCharge(); }}
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn
+                            ? "bg-gray-50 opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-50"
+                            }`}
+                        onClick={() => {
+                            if (isCheckedIn) {
+                                setOpen(false); addCharge();
+                            }
+                        }}
                     >
                         <div className="flex items-center gap-3">
-                            <CircleDollarSign className="h-5 w-5 text-gray-600" />
-                            <span className="font-medium text-gray-900">Add Charges</span>
+                            <CircleDollarSign className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
+                            <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`}>Add Charges</span>
                         </div>
-                        <ChevronRight size={15} />
+                        <span className={!isCheckedIn ? "text-gray-300" : ""}>
+                            <ChevronRight size={15} />
+                        </span>
                     </div>
 
                     {/* Check-In */}
@@ -185,7 +194,7 @@ const ChooseReservationOptionDialog = ({
                                 Check-In
                             </span>
                         </div>
-                        <span className={isCheckedIn || isCheckedOut ? "text-gray-300" : "text-gray-400"}>
+                        <span className={isCheckedIn || isCheckedOut ? "text-gray-300" : ""}>
                             <ChevronRight size={15} />
                         </span>
                     </div>

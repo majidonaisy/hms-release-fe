@@ -15,6 +15,7 @@ export const AddChargeRequestSchema = z.object({
   unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
   itemType: z.string().min(1, "Payment method is required"),
   description: z.string().optional(),
+  receiptId: z.string()
 });
 
 // Add Charge Response
