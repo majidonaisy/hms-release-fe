@@ -60,3 +60,19 @@ export const refreshToken = async (refreshToken: string): Promise<LoginResponse>
     };
   }
 }
+
+export const logoutService = async (): Promise<void> => {
+  try {
+    await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Auth.Logout,
+      baseURL
+    });
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Logout failed";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
