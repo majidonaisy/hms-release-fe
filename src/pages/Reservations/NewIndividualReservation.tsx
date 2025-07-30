@@ -5,14 +5,13 @@ import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
-import { CalendarIcon, Check, ChevronLeft, X } from "lucide-react"
+import { CalendarIcon, Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
 import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse } from "@/validation"
 import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
-import { getGuests } from "@/services/Guests"
 import { searchGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
 import { addReservation, getNightPrice, getReservations } from "@/services/Reservation"
@@ -55,7 +54,6 @@ export default function NewIndividualReservation() {
     const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
     const [guestSearch, setGuestSearch] = useState("");
-    const [guestSearchLoading, setGuestSearchLoading] = useState(false);
     const debouncedGuestSearch = useDebounce(guestSearch, 400);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
@@ -73,6 +71,11 @@ export default function NewIndividualReservation() {
     };
 
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
+
+    // Clear search function
+    const clearGuestSearch = () => {
+        setGuestSearch("");
+    };
 
     const getAvailableRoomsForDates = useCallback(async (checkIn: Date, checkOut: Date) => {
         try {
@@ -217,18 +220,6 @@ export default function NewIndividualReservation() {
             }
         };
 
-        const handleGetGuests = async () => {
-            setLoading(true);
-            try {
-                const guests = await getGuests();
-                setGuests(guests.data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         const handleGetRatePlans = async () => {
             try {
                 const ratePlans = await getRatePlans();
@@ -239,44 +230,24 @@ export default function NewIndividualReservation() {
         };
 
         handleGetRooms();
-        handleGetGuests();
         handleGetRatePlans();
     }, []);
 
     useEffect(() => {
-        const fetchInitialGuests = async () => {
-            setLoading(true);
+        const handleGetGuests = async () => {
             try {
-                const guests = await getGuests();
-                setGuests(guests.data);
+                const response = ((await searchGuests({
+                    q: debouncedGuestSearch,
+
+                })) as GetGuestsResponse)
+                setGuests(response.data)
+
             } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
+                console.error(error)
             }
-        };
-
-        fetchInitialGuests();
-    }, []);
-
-    useEffect(() => {
-        const fetchGuests = async () => {
-            if (!debouncedGuestSearch.trim()) return;
-
-            setGuestSearchLoading(true);
-            try {
-                const guests = await searchGuests({ q: debouncedGuestSearch });
-                setGuests(guests.data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setGuestSearchLoading(false);
-            }
-        };
-
-        fetchGuests();
-    }, [debouncedGuestSearch]);
-
+        }
+        handleGetGuests()
+    }, [debouncedGuestSearch])
 
     const filteredAvailableRooms = getFilteredAvailableRooms();
 
@@ -330,15 +301,27 @@ export default function NewIndividualReservation() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <div className="p-2">
-                                            <Input
-                                                type="text"
-                                                className="w-full border border-slate-300 rounded px-2 py-1 mb-2"
-                                                placeholder="Search guests..."
-                                                value={guestSearch}
-                                                onChange={e => setGuestSearch(e.target.value)}
-                                            />
+                                            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Search guests..."
+                                                    value={guestSearch}
+                                                    onChange={e => setGuestSearch(e.target.value)}
+                                                    className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                                />
+                                                {guestSearch && (
+                                                    <button
+                                                        onClick={clearGuestSearch}
+                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                                <Search className="h-4 w-4 text-gray-400" />
+                                            </div>
                                         </div>
-                                        {guestSearchLoading || loading ? (
+                                        {loading ? (
                                             <SelectItem value="loading" disabled>
                                                 Loading guests...
                                             </SelectItem>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { deleteGroupProfile, deleteGuest, getGroupProfiles, getGuests } from "@/services/Guests"
+import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
 import { searchGuests, searchGroupProfiles } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
@@ -99,19 +99,16 @@ const GuestProfile = () => {
     setGroupSearchTerm("")
   }
 
-  // Fetch individual guests
   useEffect(() => {
     const handleGetGuests = async () => {
       if (activeTab === "groups") return
 
       setLoading(true)
       try {
-        const response = debouncedIndividualSearch
-          ? ((await searchGuests({
-              q: debouncedIndividualSearch,
-             
-            })) as GetGuestsResponse)
-          : await getGuests({ page: currentPage, limit: pageSize })
+        const response = ((await searchGuests({
+          q: debouncedIndividualSearch,
+
+        })) as GetGuestsResponse)
         setGuests(response.data)
         if (response.pagination) {
           setPagination(response.pagination)
@@ -134,12 +131,9 @@ const GuestProfile = () => {
 
       setLoading(true)
       try {
-        const response = debouncedGroupSearch
-          ? ((await searchGroupProfiles({
-              q: debouncedGroupSearch,
-             
-            })) as GetGroupProfilesResponse)
-          : await getGroupProfiles({ page: currentPage, limit: pageSize })
+        const response = ((await searchGroupProfiles({
+          q: debouncedGroupSearch,
+        })) as GetGroupProfilesResponse)
         setGroupProfiles(response.data)
       } catch (error) {
         console.error(error)
@@ -215,14 +209,14 @@ const GuestProfile = () => {
     try {
       if (itemToDelete.isGroup) {
         await deleteGroupProfile(itemToDelete.id)
-        const groupResponse = await getGroupProfiles({ page: currentPage, limit: pageSize })
+        const groupResponse = await searchGroupProfiles({ page: currentPage, limit: pageSize })
         setGroupProfiles(groupResponse.data)
         if (groupResponse.data.length === 0 && currentPage > 1) {
           setCurrentPage(currentPage - 1)
         }
       } else {
         await deleteGuest(itemToDelete.id)
-        const guestResponse = await getGuests({ page: currentPage, limit: pageSize })
+        const guestResponse = await searchGuests({ page: currentPage, limit: pageSize })
         setGuests(guestResponse.data)
         if (guestResponse.pagination) {
           setPagination(guestResponse.pagination)

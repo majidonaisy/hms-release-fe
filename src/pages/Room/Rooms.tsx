@@ -40,7 +40,7 @@ const Rooms = () => {
 
     useEffect(() => {
         const fetchRooms = async () => {
-            setLoading(true);
+            // setLoading(true);
             try {
                 const response = debouncedSearchTerm
                     ? ((await searchRooms(debouncedSearchTerm)) as GetRoomsResponse)
@@ -48,9 +48,10 @@ const Rooms = () => {
                 setRooms(response.data)
             } catch (error) {
                 console.error("Error occurred:", error);
-            } finally {
-                setLoading(false);
             }
+            // finally {
+            //     setLoading(false);
+            // }
         };
 
         if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
@@ -67,6 +68,31 @@ const Rooms = () => {
 
         setFilteredRooms(filtered);
     }, [rooms, searchTerm, selectedStatus]);
+
+    useEffect(() => {
+        const handleGetEmployees = async () => {
+            setLoading(true);
+            try {
+                const response = await getRooms({
+                    page: currentPage,
+                    limit: pageSize
+                });
+                console.log('response', response);
+                setRooms(response.data);
+                if (response.pagination) {
+                    setPagination(response.pagination);
+                } else {
+                    setPagination(null);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        handleGetEmployees();
+
+    }, [currentPage, pageSize]);
 
     const handleSearch = (search: string) => {
         setSearchTerm(search);
@@ -104,6 +130,11 @@ const Rooms = () => {
                     {value}
                 </Badge>
             )
+        },
+        {
+            key: 'description',
+            label: 'Description',
+            render: (item) => <span className="text-gray-600">{item.description || 'No description'}</span>,
         },
         {
             key: 'roomType',

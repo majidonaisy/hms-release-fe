@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Employee, GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
-import { getEmployees } from '@/services/Employees';
+import { getEmployees, searchEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import { getRoles } from '@/services/Role';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Role {
     id: string;
@@ -27,6 +28,8 @@ const TeamMembers = () => {
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -42,9 +45,34 @@ const TeamMembers = () => {
         { value: 'offline', label: 'Offline', color: 'bg-chart-4/20 text-chart-4' },
     ];
 
+    const handleSearch = (search: string) => {
+        setSearchTerm(search);
+    };
+
     const handleStatusFilter = (status: string) => {
         setSelectedStatus(status);
     };
+
+    useEffect(() => {
+        const fetchTeamMembers = async () => {
+            // setLoading(true);
+            try {
+                const response = debouncedSearchTerm
+                    ? ((await searchEmployees({ q: debouncedSearchTerm })) as GetEmployeesResponse)
+                    : await getEmployees({ page: currentPage, limit: pageSize })
+                setEmployees(response.data)
+            } catch (error) {
+                console.error("Error occurred:", error);
+            } 
+            // finally {
+            //     setLoading(false);
+            // }
+        };
+
+        if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
+            fetchTeamMembers();
+        }
+    }, [debouncedSearchTerm, currentPage, pageSize]);
 
     useEffect(() => {
         let filtered = employees;
@@ -54,7 +82,7 @@ const TeamMembers = () => {
         }
 
         setFilteredEmployees(filtered);
-    }, [employees, selectedStatus]);
+    }, [employees, searchTerm, selectedStatus]);
 
     useEffect(() => {
         const handleGetEmployees = async () => {
@@ -167,6 +195,7 @@ const TeamMembers = () => {
                     onStatusChange: handleStatusFilter
                 }
             }}
+            onSearch={handleSearch}
             pagination={pagination ? {
                 currentPage: pagination.currentPage,
                 totalPages: pagination.totalPages,
