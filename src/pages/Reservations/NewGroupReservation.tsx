@@ -77,7 +77,7 @@ export default function NewGroupReservation() {
     const [groupProfiles, setGroupProfiles] = useState<GroupProfile[]>([]);
     const [groupProfileSearch, setGroupProfileSearch] = useState("");
     const [groupProfileSearchLoading, setGroupProfileSearchLoading] = useState(false);
-    const debouncedGroupProfileSearch = useDebounce(groupProfileSearch, 300);
+    const debouncedGroupProfileSearch = useDebounce(groupProfileSearch, 400);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
     // Removed unused selectedGuest and selectedRooms
@@ -208,8 +208,8 @@ export default function NewGroupReservation() {
             try {
                 setGroupProfileSearchLoading(true);
                 const groupProfiles = q
-                  ? (await searchGroupProfiles({ q }) as GetGroupProfilesResponse)
-                  : await getGroupProfiles();
+                    ? (await searchGroupProfiles({ q }) as GetGroupProfilesResponse)
+                    : await getGroupProfiles();
                 setGroupProfiles(groupProfiles.data);
             } catch (error) {
                 console.error(error);
@@ -231,8 +231,8 @@ export default function NewGroupReservation() {
             setGroupProfileSearchLoading(true);
             try {
                 const groupProfiles = searchTerm
-                  ? (await searchGroupProfiles({ q: searchTerm }) as GetGroupProfilesResponse)
-                  : await getGroupProfiles();
+                    ? (await searchGroupProfiles({ q: searchTerm }) as GetGroupProfilesResponse)
+                    : await getGroupProfiles();
                 setGroupProfiles(groupProfiles.data);
             } catch (error) {
                 console.error(error);
@@ -311,12 +311,16 @@ export default function NewGroupReservation() {
                                             <SelectItem value="loading" disabled>
                                                 Loading...
                                             </SelectItem>
-                                        ) : (
+                                        ) : groupProfiles.length > 0 ? (
                                             groupProfiles.map((groupProfile) => (
                                                 <SelectItem key={groupProfile.id} value={groupProfile.id}>
                                                     {groupProfile.name}
                                                 </SelectItem>
                                             ))
+                                        ) : (
+                                            <SelectItem value="no-results" disabled>
+                                                No results found.
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>

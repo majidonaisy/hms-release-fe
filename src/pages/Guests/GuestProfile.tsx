@@ -69,8 +69,8 @@ const GuestProfile = () => {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // Debounced search terms
-  const debouncedIndividualSearch = useDebounce(individualSearchTerm, 300)
-  const debouncedGroupSearch = useDebounce(groupSearchTerm, 300)
+  const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
+  const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
 
   const roomTypeMap = roomTypes.reduce(
     (map, roomType) => {

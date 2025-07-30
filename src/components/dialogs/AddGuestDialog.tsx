@@ -26,7 +26,7 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
     const [selectedGuests, setSelectedGuests] = useState<Guest[]>([]);
     const [guestSearch, setGuestSearch] = useState("");
     const [guestSearchLoading, setGuestSearchLoading] = useState(false);
-    const debouncedGuestSearch = useDebounce(guestSearch, 300);
+    const debouncedGuestSearch = useDebounce(guestSearch, 400);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
 
     useEffect(() => {

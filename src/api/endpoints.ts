@@ -1,3 +1,5 @@
+import { Search } from "lucide-react";
+
 export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
@@ -20,6 +22,7 @@ export const ENDPOINTS = {
     Delete: "room/delete",
     GetByStatus: "room/get-rooms-by-status",
     GetByType: "room/get-by-room-type",
+    Search: 'room/search',
   },
   Guest: {
     Add: "guest/add",
@@ -87,6 +90,7 @@ export const ENDPOINTS = {
     GetAll: "auth/employees",
     GetEmployeeById: "auth/get-user",
     Create: "auth/add-user",
+    Search: "auth/employees/search",
   },
   Role: {
     Add: "role/add",

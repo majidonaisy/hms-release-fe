@@ -184,3 +184,21 @@ export const getAreas = async (): Promise<areaParams> => {
     };
   }
 };
+
+export const searchRooms = async (q: string): Promise<GetRoomsResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Room.Search,
+      baseURL,
+      params: { q },
+    });
+    return response as GetRoomsResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to search rooms";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

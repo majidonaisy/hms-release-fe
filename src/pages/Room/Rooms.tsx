@@ -1,26 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
-import { deleteRoom, getRooms } from '@/services/Rooms';
-import { AddRoomTypeRequest, Room } from '@/validation';
+import { deleteRoom, getRooms, searchRooms } from '@/services/Rooms';
+import { AddRoomTypeRequest, GetRoomsResponse, Room } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Rooms = () => {
     const { canCreate } = usePermissions();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(8); // Default page size
+    const [pageSize] = useState(8);
     const [loading, setLoading] = useState(false);
-    const [sortBy, _setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [pagination, setPagination] = useState<{
         totalItems: number;
@@ -30,8 +29,9 @@ const Rooms = () => {
         hasNext: boolean;
         hasPrevious: boolean;
     } | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-    // Room status options for filtering
     const roomStatusOptions = [
         { value: 'AVAILABLE', label: 'Available', color: 'bg-chart-1/20 text-chart-1' },
         { value: 'OCCUPIED', label: 'Occupied', color: 'bg-chart-4/20 text-chart-4' },
@@ -40,44 +40,27 @@ const Rooms = () => {
 
     useEffect(() => {
         const fetchRooms = async () => {
+            setLoading(true);
             try {
-                setLoading(true);
-                const response = await getRooms({
-                    page: currentPage,
-                    limit: pageSize
-                });
-                setRooms(response.data);
-
-                // Set pagination if available in response
-                if (response.pagination) {
-                    setPagination(response.pagination);
-                } else {
-                    setPagination(null);
-                }
+                const response = debouncedSearchTerm
+                    ? ((await searchRooms(debouncedSearchTerm)) as GetRoomsResponse)
+                    : await getRooms({ page: currentPage, limit: pageSize })
+                setRooms(response.data)
             } catch (error) {
-                console.error('Error occurred:', error);
+                console.error("Error occurred:", error);
             } finally {
                 setLoading(false);
             }
+        };
+
+        if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
+            fetchRooms();
         }
+    }, [debouncedSearchTerm, currentPage, pageSize]);
 
-        fetchRooms();
-    }, [currentPage, pageSize, sortBy]);
-
-    // Filter rooms based on search term and status
     useEffect(() => {
         let filtered = rooms;
 
-        // Apply search filter
-        if (searchTerm) {
-            filtered = filtered.filter(room => 
-                room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                room.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                room.roomType.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        // Apply status filter
         if (selectedStatus !== 'all') {
             filtered = filtered.filter(room => room.status === selectedStatus);
         }
@@ -221,7 +204,7 @@ const Rooms = () => {
                 filter={{
                     searchPlaceholder: "Search rooms...",
                     searchFields: ['roomNumber', 'status', 'roomType.name'],
-                    showFilter: true, // Enable filter button
+                    showFilter: true,
                     statusFilter: {
                         enabled: true,
                         options: roomStatusOptions,
@@ -233,7 +216,7 @@ const Rooms = () => {
                 pagination={pagination ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    totalItems: filteredRooms.length, // Use filtered count for display
+                    totalItems: filteredRooms.length,
                     onPageChange: setCurrentPage,
                     showPreviousNext: true,
                     maxVisiblePages: 7

@@ -1,4 +1,3 @@
-"use client"
 import React, { useState, type ReactNode } from "react"
 import { Search, Filter, Plus, EllipsisVertical, ChevronDown, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/atoms/Button"

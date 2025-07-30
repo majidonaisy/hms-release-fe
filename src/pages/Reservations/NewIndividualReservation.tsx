@@ -56,7 +56,7 @@ export default function NewIndividualReservation() {
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
     const [guestSearch, setGuestSearch] = useState("");
     const [guestSearchLoading, setGuestSearchLoading] = useState(false);
-    const debouncedGuestSearch = useDebounce(guestSearch, 300);
+    const debouncedGuestSearch = useDebounce(guestSearch, 400);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
@@ -244,12 +244,28 @@ export default function NewIndividualReservation() {
     }, []);
 
     useEffect(() => {
-        const fetchGuests = async (searchTerm: string) => {
+        const fetchInitialGuests = async () => {
+            setLoading(true);
+            try {
+                const guests = await getGuests();
+                setGuests(guests.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialGuests();
+    }, []);
+
+    useEffect(() => {
+        const fetchGuests = async () => {
+            if (!debouncedGuestSearch.trim()) return;
+
             setGuestSearchLoading(true);
             try {
-                const guests = searchTerm
-                  ? (await searchGuests({ q: searchTerm }) as GetGuestsResponse)
-                  : await getGuests();
+                const guests = await searchGuests({ q: debouncedGuestSearch });
                 setGuests(guests.data);
             } catch (error) {
                 console.error(error);
@@ -257,8 +273,10 @@ export default function NewIndividualReservation() {
                 setGuestSearchLoading(false);
             }
         };
-        fetchGuests(debouncedGuestSearch);
+
+        fetchGuests();
     }, [debouncedGuestSearch]);
+
 
     const filteredAvailableRooms = getFilteredAvailableRooms();
 
