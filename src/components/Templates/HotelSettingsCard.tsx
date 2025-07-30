@@ -21,7 +21,7 @@ const HotelSettingsCard: React.FC<HotelSettingsCardProps> = ({
     manageButtonText,
 }) => {
     return (
-        <Card className="bg-hms-accent-35">
+        <Card className="bg-hms-accent/30">
             <CardContent className="p-6">
                 <div className="flex">
                     <div className="mr-4">

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, EllipsisVertical, CheckCircle2 } from 'lucide-react';
+import { Plus, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
-import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
@@ -11,9 +10,9 @@ import { toast } from 'sonner';
 import NewHousekeepingDialog from '../../components/dialogs/NewHousekeepingDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { type ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
-import HousekeepingSkeleton from '@/components/Templates/HousekeepingSkeleton';
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';
 import { type Housekeeping } from '@/validation';
+import TableSkeleton from '@/components/Templates/TableSkeleton';
 
 interface HousekeepingFormData {
     id?: string;
@@ -25,7 +24,6 @@ interface HousekeepingFormData {
 }
 
 const HousekeepingPage = () => {
-    const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [priorityFilter, setPriorityFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
@@ -47,12 +45,13 @@ const HousekeepingPage = () => {
         pageSize: number;
         hasNext: boolean;
         hasPrevious: boolean;
-    } | null>(null);    // Filter and search logic
-    // With server-side pagination, we'll use the data directly from the API
-    // Client-side filtering will be handled by the backend
-    const filteredTasks = housekeepingTasks;
+    } | null>(null);
 
-
+    const filteredTasks = housekeepingTasks.filter((task) => {
+        const statusMatch = statusFilter === 'ALL' || task.status === statusFilter;
+        const priorityMatch = priorityFilter === 'ALL' || task.priority === priorityFilter;
+        return statusMatch && priorityMatch;
+    });
 
     // Priority badge styling
     const getPriorityBadge = (priority: Housekeeping['priority']) => {
@@ -67,10 +66,10 @@ const HousekeepingPage = () => {
     // Status dot color
     const getStatusDotColor = (status: Housekeeping['status']) => {
         const dotColors = {
-            PENDING: 'bg-chart-1',
-            IN_PROGRESS: 'bg-chart-2',
-            COMPLETED: 'bg-chart-3',
-            CANCELED: 'bg-chart-4'
+            PENDING: 'bg-chart-7/20 rounded-lg',
+            IN_PROGRESS: 'bg-chart-4/20 rounded-lg',
+            COMPLETED: 'bg-chart-1/20 rounded-lg',
+            CANCELED: 'bg-chart-5/20 rounded-lg',
         };
         return dotColors[status];
     };
@@ -109,7 +108,6 @@ const HousekeepingPage = () => {
             roomId: task.roomId,
             userId: task.userId,
             status: task.status,
-            description: task.description || undefined,
             priority: task.priority,
         });
         setIsEditMode(true);
@@ -213,7 +211,6 @@ const HousekeepingPage = () => {
                     roomId: data.roomId,
                     userId: data.userId,
                     status: data.status,
-                    description: data.description,
                     priority: data.priority || 'MEDIUM' as const,
                 };
                 await updateHousekeepingTask(editingTask.id!, updateData);
@@ -223,7 +220,6 @@ const HousekeepingPage = () => {
                 const requestData = {
                     roomId: data.roomId,
                     userId: data.userId,
-                    description: data.description,
                     priority: data.priority || 'MEDIUM' as const,
 
                 };
@@ -292,7 +288,7 @@ const HousekeepingPage = () => {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchText, statusFilter, priorityFilter]);
+    }, [statusFilter, priorityFilter]);
 
     // Fetch data whenever page, pageSize, or filter changes
     useEffect(() => {
@@ -301,7 +297,7 @@ const HousekeepingPage = () => {
     }, [currentPage, pageSize]);
 
     if (loading) {
-        return <HousekeepingSkeleton />;
+        return <TableSkeleton title='HouseKeeping' />;
     }
 
     return (
@@ -309,7 +305,6 @@ const HousekeepingPage = () => {
             {/* Header Section */}
             <div className="mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <CheckCircle2 className="h-6 w-6 text-hms-primary" />
                     <h1 className="text-2xl font-semibold text-gray-900">Housekeeping</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                         {pagination?.totalItems || filteredTasks.length} Task{(pagination?.totalItems || filteredTasks.length) !== 1 ? 's' : ''}
@@ -318,16 +313,6 @@ const HousekeepingPage = () => {
 
                 {/* Search and Filters */}
                 <div className="flex items-center gap-4 flex-wrap">
-                    <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3 min-w-80">
-                        <Input
-                            type="text"
-                            placeholder="Search by room, task type, assigned staff, or description..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
-                        />
-                        <Search className="h-4 w-4 text-gray-400" />
-                    </div>
 
                     {/* Status Filter */}
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -371,17 +356,16 @@ const HousekeepingPage = () => {
             </div>
 
             {/* Table Section */}
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white shadow">
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-hms-accent/15">
                         <TableRow className="border-b border-gray-200">
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room Type</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Floor</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Priority</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">description</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Assigned To</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Room</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Room Type</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Floor</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Status</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Priority</TableHead>
+                            <TableHead className="text-center font-medium text-gray-900 px-6 py-2 w-1/7">Assigned To</TableHead>
                             <TableHead className="w-[100px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -401,41 +385,36 @@ const HousekeepingPage = () => {
                         ) : (
                             filteredTasks.map((task) => (
                                 <TableRow key={task.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <TableCell className="px-6 py-4">
+                                    <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <div className="font-medium text-gray-900">
                                             {task.room?.roomNumber || task.roomId}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
+                                    <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <div className="font-medium text-gray-900">
                                             {task.room?.roomType?.name || 'Room'}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
+                                    <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <div className="font-medium text-gray-900">
                                             {task.room?.floor || '-'}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${getStatusDotColor(task.status)}`}></div>
-                                            {task.status.replace('_', ' ').toLowerCase()}
+                                    <TableCell className="px-6 py-4 w-1/7 text-center">
+                                        <div className={`flex items-center justify-center  ${getStatusDotColor(task.status)}`}>
+                                            <div className={`w-2 h-2 rounded-full `}></div>
+                                            {task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.slice(1).toLowerCase()}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
+                                    <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <Badge className={`${getPriorityBadge(task.priority)} border-0`}>
-                                            {task.priority.toLowerCase()}
+                                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1).toLowerCase()}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <div className="truncate max-w-xs text-gray-600" title={task.description || ''}>
-                                            {task.description || '-'}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
+                                    <TableCell className="px-6 py-4 text-gray-600 w-1/7 text-center">
                                         {task.user ? `${task.user.firstName} ${task.user.lastName}` : 'Unassigned'}
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
+                                    <TableCell className="px-6 py-4 text-center ">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild>
                                                 <Button

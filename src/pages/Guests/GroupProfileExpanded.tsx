@@ -187,13 +187,14 @@ const GroupProfileExpanded = () => {
                                 {group.LinkedGuests.map((guest) => (
                                     <div
                                         key={guest.id}
-                                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                                        className="flex items-center gap-3 p-3 bg-hms-accent/10 rounded-lg hover:bg-hms-accent/50 transition-colors cursor-pointer"
                                         onClick={() => navigate(`/guests-profile/${guest.id}/view`)}
                                     >
-                                        <Avatar className="h-10 w-10">
+                                        <Avatar className="h-10 w-10 bg-hms-accent-35 rounded-full flex justify-center items-center">
                                             <AvatarImage />
-                                            <AvatarFallback className="bg-hms-primary/10">
-                                                {guest.firstName.charAt(0)}{guest.lastName.charAt(0)}
+                                            <AvatarFallback>
+                                                {guest.firstName.charAt(0).toUpperCase()}
+                                                {guest.lastName.charAt(0).toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
@@ -213,9 +214,6 @@ const GroupProfileExpanded = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <Button variant="ghost" size="sm">
-                                            <User className="h-4 w-4" />
-                                        </Button>
                                     </div>
                                 ))}
                             </div>

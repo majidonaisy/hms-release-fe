@@ -86,12 +86,14 @@ export const AddGuestResponseSchema = z.object({
 
 // Get Guests
 export const PaginationSchema = z.object({
-  page: z.number(),
-  pageSize: z.number(),
-  total: z.number(),
+  totalItems: z.number(),
   totalPages: z.number(),
-  hasNextPage: z.boolean(),
-  hasPreviousPage: z.boolean(),
+  currentPage: z.number(),
+  pageSize: z.number(),
+  hasNext: z.boolean(),
+  hasPrevious: z.boolean(),
+  nextPage: z.number().nullable(),
+  previousPage: z.number().nullable(),
 });
 
 export const SearchMetaSchema = z.object({

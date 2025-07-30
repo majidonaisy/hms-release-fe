@@ -4,324 +4,686 @@ import { deleteGroupProfile, deleteGuest, getGroupProfiles, getGuests } from "@/
 import { searchGuests, searchGroupProfiles } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
-import DataTable, { type ActionMenuItem, defaultRenderers, type TableColumn } from "@/components/Templates/DataTable"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
+import { Button } from "@/components/atoms/Button"
+import { Input } from "@/components/atoms/Input"
+import { Search, Plus, EllipsisVertical, ChevronLeft } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/atoms/DropdownMenu"
+import Pagination from "@/components/atoms/Pagination"
+import DeleteDialog from "@/components/molecules/DeleteDialog"
+import TableSkeleton from "@/components/Templates/TableSkeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
+import { useDebounce } from "@/hooks/useDebounce"
 
 type CombinedGuestData = {
-    id: string
-    name: string
-    firstName?: string
-    lastName?: string
-    email: string
-    phoneNumber: string
-    preferences?: {
-        roomType?: string
-        smoking?: boolean
-    }
-    type: 'individual' | 'CORPORATE' | 'TRAVEL_AGENCY' | 'EVENT_PLANNER' | 'GOVERNMENT' | 'OTHER'
-    isGroup: boolean
-    originalData: Guest | GetGroupProfilesResponse['data'][0]
+  id: string
+  name: string
+  firstName?: string
+  lastName?: string
+  email: string
+  phoneNumber: string
+  preferences?: {
+    roomType?: string
+    smoking?: boolean
+  }
+  type: "individual" | "CORPORATE" | "TRAVEL_AGENCY" | "EVENT_PLANNER" | "GOVERNMENT" | "OTHER"
+  isGroup: boolean
+  originalData: Guest | GetGroupProfilesResponse["data"][0]
 }
 
 const GuestProfile = () => {
-    const navigate = useNavigate()
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(5); // Default page size
-    const [searchTerm, setSearchTerm] = useState("");
-    const [guests, setGuests] = useState<GetGuestsResponse["data"]>([]);
-    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-    const [groupProfiles, setGroupProfiles] = useState<GetGroupProfilesResponse["data"]>([]);
-    const [combinedData, setCombinedData] = useState<CombinedGuestData[]>([]);
-    const [pagination, setPagination] = useState<{
-        totalItems: number;
-        totalPages: number;
-        currentPage: number;
-        pageSize: number;
-        hasNext: boolean;
-        hasPrevious: boolean;
-    } | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [openGuestDialog, setOpenGuestDialog] = useState(false);
+  const navigate = useNavigate()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(5)
 
-    useEffect(() => {
-        const handleGetGuests = async () => {
-            setLoading(true);
-            try {
-                const response = searchTerm
-                    ? (await searchGuests({ q: searchTerm, page: currentPage, limit: pageSize }) as GetGuestsResponse)
-                    : await getGuests({ page: currentPage, limit: pageSize });
-                setGuests(response.data);
-                if (response.pagination) {
-                    setPagination({
-                        totalItems: response.pagination.total,
-                        totalPages: response.pagination.totalPages,
-                        currentPage: response.pagination.page,
-                        pageSize: response.pagination.pageSize,
-                        hasNext: response.pagination.hasNextPage,
-                        hasPrevious: response.pagination.hasPreviousPage,
-                    });
-                } else {
-                    setPagination({
-                        totalItems: response.data.length,
-                        totalPages: 1,
-                        currentPage,
-                        pageSize,
-                        hasNext: false,
-                        hasPrevious: false,
-                    });
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        }        
+  const [searchTerm, setSearchTerm] = useState("")
+  const [individualSearchTerm, setIndividualSearchTerm] = useState("")
+  const [groupSearchTerm, setGroupSearchTerm] = useState("")
 
-        const handleGetRoomTypes = async () => {
-            setLoading(true)
-            try {
-                const response = await getRoomTypes()
-                setRoomTypes(response.data)
-            } catch (error) {
-                console.error(error)
-            } finally {
-                setLoading(false)
-            }
+  const [guests, setGuests] = useState<GetGuestsResponse["data"]>([])
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
+  const [groupProfiles, setGroupProfiles] = useState<GetGroupProfilesResponse["data"]>([])
+  const [pagination, setPagination] = useState<{
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+    hasNext: boolean
+    hasPrevious: boolean
+    nextPage: number | null
+    previousPage: number | null
+  } | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [openGuestDialog, setOpenGuestDialog] = useState(false)
+  const [activeTab, setActiveTab] = useState("all")
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<CombinedGuestData | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  // Debounced search terms
+  const debouncedIndividualSearch = useDebounce(individualSearchTerm, 300)
+  const debouncedGroupSearch = useDebounce(groupSearchTerm, 300)
+
+  const roomTypeMap = roomTypes.reduce(
+    (map, roomType) => {
+      map[roomType.id] = roomType.name
+      return map
+    },
+    {} as Record<string, string>,
+  )
+
+  // Handle search
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    if (activeTab === "individuals") {
+      setIndividualSearchTerm(value)
+    } else if (activeTab === "groups") {
+      setGroupSearchTerm(value)
+    } else {
+      setIndividualSearchTerm(value)
+      setGroupSearchTerm(value)
+    }
+  }
+
+  const clearSearch = () => {
+    setSearchTerm("")
+    setIndividualSearchTerm("")
+    setGroupSearchTerm("")
+  }
+
+  // Fetch individual guests
+  useEffect(() => {
+    const handleGetGuests = async () => {
+      if (activeTab === "groups") return
+
+      setLoading(true)
+      try {
+        const response = debouncedIndividualSearch
+          ? ((await searchGuests({
+              q: debouncedIndividualSearch,
+             
+            })) as GetGuestsResponse)
+          : await getGuests({ page: currentPage, limit: pageSize })
+        setGuests(response.data)
+        if (response.pagination) {
+          setPagination(response.pagination)
+        } else {
+          setPagination(null)
         }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    handleGetGuests()
+  }, [debouncedIndividualSearch, currentPage, activeTab, pageSize])
 
-        const handleGetGroupProfiles = async () => {
-            setLoading(true);
-            try {
-                const response = searchTerm
-                    ? (await searchGroupProfiles({ q: searchTerm, page: currentPage, limit: pageSize }) as GetGroupProfilesResponse)
-                    : await getGroupProfiles({ page: currentPage, limit: pageSize });
-                setGroupProfiles(response.data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
+
+  useEffect(() => {
+    const handleGetGroupProfiles = async () => {
+      if (activeTab === "individuals") return
+
+      setLoading(true)
+      try {
+        const response = debouncedGroupSearch
+          ? ((await searchGroupProfiles({
+              q: debouncedGroupSearch,
+             
+            })) as GetGroupProfilesResponse)
+          : await getGroupProfiles({ page: currentPage, limit: pageSize })
+        setGroupProfiles(response.data)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    handleGetGroupProfiles()
+  }, [debouncedGroupSearch, currentPage, activeTab, pageSize])
+
+  useEffect(() => {
+    const handleGetRoomTypes = async () => {
+      setLoading(true)
+      try {
+        const response = await getRoomTypes()
+        setRoomTypes(response.data)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    handleGetRoomTypes()
+  }, [])
+
+  // Transform data based on active tab
+  const getCombinedData = (): CombinedGuestData[] => {
+    const transformedGuests: CombinedGuestData[] = guests.map((guest) => ({
+      id: guest.id,
+      name: `${guest.firstName} ${guest.lastName}`,
+      firstName: guest.firstName,
+      lastName: guest.lastName,
+      email: guest.email,
+      phoneNumber: guest.phoneNumber,
+      preferences: guest.preferences,
+      type: "individual" as const,
+      isGroup: false,
+      originalData: guest,
+    }))
+
+    const transformedGroups: CombinedGuestData[] = groupProfiles.map((group) => ({
+      id: group.id,
+      name: group.name,
+      email: group.email,
+      phoneNumber: group.phone,
+      type: group.businessType,
+      isGroup: true,
+      originalData: group,
+    }))
+
+    switch (activeTab) {
+      case "individuals":
+        return transformedGuests
+      case "groups":
+        return transformedGroups
+      default:
+        return [...transformedGuests, ...transformedGroups]
+    }
+  }
+
+  const combinedData = getCombinedData()
+
+  // Handle delete
+  const handleDeleteClick = (item: CombinedGuestData, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setItemToDelete(item)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return
+    setDeleteLoading(true)
+    try {
+      if (itemToDelete.isGroup) {
+        await deleteGroupProfile(itemToDelete.id)
+        const groupResponse = await getGroupProfiles({ page: currentPage, limit: pageSize })
+        setGroupProfiles(groupResponse.data)
+        if (groupResponse.data.length === 0 && currentPage > 1) {
+          setCurrentPage(currentPage - 1)
         }
+      } else {
+        await deleteGuest(itemToDelete.id)
+        const guestResponse = await getGuests({ page: currentPage, limit: pageSize })
+        setGuests(guestResponse.data)
+        if (guestResponse.pagination) {
+          setPagination(guestResponse.pagination)
+          if (guestResponse.data.length === 0 && currentPage > 1) {
+            setCurrentPage(currentPage - 1)
+          }
+        } else {
+          setPagination(null)
+        }
+      }
+      setDeleteDialogOpen(false)
+      setItemToDelete(null)
+    } catch (error) {
+      console.error("Delete error:", error)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
-        Promise.all([
-            handleGetGuests(),
-            handleGetRoomTypes(),
-            handleGetGroupProfiles(),
-        ])
-    }, [searchTerm, currentPage])
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setItemToDelete(null)
+  }
 
-    useEffect(() => {
-        const transformedGuests: CombinedGuestData[] = guests.map(guest => ({
-            id: guest.id,
-            name: `${guest.firstName} ${guest.lastName}`,
-            firstName: guest.firstName,
-            lastName: guest.lastName,
-            email: guest.email,
-            phoneNumber: guest.phoneNumber,
-            preferences: guest.preferences,
-            type: 'individual' as const,
-            isGroup: false,
-            originalData: guest
-        }))
+  const handleRowClick = (item: CombinedGuestData) => {
+    if (item.isGroup) {
+      navigate(`/group-profile/${item.id}/view`)
+    } else {
+      navigate(`/guests-profile/${item.id}/view`)
+    }
+  }
 
-        const transformedGroups: CombinedGuestData[] = groupProfiles.map(group => ({
-            id: group.id,
-            name: group.name,
-            email: group.email,
-            phoneNumber: group.phone,
-            type: group.businessType,
-            isGroup: true,
-            originalData: group
-        }))
+  const handleEdit = (item: CombinedGuestData, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (item.isGroup) {
+      console.log(`Navigate to group edit: /guests-profile/group/${item.id}`)
+    } else {
+      navigate(`/guests-profile/${item.id}`)
+    }
+  }
 
-        setCombinedData([...transformedGuests, ...transformedGroups])
-    }, [guests, groupProfiles])
+  // Reset pagination when switching tabs
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    setCurrentPage(1)
+    setSearchTerm("")
+    setIndividualSearchTerm("")
+    setGroupSearchTerm("")
+  }
 
-    const roomTypeMap = roomTypes.reduce(
-        (map, roomType) => {
-            map[roomType.id] = roomType.name
-            return map
-        },
-        {} as Record<string, string>,
-    )
+  // Get total count for display
+  const getTotalCount = () => {
+    switch (activeTab) {
+      case "individuals":
+        return pagination?.totalItems || guests.length
+      case "groups":
+        return groupProfiles.length
+      default:
+        return (pagination?.totalItems || guests.length) + groupProfiles.length
+    }
+  }
 
-    const guestColumns: TableColumn<CombinedGuestData>[] = [
-        {
-            key: "name",
-            label: "Name",
-            render: (item) => {
-                if (item.isGroup) {
-                    return (
-                        <div className="flex items-center gap-3">
-                            <Avatar>
+  if (loading && combinedData.length === 0) {
+    return <TableSkeleton title="Guests Profile" />
+  }
+
+  return (
+    <>
+      <div className="p-6 bg-gray-50 min-h-screen">
+        {/* Header Section */}
+        <div className="mb-6">
+          {/* Title with Count */}
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-3 mb-6">
+              <Button variant="ghost" onClick={() => navigate(-1)} className="p-0 hover:bg-slate-100">
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-2xl font-semibold text-gray-900">Guests Profile</h1>
+              <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                {getTotalCount()} {getTotalCount() === 1 ? "item" : "items"}
+              </span>
+            </div>
+          </div>
+
+          {/* Search Bar and Actions */}
+          <div className="flex items-center gap-4 mb-6">
+            {/* Search Bar */}
+            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+              <Input
+                type="text"
+                placeholder="Search guests..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 ml-auto">
+              <Button onClick={() => setOpenGuestDialog(true)} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                New Guest Profile
+              </Button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="individuals">Individuals</TabsTrigger>
+              <TabsTrigger value="groups">Groups</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="mt-6">
+              <div className="bg-white rounded-lg">
+                <Table>
+                  <TableHeader className="bg-hms-accent/15">
+                    <TableRow className="border-b border-gray-200">
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Contact Info
+                      </TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No data found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      combinedData.map((item) => (
+                        <TableRow
+                          key={`${item.isGroup ? "group" : "guest"}-${item.id}`}
+                          onClick={() => handleRowClick(item)}
+                          className="border-b-2 hover:bg-accent cursor-pointer"
+                        >
+                          <TableCell className="px-6 py-4">
+                            {item.isGroup ? (
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarImage />
+                                  <AvatarFallback>{item.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div className="font-medium text-gray-900">{item.name}</div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarImage />
+                                  <AvatarFallback>
+                                    {item.firstName?.charAt(0).toUpperCase()}
+                                    {item.lastName?.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="font-medium text-gray-900">
+                                  {item.firstName} {item.lastName}
+                                </div>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="px-2 py-1 rounded-full text-xs font-medium">
+                              {item.type === "individual" ? "INDIVIDUAL" : item.type.replace("_", " ")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            {item.isGroup ? (
+                              <span className="text-gray-600">N/A</span>
+                            ) : (
+                              <span className="text-gray-600">
+                                {(item.preferences?.roomType && roomTypeMap[item.preferences.roomType]) || "Unknown"}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            {item.isGroup ? (
+                              <span className="text-gray-600">
+                                {(item.originalData as GetGroupProfilesResponse["data"][0]).specialRequirements ||
+                                  "None"}
+                              </span>
+                            ) : (
+                              <span className="text-gray-600">
+                                {item.preferences?.smoking ? "Smoking" : "No Smoking"}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <EllipsisVertical />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => handleDeleteClick(item, e)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="individuals" className="mt-6">
+              <div className="bg-white rounded-lg">
+                <Table>
+                  <TableHeader className="bg-hms-accent/15">
+                    <TableRow className="border-b border-gray-200">
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Contact Info
+                      </TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No individual guests found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      combinedData.map((item) => (
+                        <TableRow
+                          key={`guest-${item.id}`}
+                          onClick={() => handleRowClick(item)}
+                          className="border-b-2 hover:bg-accent cursor-pointer"
+                        >
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
                                 <AvatarImage />
                                 <AvatarFallback>
-                                    {item.name.charAt(0).toUpperCase()}
+                                  {item.firstName?.charAt(0).toUpperCase()}
+                                  {item.lastName?.charAt(0).toUpperCase()}
                                 </AvatarFallback>
-                            </Avatar>
-                            <div className="font-medium text-gray-900">
-                                {item.name}
+                              </Avatar>
+                              <div className="font-medium text-gray-900">
+                                {item.firstName} {item.lastName}
+                              </div>
                             </div>
-                        </div>
-                    )
-                } else {
-                    return defaultRenderers.avatar(item as any)
-                }
-            },
-        },
-        {
-            key: "type",
-            label: "Type",
-            render: (item) => (
-                <span className='px-2 py-1 rounded-full text-xs font-medium'>
-                    {item.type === 'individual' ? 'INDIVIDUAL' : item.type.replace('_', ' ')}
-                </span>
-            ),
-        },
-        {
-            key: "email",
-            label: "Email",
-            className: "font-medium text-gray-900",
-        },
-        {
-            key: "preferences",
-            label: "Preferred Room",
-            render: (item) => {
-                if (item.isGroup) {
-                    return <span className="text-gray-600">N/A</span>
-                }
-                return (
-                    <span className="text-gray-600">
-                        {(item.preferences?.roomType && roomTypeMap[item.preferences.roomType]) || "Unknown"}
-                    </span>
-                )
-            },
-        },
-        {
-            key: "smoking",
-            label: "Other Requests",
-            render: (item) => {
-                if (item.isGroup) {
-                    const groupData = item.originalData as GetGroupProfilesResponse['data'][0]
-                    return (
-                        <span className="text-gray-600">
-                            {groupData.specialRequirements || "None"}
-                        </span>
-                    )
-                }
-                return defaultRenderers.smoking(item, item.preferences?.smoking ?? false)
-            },
-        },
-        {
-            key: "phoneNumber",
-            label: "Contact Info",
-            className: "text-gray-600",
-        },
-    ]
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="px-2 py-1 rounded-full text-xs font-medium">INDIVIDUAL</span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="text-gray-600">
+                              {(item.preferences?.roomType && roomTypeMap[item.preferences.roomType]) || "Unknown"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="text-gray-600">
+                              {item.preferences?.smoking ? "Smoking" : "No Smoking"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <EllipsisVertical />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => handleDeleteClick(item, e)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
 
-    const guestActions: ActionMenuItem<CombinedGuestData>[] = [
-        {
-            label: "Edit",
-            onClick: (item, e) => {
-                e.stopPropagation()
-                if (item.isGroup) {
-                    console.log(`Navigate to group edit: /guests-profile/group/${item.id}`)
-                } else {
-                    navigate(`/guests-profile/${item.id}`)
-                }
-            },
-            action: "update",
-            subject: "Guest"
-        },
-    ]
+            <TabsContent value="groups" className="mt-6">
+              <div className="bg-white rounded-lg">
+                <Table>
+                  <TableHeader className="bg-hms-accent/15">
+                    <TableRow className="border-b border-gray-200">
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        Contact Info
+                      </TableHead>
+                      <TableHead className="w-[100px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No group profiles found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      combinedData.map((item) => (
+                        <TableRow
+                          key={`group-${item.id}`}
+                          onClick={() => handleRowClick(item)}
+                          className="border-b-2 hover:bg-accent cursor-pointer"
+                        >
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarImage />
+                                <AvatarFallback>{item.name.charAt(0).toUpperCase()}</AvatarFallback>
+                              </Avatar>
+                              <div className="font-medium text-gray-900">{item.name}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="px-2 py-1 rounded-full text-xs font-medium">
+                              {item.type.replace("_", " ")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="text-gray-600">N/A</span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="text-gray-600">
+                              {(item.originalData as GetGroupProfilesResponse["data"][0]).specialRequirements || "None"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <EllipsisVertical />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={(e) => handleDeleteClick(item, e)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-    const handleDeleteGuest = async (item: CombinedGuestData) => {
-        try {
-            setLoading(true);
-            if (item.isGroup) {
-                await deleteGroupProfile(item.id);
-                const groupResponse = await getGroupProfiles({ page: currentPage, limit: pageSize });
-                setGroupProfiles(groupResponse.data);
-            } else {
-                await deleteGuest(item.id);
-                const guestResponse = await getGuests({ page: currentPage, limit: pageSize });
-                setGuests(guestResponse.data);
-            }
-        } catch (error) {
-            console.error("Error deleting:", error);
-        } finally {
-            setLoading(false);
+        {/* Pagination */}
+        {pagination && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={setCurrentPage}
+            showPreviousNext={true}
+            maxVisiblePages={7}
+          />
+        )}
+      </div>
+
+      {/* Delete Dialog */}
+      <DeleteDialog
+        isOpen={deleteDialogOpen}
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        loading={deleteLoading}
+        title={itemToDelete ? (itemToDelete.isGroup ? "Delete Group Profile" : "Delete Guest") : "Delete Item"}
+        description={
+          itemToDelete
+            ? `Are you sure you want to delete ${itemToDelete.isGroup ? "group profile" : "guest"} ${itemToDelete.name}? This action cannot be undone.`
+            : "Are you sure you want to delete this item?"
         }
-    };
+      />
 
-    const handleRowClick = (item: CombinedGuestData) => {
-        if (item.isGroup) {
-            navigate(`/group-profile/${item.id}/view`)
-        } else {
-            navigate(`/guests-profile/${item.id}/view`)
-        }
-    }
-
-    return (
-        <>
-            <div style={{ marginBottom: 16 }}>
-                <input
-                    type="text"
-                    placeholder="Search guests..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    style={{ padding: 8, width: 300 }}
-                />
-            </div>
-            <DataTable
-                data={combinedData}
-                loading={loading}
-                columns={guestColumns}
-                title="Guests Profile"
-                actions={guestActions}
-                primaryAction={{
-                    label: "New Guest Profile",
-                    onClick: () => setOpenGuestDialog(true),
-                    action: "create",
-                    subject: "Guest",
-                }}
-                onRowClick={handleRowClick}
-                getRowKey={(item) => `${item.isGroup ? 'group' : 'guest'}-${item.id}`}
-                filter={{
-                    searchPlaceholder: "Search guests...",
-                    searchFields: ["name", "email"],
-                }}
-                pagination={pagination ? {
-                    currentPage: pagination.currentPage,
-                    totalPages: pagination.totalPages,
-                    totalItems: pagination.totalItems,
-                    onPageChange: setCurrentPage,
-                    showPreviousNext: true,
-                    maxVisiblePages: 7,
-                } : undefined}
-                deleteConfig={{
-                    onDelete: handleDeleteGuest,
-                    getDeleteTitle: (item) => item ? (item.isGroup ? "Delete Group Profile" : "Delete Guest") : "Delete Item",
-                    getDeleteDescription: (item) =>
-                        item ? `Are you sure you want to delete ${item.isGroup ? 'group profile' : 'guest'} ${item.name}? This action cannot be undone.` : "Are you sure you want to delete this item?",
-                    getItemName: (item) => item ? item.name : "Unknown",
-                    action: "delete",
-                    subject: "Guest"
-                }}
-            />
-            <NewDialogsWithTypes
-                open={openGuestDialog}
-                setOpen={setOpenGuestDialog}
-                description='Select Guest Type'
-                textOne='For personal bookings and solo travelers.'
-                textTwo='For company accounts and business reservations.'
-                title='New Guest'
-                groupRoute='/guests-profile/new-group'
-                individualRoute='/guests-profile/new-individual'
-            />
-        </>
-    )
+      <NewDialogsWithTypes
+        open={openGuestDialog}
+        setOpen={setOpenGuestDialog}
+        description="Select Guest Type"
+        textOne="For personal bookings and solo travelers."
+        textTwo="For company accounts and business reservations."
+        title="New Guest"
+        groupRoute="/guests-profile/new-group"
+        individualRoute="/guests-profile/new-individual"
+      />
+    </>
+  )
 }
 
 export default GuestProfile

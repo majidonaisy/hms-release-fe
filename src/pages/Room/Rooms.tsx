@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
 import { deleteRoom, getRooms } from '@/services/Rooms';
-import { AddRoomTypeRequest, Pagination, Room } from '@/validation';
+import { AddRoomTypeRequest, Room } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
@@ -19,6 +19,9 @@ const Rooms = () => {
     const [sortBy, _setSortBy] = useState('name');
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('all');
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
@@ -27,6 +30,13 @@ const Rooms = () => {
         hasNext: boolean;
         hasPrevious: boolean;
     } | null>(null);
+
+    // Room status options for filtering
+    const roomStatusOptions = [
+        { value: 'AVAILABLE', label: 'Available', color: 'bg-chart-1/20 text-chart-1' },
+        { value: 'OCCUPIED', label: 'Occupied', color: 'bg-chart-4/20 text-chart-4' },
+        { value: 'DIRTY', label: 'Dirty', color: 'bg-chart-5/20 text-chart-5' }
+    ];
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -54,12 +64,45 @@ const Rooms = () => {
         fetchRooms();
     }, [currentPage, pageSize, sortBy]);
 
+    // Filter rooms based on search term and status
+    useEffect(() => {
+        let filtered = rooms;
+
+        // Apply search filter
+        if (searchTerm) {
+            filtered = filtered.filter(room => 
+                room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                room.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                room.roomType.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        // Apply status filter
+        if (selectedStatus !== 'all') {
+            filtered = filtered.filter(room => room.status === selectedStatus);
+        }
+
+        setFilteredRooms(filtered);
+    }, [rooms, searchTerm, selectedStatus]);
+
+    const handleSearch = (search: string) => {
+        setSearchTerm(search);
+    };
+
+    const handleStatusFilter = (status: string) => {
+        setSelectedStatus(status);
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'AVAILABLE':
-                return 'bg-green-100 text-green-700 hover:bg-green-100';
+                return 'bg-chart-1/20 text-chart-1 hover:bg-chart-1/20';
+            case 'OCCUPIED':
+                return 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20';
+            case 'DIRTY':
+                return 'bg-chart-5/20 text-chart-5 hover:bg-chart-5/20';
             default:
-                return 'bg-red-100 text-red-700 hover:bg-red-100';
+                return 'bg-chart-5/20 text-chart-5 hover:bg-chart-5/20';
         }
     };
 
@@ -74,8 +117,8 @@ const Rooms = () => {
             key: 'status',
             label: 'Status',
             render: (_item, value) => (
-                <Badge className={`${getStatusColor(value)} border-0`}>
-                    • {value}
+                <Badge className={`${getStatusColor(value)} w-full border-0`}>
+                    {value}
                 </Badge>
             )
         },
@@ -153,11 +196,10 @@ const Rooms = () => {
         setIsRoomTypeDialogOpen(false);
     };
 
-
     return (
         <>
             <DataTable
-                data={rooms}
+                data={filteredRooms}
                 loading={loading}
                 columns={roomColumns}
                 title="Rooms"
@@ -178,12 +220,20 @@ const Rooms = () => {
                 getRowKey={(room) => room.id}
                 filter={{
                     searchPlaceholder: "Search rooms...",
-                    searchFields: ['roomNumber', 'status', 'roomType.name']
+                    searchFields: ['roomNumber', 'status', 'roomType.name'],
+                    showFilter: true, // Enable filter button
+                    statusFilter: {
+                        enabled: true,
+                        options: roomStatusOptions,
+                        defaultLabel: "All Statuses",
+                        onStatusChange: handleStatusFilter
+                    }
                 }}
+                onSearch={handleSearch}
                 pagination={pagination ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    totalItems: pagination.totalItems,
+                    totalItems: filteredRooms.length, // Use filtered count for display
                     onPageChange: setCurrentPage,
                     showPreviousNext: true,
                     maxVisiblePages: 7
