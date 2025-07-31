@@ -19,7 +19,7 @@ export const DialogProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setTimeout(() => {
             setDialogType(null);
             setDialogProps({});
-        }, 300);
+        }, 400);
     };
 
     return (

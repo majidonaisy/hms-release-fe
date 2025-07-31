@@ -10,7 +10,6 @@ import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { Separator } from '@/components/atoms/Separator';
 import { Checkbox } from '@/components/atoms/Checkbox';
-import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { format } from 'date-fns';
@@ -314,7 +313,7 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
 
             {/* Void Form - Show when payments are selected */}
             {selectedPayments.length > 0 && (
-              <div className="bg-hms-accent-35 border border-hms-accent rounded-lg p-4 space-y-4 flex-shrink-0">
+              <div className="bg-hms-accent/30 border border-hms-accent rounded-lg p-4 space-y-4 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 " />
                   <h4 className="font-semibold ">Void {selectedPayments.length} Payment(s)</h4>

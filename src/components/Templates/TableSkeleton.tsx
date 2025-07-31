@@ -16,7 +16,7 @@ const TableSkeleton: React.FC<{title: string}> = ({
 
                 {/* Search and Filter Section Skeleton */}
                 <div className="flex items-center gap-4">
-                    <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                    <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full">
                         <Skeleton className="h-7 w-85" />
                     </div>
                     <Skeleton className="h-10 w-20" />

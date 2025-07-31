@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
-import { getEmployees } from '@/services/Employees';
+import { Employee, GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
+import { getEmployees, searchEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import { getRoles } from '@/services/Role';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Role {
     id: string;
@@ -25,6 +26,10 @@ const TeamMembers = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [pagination, setPagination] = useState<Pagination | null>(null);
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -34,6 +39,50 @@ const TeamMembers = () => {
                 return 'bg-red-100 text-red-700 hover:bg-red-100';
         }
     };
+
+    const teamMembersStatusOptions = [
+        { value: 'online', label: 'Online', color: 'bg-chart-1/20 text-chart-1' },
+        { value: 'offline', label: 'Offline', color: 'bg-chart-4/20 text-chart-4' },
+    ];
+
+    const handleSearch = (search: string) => {
+        setSearchTerm(search);
+    };
+
+    const handleStatusFilter = (status: string) => {
+        setSelectedStatus(status);
+    };
+
+    useEffect(() => {
+        const fetchTeamMembers = async () => {
+            // setLoading(true);
+            try {
+                const response = debouncedSearchTerm
+                    ? ((await searchEmployees({ q: debouncedSearchTerm })) as GetEmployeesResponse)
+                    : await getEmployees({ page: currentPage, limit: pageSize })
+                setEmployees(response.data)
+            } catch (error) {
+                console.error("Error occurred:", error);
+            } 
+            // finally {
+            //     setLoading(false);
+            // }
+        };
+
+        if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
+            fetchTeamMembers();
+        }
+    }, [debouncedSearchTerm, currentPage, pageSize]);
+
+    useEffect(() => {
+        let filtered = employees;
+
+        if (selectedStatus !== 'all') {
+            filtered = filtered.filter(member => member.online === (selectedStatus === 'online'));
+        }
+
+        setFilteredEmployees(filtered);
+    }, [employees, searchTerm, selectedStatus]);
 
     useEffect(() => {
         const handleGetEmployees = async () => {
@@ -124,7 +173,7 @@ const TeamMembers = () => {
 
     return (
         <DataTable
-            data={employees}
+            data={filteredEmployees}
             loading={loading}
             columns={teamColumns}
             title="Team Members"
@@ -136,9 +185,17 @@ const TeamMembers = () => {
             onRowClick={handleRowClick}
             getRowKey={(member) => member.id}
             filter={{
-                searchPlaceholder: "Search team members...",
-                searchFields: ['firstName', 'lastName', 'email', 'username']
+                searchPlaceholder: "Search rooms...",
+                searchFields: ['roomNumber', 'status', 'roomType.name'],
+                showFilter: true,
+                statusFilter: {
+                    enabled: true,
+                    options: teamMembersStatusOptions,
+                    defaultLabel: "All Statuses",
+                    onStatusChange: handleStatusFilter
+                }
             }}
+            onSearch={handleSearch}
             pagination={pagination ? {
                 currentPage: pagination.currentPage,
                 totalPages: pagination.totalPages,
