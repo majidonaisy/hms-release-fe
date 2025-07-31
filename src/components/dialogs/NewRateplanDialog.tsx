@@ -31,7 +31,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string|number>>({});
+  const [errors, setErrors] = useState<Record<string, string | number>>({});
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(false);
 
@@ -53,7 +53,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   useEffect(() => {
     if (isOpen) {
       fetchCurrencies();
-      
+
       if (editData) {
         setFormData({
           name: editData.name || '',
