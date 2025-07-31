@@ -7,7 +7,7 @@ import { Search, Plus, Check } from 'lucide-react';
 import { GetGuestsResponse, Guest } from '@/validation';
 import { ScrollArea } from '../atoms/ScrollArea';
 import { useDebounce } from '@/hooks/useDebounce';
-import { getGuests, searchGuests } from '@/services/Guests';
+import { searchGuests } from '@/services/Guests';
 
 interface GuestSelectionDialogProps {
     open: boolean;
@@ -30,21 +30,23 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
 
     useEffect(() => {
-        const fetchGuests = async (searchTerm: string) => {
+        const handleGetGuests = async () => {
             setGuestSearchLoading(true);
             try {
-                const guests = searchTerm
-                    ? (await searchGuests({ q: searchTerm }) as GetGuestsResponse)
-                    : await getGuests();
-                setGuests(guests.data);
+                const response = ((await searchGuests({
+                    q: debouncedGuestSearch,
+
+                })) as GetGuestsResponse)
+                setGuests(response.data)
             } catch (error) {
-                console.error(error);
+                console.error(error)
             } finally {
-                setGuestSearchLoading(false);
+                setGuestSearchLoading(false)
             }
-        };
-        fetchGuests(debouncedGuestSearch);
-    }, [debouncedGuestSearch]);
+        }
+        handleGetGuests()
+    }, [debouncedGuestSearch])
+
 
     const handleGuestToggle = (guest: Guest): void => {
         setSelectedGuests(prev => {

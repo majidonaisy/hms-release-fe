@@ -5,7 +5,7 @@ import { Badge } from "@/components/atoms/Badge"
 import { Separator } from "@/components/atoms/Separator"
 import { format } from "date-fns"
 import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, X } from "lucide-react"
-import { GetReservationById, Reservation } from "@/validation"
+import { GetReservationById } from "@/validation"
 import { getReservationById } from "@/services/Reservation"
 
 interface ViewReservationDialogProps {
