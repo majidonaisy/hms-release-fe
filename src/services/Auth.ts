@@ -42,7 +42,6 @@ export const addUser = async (
   }
 };
 
-
 export const refreshToken = async (refreshToken: string): Promise<LoginResponse> => {
   try {
     const response = await apiClient({

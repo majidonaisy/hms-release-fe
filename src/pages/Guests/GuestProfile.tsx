@@ -124,7 +124,6 @@ const GuestProfile = () => {
     handleGetGuests()
   }, [debouncedIndividualSearch, currentPage, activeTab, pageSize])
 
-
   useEffect(() => {
     const handleGetGroupProfiles = async () => {
       if (activeTab === "individuals") return

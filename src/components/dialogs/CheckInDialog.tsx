@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useDropzone } from 'react-dropzone';
-import { AlertCircle, Loader2, X } from "lucide-react"
+import { AlertCircle, ArrowLeft, Loader2, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
 import { Button } from "@/components/atoms/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
@@ -18,6 +18,7 @@ interface CheckInDialogProps {
     reservationData?: UIReservation | null
     onCheckInComplete?: () => void
     onError?: (error: string) => void
+    onBackToChooseOptions: () => void;
 }
 
 const CheckInDialog = ({
@@ -27,6 +28,7 @@ const CheckInDialog = ({
     reservationData,
     onCheckInComplete,
     onError,
+    onBackToChooseOptions
 }: CheckInDialogProps) => {
     const [deposit, setDeposit] = useState<string>("")
     const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -126,7 +128,18 @@ const CheckInDialog = ({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="min-w-4xl max-w-5xl">
                 <DialogHeader className="pb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setOpen(false)
+                                onBackToChooseOptions?.()
+                            }}
+                            aria-label="Back to choose options"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
                         <DialogTitle className="text-xl font-semibold">Check-in</DialogTitle>
                     </div>
                 </DialogHeader>
@@ -201,7 +214,7 @@ const CheckInDialog = ({
                         <Label className="text-sm font-semibold">Identification</Label>
                         <div
                             {...getIdentificationRootProps()}
-                            className={`border border-gray-600 h-24 p-4 rounded-md cursor-pointer flex items-center justify-center hover:bg-accent/50 transition-colors bg-white`}
+                            className={`border h-24 p-4 rounded-md cursor-pointer flex items-center justify-center hover:bg-accent/50 transition-colors bg-white`}
                         >
                             <input {...getIdentificationInputProps()} />
                             {uploadingIdentification ? (
@@ -235,7 +248,7 @@ const CheckInDialog = ({
                                                 }}
                                                 className="h-7 w-7"
                                             >
-                                                <X/>
+                                                <X />
                                             </Button>
                                         </li>
                                     ))}

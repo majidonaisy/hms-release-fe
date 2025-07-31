@@ -5,8 +5,6 @@ import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
 import {  AddRoomTypeRequest, RoomType } from '@/validation/schemas/RoomType';
 
-
-
 const RoomTypes = () => {
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [loading, setLoading] = useState(true);

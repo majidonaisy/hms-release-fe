@@ -62,7 +62,6 @@ export const deleteAmenity = async (id: string): Promise<void> => {
   }
 };
 
-
 export const updateAmenity = async (id: string, data: { name: string }): Promise<Amenity> => {
   try {
     const response = await apiClient({

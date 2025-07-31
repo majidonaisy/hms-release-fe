@@ -42,7 +42,6 @@ const MaintenancePage = () => {
         return statusMatch;
     });
 
-
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
             LOW: 'bg-green-100 text-green-700 hover:bg-green-100',
@@ -51,7 +50,6 @@ const MaintenancePage = () => {
         };
         return styles[priority];
     };
-
 
     const getStatusDotColor = (status: MaintenanceType['status']) => {
         const dotColors = {
@@ -85,8 +83,6 @@ const MaintenancePage = () => {
             setLoading(false);
         }
     }, [currentPage, pageSize]);
-
-
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);

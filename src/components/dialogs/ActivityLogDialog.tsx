@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/Organisms/Dialog';
 import { X, Search } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
-import DotLine from '../atoms/dotLine';
+import DotLine from '../atoms/DotLine';
 
 export interface ActivityLogEntry {
     id: string;

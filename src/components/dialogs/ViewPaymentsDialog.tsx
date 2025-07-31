@@ -20,7 +20,8 @@ import {
   User,
   MapPin,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import { getPayments, voidPayments } from '@/services/Charges';
 import {
@@ -39,6 +40,7 @@ interface ViewPaymentsDialogProps {
   guestName: string;
   roomNumber: string;
   bookingId: string;
+  onBackToChooseOptions: () => void;
 }
 
 const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
@@ -48,6 +50,7 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
   guestName,
   roomNumber,
   bookingId,
+  onBackToChooseOptions,
 }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -175,7 +178,17 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
       <DialogContent className="!max-w-4xl !max-h-[90vh] h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setOpen(false)
+                onBackToChooseOptions?.()
+              }}
+              aria-label="Back to choose options"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             Payment History
           </DialogTitle>
           <DialogDescription>

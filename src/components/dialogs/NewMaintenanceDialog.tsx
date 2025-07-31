@@ -40,8 +40,6 @@ const areaTypes = [
     { value: 'AREA', label: 'Area', id: 'area-type-001' }
 ];
 
-
-
 const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     isOpen,
     onConfirm,
@@ -182,8 +180,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             return;
         }
 
-
-
         setLoading(true);
         try {
             // Prepare data based on area type selection
@@ -249,7 +245,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             setRoomsLoading(false);
         }
     }
-
 
     useEffect(() => {
         Promise.all([
@@ -430,8 +425,6 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                             </div>
                         )}
                     </div>
-
-
 
                     {/* Submit Button */}
                     <Button

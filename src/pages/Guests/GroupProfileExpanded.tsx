@@ -35,7 +35,6 @@ const GroupProfileExpanded = () => {
         return map[businessType as keyof typeof map] || businessType;
     };
 
-
     const fetchData = async () => {
         if (!id) return;
         setLoading(true);
@@ -81,7 +80,6 @@ const GroupProfileExpanded = () => {
             setDialogOpen(false);
         }
     };
-
 
     if (loading && !group) {
         return (

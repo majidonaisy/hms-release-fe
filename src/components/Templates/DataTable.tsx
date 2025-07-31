@@ -44,20 +44,32 @@ export interface ActionMenuItem<T = any> {
   subject?: string | ((item: T) => string)
 }
 
-export interface StatusFilterOption {
+export interface FilterOption {
   value: string
   label: string
   color?: string
+}
+
+export interface SelectFilter {
+  key: string
+  label: string
+  options: FilterOption[]
+  defaultLabel?: string
+  defaultValue?: string
+  onFilterChange: (value: string) => void
 }
 
 export interface FilterConfig {
   searchPlaceholder?: string
   searchFields?: string[]
   customFilters?: ReactNode
-  showFilter?: boolean // New property to control filter visibility
+  showFilter?: boolean
+  // Flexible select filters array
+  selectFilters?: SelectFilter[]
+  // Keep backward compatibility with statusFilter
   statusFilter?: {
     enabled: boolean
-    options: StatusFilterOption[]
+    options: FilterOption[]
     defaultLabel?: string
     onStatusChange?: (status: string) => void
   }
@@ -205,7 +217,24 @@ const DataTable = <T,>({
   const navigate = useNavigate()
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
-  const [selectedStatus, setSelectedStatus] = useState("all")
+  
+  // Dynamic filter states - stores filter values by key
+  const [filterValues, setFilterValues] = useState<Record<string, string>>(() => {
+    const initialValues: Record<string, string> = {}
+    
+    // Initialize with default values
+    filter?.selectFilters?.forEach(selectFilter => {
+      initialValues[selectFilter.key] = selectFilter.defaultValue || "all"
+    })
+    
+    // Backward compatibility with statusFilter
+    if (filter?.statusFilter?.enabled) {
+      initialValues['status'] = "all"
+    }
+    
+    return initialValues
+  })
+  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<T | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -221,10 +250,23 @@ const DataTable = <T,>({
     onSearch?.("")
   }
 
-  // Handle status filter
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status)
-    filter?.statusFilter?.onStatusChange?.(status)
+  // Generic filter change handler
+  const handleFilterChange = (filterKey: string, value: string) => {
+    setFilterValues(prev => ({
+      ...prev,
+      [filterKey]: value
+    }))
+    
+    // Find the corresponding filter and call its onChange handler
+    const selectFilter = filter?.selectFilters?.find(f => f.key === filterKey)
+    if (selectFilter) {
+      selectFilter.onFilterChange(value)
+    }
+    
+    // Backward compatibility with statusFilter
+    if (filterKey === 'status' && filter?.statusFilter?.onStatusChange) {
+      filter.statusFilter.onStatusChange(value)
+    }
   }
 
   // Handle delete
@@ -412,6 +454,18 @@ const DataTable = <T,>({
   // Determine if we should show the filter button (only for custom filters now)
   const shouldShowFilterButton = filter?.showFilter !== false && filter?.customFilters
 
+  // Combine all select filters (including backward compatibility)
+  const allSelectFilters = [...(filter?.selectFilters || [])]
+  if (filter?.statusFilter?.enabled) {
+    allSelectFilters.push({
+      key: 'status',
+      label: filter.statusFilter.defaultLabel || 'Status',
+      options: filter.statusFilter.options,
+      defaultLabel: filter.statusFilter.defaultLabel || "All Statuses",
+      onFilterChange: (value: string) => filter.statusFilter?.onStatusChange?.(value)
+    })
+  }
+
   if (loading) {
     return <TableSkeleton title={title} />
   }
@@ -461,22 +515,26 @@ const DataTable = <T,>({
               <Search className="h-4 w-4 text-gray-400" />
             </div>
 
-            {/* Status Filter - Always visible if enabled */}
-            {filter?.statusFilter?.enabled && (
-              <Select value={selectedStatus} onValueChange={handleStatusChange}>
+            {/* Dynamic Select Filters */}
+            {allSelectFilters.map((selectFilter) => (
+              <Select 
+                key={selectFilter.key}
+                value={filterValues[selectFilter.key] || "all"} 
+                onValueChange={(value) => handleFilterChange(selectFilter.key, value)}
+              >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={filter.statusFilter.defaultLabel || "All Statuses"} />
+                  <SelectValue placeholder={selectFilter.defaultLabel || selectFilter.label} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{filter.statusFilter.defaultLabel || "All Statuses"}</SelectItem>
-                  {filter.statusFilter.options.map((option) => (
+                  <SelectItem value="all">{selectFilter.defaultLabel || `All ${selectFilter.label}`}</SelectItem>
+                  {selectFilter.options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
+            ))}
 
             {/* Filter Button - Only for custom filters */}
             {filter?.customFilters && (

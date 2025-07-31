@@ -1,5 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useDebounce } from "@/hooks/useDebounce"
 import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
@@ -8,17 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon, Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
-import { GetGroupProfilesResponse, GetRatePlansResponse, GetRoomsResponse } from "@/validation"
+import { GetGroupProfilesResponse, GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGroupProfiles } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
-import { addGroupReservation, getNightPrice, getReservations } from "@/services/Reservation"
+import { addGroupReservation, getNightPrice } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
 import { Checkbox } from "@/components/atoms/Checkbox"
 import { Input } from "@/components/atoms/Input"
+import { getRoomTypes } from "@/services/RoomTypes"
 
 interface GroupReservationRequest {
     groupProfileId: string;
@@ -71,14 +72,13 @@ export default function NewGroupReservation() {
     });
 
     const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
-    const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [groupProfiles, setGroupProfiles] = useState<GroupProfile[]>([]);
     const [groupProfileSearch, setGroupProfileSearch] = useState("");
     const debouncedGroupProfileSearch = useDebounce(groupProfileSearch, 400);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
-    // Removed unused selectedGuest and selectedRooms
+    const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
 
     const handleInputChange = (field: keyof GroupReservationRequest, value: any) => {
         setFormData(prev => ({
@@ -91,50 +91,6 @@ export default function NewGroupReservation() {
     const clearGroupProfileSearch = () => {
         setGroupProfileSearch("");
     };
-
-    const getAvailableRoomsForDates = useCallback(async (checkIn: Date, checkOut: Date) => {
-        try {
-            const reservationsResponse = await getReservations(checkIn, checkOut);
-            const reservedRoomIds = new Set<string>();
-
-            if (reservationsResponse.data?.reservations) {
-                reservationsResponse.data.reservations.forEach(reservation => {
-                    reservation.Room.forEach(room => {
-                        const hasOverlap = room.reservations.some(res => {
-                            const resCheckIn = new Date(res.checkIn);
-                            const resCheckOut = new Date(res.checkOut);
-                            return (
-                                (checkIn >= resCheckIn && checkIn < resCheckOut) ||
-                                (checkOut > resCheckIn && checkOut <= resCheckOut) ||
-                                (checkIn <= resCheckIn && checkOut >= resCheckOut)
-                            );
-                        });
-                        if (hasOverlap) {
-                            reservedRoomIds.add(room.id);
-                        }
-                    });
-                });
-            }
-
-            const availableRooms = rooms.filter(room =>
-                !reservedRoomIds.has(room.id) &&
-                room.status === 'AVAILABLE'
-            );
-
-            setAvailableRooms(availableRooms);
-        } catch (error) {
-            console.error('Error fetching available rooms:', error);
-            toast("Error!", {
-                description: "Failed to fetch available rooms"
-            });
-        }
-    }, [rooms]);
-
-    useEffect(() => {
-        if (formData.checkIn && formData.checkOut && rooms.length > 0) {
-            getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
-        }
-    }, [formData.checkIn, formData.checkOut, rooms, getAvailableRoomsForDates]);
 
     const handleGuestRoomAssignment = (guestId: string, roomIds: string[]) => {
         setFormData(prev => ({
@@ -157,14 +113,6 @@ export default function NewGroupReservation() {
         });
     };
 
-    const getFilteredAvailableRooms = () => {
-        const assignedRoomIds = Object.values(formData.guestsAndRooms).flat();
-        return availableRooms.filter(room =>
-            (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
-            !assignedRoomIds.includes(room.id)
-        );
-    };
-
     const getAssignedGuests = () => {
         return Object.keys(formData.guestsAndRooms);
     };
@@ -176,12 +124,30 @@ export default function NewGroupReservation() {
             toast("Success!", {
                 description: "Group reservation was created successfully.",
             })
-            navigate('/guests-profile');
-        } catch (error) {
-            toast("Error!", {
-                description: "Failed to create group reservation.",
+            navigate('/calendar');
+        } catch (error: any) {
+            let errorMessage = 'Failed to create reservation. Please try again.';
+
+            if (error.userMessage) {
+                errorMessage = error.userMessage;
+            } else if (error.response && error.response.data) {
+                const responseData = error.response.data;
+                if (responseData.error) {
+                    errorMessage = responseData.error;
+                } else if (responseData.message) {
+                    errorMessage = responseData.message;
+                } else if (typeof responseData === 'string') {
+                    errorMessage = responseData;
+                }
+            } else if (error.request) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast('Error', {
+                description: errorMessage
             })
-            console.error("Failed to submit form:", error);
         } finally {
             setLoading(false);
         }
@@ -224,8 +190,6 @@ export default function NewGroupReservation() {
         handleGetGroupProfiles()
     }, [debouncedGroupProfileSearch])
 
-    const filteredAvailableRooms = getFilteredAvailableRooms();
-
     const getNights = () => {
         if (!formData.checkIn || !formData.checkOut) return 0;
         const diffTime = formData.checkOut.getTime() - formData.checkIn.getTime();
@@ -257,6 +221,45 @@ export default function NewGroupReservation() {
             fetchNightPrice();
         }
     }, [formData.ratePlanId, selectedRoomType]);
+
+    useEffect(() => {
+        const handleGetRooms = async () => {
+            try {
+                const rooms = await getRooms();
+                setRooms(rooms.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const handleGetRatePlans = async () => {
+            try {
+                const ratePlans = await getRatePlans();
+                setRatePlans(ratePlans.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        handleGetRooms();
+        handleGetRatePlans();
+    }, []);
+
+    useEffect(() => {
+        const fetchRoomTypes = async () => {
+            try {
+                const response = await getRoomTypes();
+                setRoomTypes(response.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchRoomTypes();
+    }, []);
+
+    const roomsToShow = selectedRoomType
+        ? rooms.filter(room => room.roomType?.id === selectedRoomType)
+        : rooms;
 
     const renderStepContent = (stepNumber: number) => {
         if (currentStep !== stepNumber) return null
@@ -451,13 +454,13 @@ export default function NewGroupReservation() {
                                     <SelectValue placeholder="Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Array.from(new Map(availableRooms.map((room) => [room.roomType?.id, room.roomType])).values())
-                                        .filter((rt) => rt && rt.id)
-                                        .map((rt) => (
-                                            <SelectItem key={rt.id} value={rt.id}>
-                                                {rt.name}
+                                    {
+                                        roomTypes.map((roomType) => (
+                                            <SelectItem key={roomType.id} value={roomType.id}>
+                                                {roomType.name}
                                             </SelectItem>
-                                        ))}
+                                        ))
+                                    }
                                 </SelectContent>
                             </Select>
                         </div>
@@ -469,7 +472,7 @@ export default function NewGroupReservation() {
                                     {getAssignedGuests().map((guestId) => {
                                         const guest = linkedGuests.find((g) => g.id === guestId);
                                         const roomIds = formData.guestsAndRooms[guestId];
-                                        const roomNumbers = availableRooms
+                                        const roomNumbers = roomsToShow
                                             .filter((room) => roomIds.includes(room.id))
                                             .map((room) => room.roomNumber)
                                             .join(", ");
@@ -509,12 +512,12 @@ export default function NewGroupReservation() {
                                                     </div>
                                                 </div>
                                                 <div className="col-span-3 space-y-1 max-h-[150px] overflow-y-auto border rounded bg-white p-2">
-                                                    {filteredAvailableRooms.length === 0 ? (
+                                                    {roomsToShow.length === 0 ? (
                                                         <div className="text-center text-muted-foreground">
                                                             <p className="">No rooms available</p>
                                                         </div>
                                                     ) : (
-                                                        filteredAvailableRooms.map((room) => {
+                                                        roomsToShow.map((room) => {
                                                             const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
                                                             return (
                                                                 <div key={room.id} className="flex items-center space-x-2">
@@ -558,7 +561,7 @@ export default function NewGroupReservation() {
                             </div>
                         )}
 
-                        {selectedRoomType && availableRooms.length === 0 && (
+                        {selectedRoomType && roomsToShow.length === 0 && (
                             <div className="text-center py-8 bg-white rounded-lg border">
                                 <div className="text-muted-foreground">
                                     <p className="text-lg font-medium">No rooms available</p>
@@ -592,8 +595,6 @@ export default function NewGroupReservation() {
                     </div>
                 );
             }
-
-
             default:
                 return null
         }
