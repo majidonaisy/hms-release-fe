@@ -26,7 +26,6 @@ export const getRoles = async (params?: GetRolesParams): Promise<RoleResponse> =
   }
 };
 
-
 export const getPermissions = async (): Promise<PermissionsResponse> => {
     try {
         const response = await apiClient({

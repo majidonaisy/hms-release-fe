@@ -84,8 +84,6 @@ export const AddMaintenanceResponseSchema = z.object({
   data: MaintenanceShape,
 });
 
-
-
 // Get Maintenances
 export const GetMaintenancesResponseSchema = z.object({
   status: z.number(),

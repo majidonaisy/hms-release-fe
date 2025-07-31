@@ -47,7 +47,6 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
         handleGetGuests()
     }, [debouncedGuestSearch])
 
-
     const handleGuestToggle = (guest: Guest): void => {
         setSelectedGuests(prev => {
             const isSelected = prev.some(g => g.id === guest.id);

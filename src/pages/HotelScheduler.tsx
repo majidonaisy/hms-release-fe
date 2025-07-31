@@ -368,7 +368,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     }
   }
 
-
   return (
     <TooltipProvider>
       <div className="px-4">

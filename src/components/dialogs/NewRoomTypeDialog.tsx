@@ -88,7 +88,6 @@ const NewRoomTypeDialog: React.FC<NewRoomTypeDialogProps> = ({
     onCancel();
   };
 
-
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
       <DialogContent className="max-w-md">

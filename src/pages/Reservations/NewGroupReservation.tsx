@@ -245,7 +245,6 @@ export default function NewGroupReservation() {
         handleGetRatePlans();
     }, []);
 
-
     useEffect(() => {
         const fetchRoomTypes = async () => {
             try {
@@ -596,8 +595,6 @@ export default function NewGroupReservation() {
                     </div>
                 );
             }
-
-
             default:
                 return null
         }

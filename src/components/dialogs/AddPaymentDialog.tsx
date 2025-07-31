@@ -61,7 +61,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         { value: 'OTHER', label: 'Other' }
     ];
 
-
     // Calculate total amount
     const totalAmount = selectedItems.reduce((sum, item) => sum + parseFloat(item.amount), 0);
 
@@ -202,7 +201,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
             maximumFractionDigits: 2,
         }).format(amount);
     };
-
 
     // Filter and sort charge items
     const filteredAndSortedItems = chargeItems
@@ -498,8 +496,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                                     </div>
                                 </div>
 
-
-
                                 {/* Payment Method Selection */}
                                 <div>
                                     <Label htmlFor="paymentMethod">Payment Method</Label>
@@ -531,8 +527,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                             </div>
                         </div>
                     </div>
-
-
 
                     {/* Confirm Payment Button - Always Visible */}
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">

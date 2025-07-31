@@ -28,7 +28,6 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -104,10 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
               className="w-full"
             />
           </div>
-
-
-
-
+          
           {/* Error Message */}
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">

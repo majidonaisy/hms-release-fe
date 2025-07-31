@@ -45,8 +45,7 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
   const isAdmin = permissions.some(
     (permission) => permission.action === 'manage' && permission.subject === 'all'
   );
-
-
+  
   const filterRoutesByPermissions = (routes: any[]): any[] => {
     return routes.filter(route => {
       // If user is admin (has manage all), show everything

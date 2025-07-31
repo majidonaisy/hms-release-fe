@@ -12,7 +12,6 @@ import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
 import { format } from 'date-fns';
 
-
 interface AddChargeDialogProps {
     open: boolean;
     setOpen: (open: boolean) => void;
