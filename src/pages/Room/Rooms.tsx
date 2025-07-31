@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
 import { deleteRoom, getRooms, searchRooms } from '@/services/Rooms';
-import { AddRoomTypeRequest, GetRoomsResponse, Room } from '@/validation';
+import { getRoomTypes } from '@/services/RoomTypes'; // Add this import
+import { AddRoomTypeRequest, GetRoomsResponse, Room, RoomType } from '@/validation'; // Add RoomType import
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
@@ -21,6 +22,8 @@ const Rooms = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
     const [selectedStatus, setSelectedStatus] = useState('all');
+    const [selectedRoomType, setSelectedRoomType] = useState('all'); // Add room type filter state
+    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]); // Add room types state
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
@@ -37,6 +40,25 @@ const Rooms = () => {
         { value: 'OCCUPIED', label: 'Occupied', color: 'bg-chart-4/20 text-chart-4' },
         { value: 'DIRTY', label: 'Dirty', color: 'bg-chart-5/20 text-chart-5' }
     ];
+
+    // Fetch room types on component mount
+    useEffect(() => {
+        const fetchRoomTypes = async () => {
+            try {
+                const response = await getRoomTypes();
+                setRoomTypes(response.data || response); // Handle different API response structures
+            } catch (error) {
+                console.error("Error fetching room types:", error);
+            }
+        };
+        fetchRoomTypes();
+    }, []);
+
+    // Convert room types to filter options
+    const roomTypeOptions = roomTypes.map(roomType => ({
+        value: roomType.id.toString(),
+        label: roomType.name,
+    }));
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -62,12 +84,18 @@ const Rooms = () => {
     useEffect(() => {
         let filtered = rooms;
 
+        // Filter by status
         if (selectedStatus !== 'all') {
             filtered = filtered.filter(room => room.status === selectedStatus);
         }
 
+        // Filter by room type
+        if (selectedRoomType !== 'all') {
+            filtered = filtered.filter(room => room.roomType.id.toString() === selectedRoomType);
+        }
+
         setFilteredRooms(filtered);
-    }, [rooms, searchTerm, selectedStatus]);
+    }, [rooms, searchTerm, selectedStatus, selectedRoomType]); // Add selectedRoomType dependency
 
     useEffect(() => {
         const handleGetEmployees = async () => {
@@ -100,6 +128,11 @@ const Rooms = () => {
 
     const handleStatusFilter = (status: string) => {
         setSelectedStatus(status);
+    };
+
+    // Add room type filter handler
+    const handleRoomTypeFilter = (roomTypeId: string) => {
+        setSelectedRoomType(roomTypeId);
     };
 
     const getStatusColor = (status: string) => {
@@ -199,6 +232,10 @@ const Rooms = () => {
             await addRoomType(data);
             toast.success('Room type created successfully');
             setIsRoomTypeDialogOpen(false); // Close dialog after successful creation
+            
+            // Refresh room types list
+            const response = await getRoomTypes();
+            setRoomTypes(response.data || response);
         } catch (error: any) {
             console.error('Error creating room type:', error);
             toast.error(error.userMessage || 'Error creating room type');
@@ -236,12 +273,22 @@ const Rooms = () => {
                     searchPlaceholder: "Search rooms...",
                     searchFields: ['roomNumber', 'status', 'roomType.name'],
                     showFilter: true,
-                    statusFilter: {
-                        enabled: true,
-                        options: roomStatusOptions,
-                        defaultLabel: "All Statuses",
-                        onStatusChange: handleStatusFilter
-                    }
+                    selectFilters: [
+                        {
+                            key: 'status',
+                            label: 'Status',
+                            options: roomStatusOptions,
+                            defaultLabel: "All Statuses",
+                            onFilterChange: handleStatusFilter
+                        },
+                        {
+                            key: 'roomType',
+                            label: 'Room Type',
+                            options: roomTypeOptions,
+                            defaultLabel: "All Room Types",
+                            onFilterChange: handleRoomTypeFilter
+                        }
+                    ]
                 }}
                 onSearch={handleSearch}
                 pagination={pagination ? {
