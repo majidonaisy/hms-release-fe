@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
 import { Button } from '@/components/atoms/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
@@ -23,6 +23,7 @@ interface CheckInCheckoutDialogProps {
     reservationData?: UIReservation | null
     onCheckOutComplete?: () => void;
     onError?: (error: string) => void;
+    onBackToChooseOptions: () => void;
 }
 
 const CheckOutDialog = ({
@@ -32,6 +33,7 @@ const CheckOutDialog = ({
     reservationData,
     onCheckOutComplete,
     onError,
+    onBackToChooseOptions
 }: CheckInCheckoutDialogProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -203,7 +205,7 @@ const CheckOutDialog = ({
                 toast.success(`Automatic late checkout fee of ${automaticFeeInfo.fee.toFixed(2)} ${automaticFeeInfo.currencyId} has been settled`);
             }
 
-            await settleLateCheckoutFee(reservationId, {body});
+            await settleLateCheckoutFee(reservationId, { body });
 
             setIsLateCheckoutFeeSettled(true);
         } catch (error: any) {
@@ -220,7 +222,18 @@ const CheckOutDialog = ({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="min-w-4xl">
                 <DialogHeader className="pb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setOpen(false)
+                                onBackToChooseOptions?.()
+                            }}
+                            aria-label="Back to choose options"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
                         <DialogTitle className="text-xl font-semibold">Check-out</DialogTitle>
                     </div>
                 </DialogHeader>

@@ -11,15 +11,16 @@ import { AddChargeRequest } from "@/validation/schemas/charges";
 import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
 import { format } from 'date-fns';
-
+import { ArrowLeft } from 'lucide-react';
 
 interface AddChargeDialogProps {
     open: boolean;
     setOpen: (open: boolean) => void;
     reservationId: string;
+    onBackToChooseOptions: () => void;
 }
 
-const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps) => {
+const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }: AddChargeDialogProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [itemType, setItemType] = useState('');
     const [amount, setAmount] = useState('');
@@ -139,7 +140,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
                     createdAt: reservationObj.createdAt instanceof Date ? reservationObj.createdAt.toISOString() : typeof reservationObj.createdAt === 'string' ? reservationObj.createdAt : '',
                     updatedAt: reservationObj.updatedAt instanceof Date ? reservationObj.updatedAt.toISOString() : typeof reservationObj.updatedAt === 'string' ? reservationObj.updatedAt : '',
                     receiptId: typeof reservationObj.receiptId === 'string' ? reservationObj.receiptId : '',
-                    status: typeof reservationObj.status === 'string' && ["CHECKED_IN","CHECKED_OUT","DRAFT","CONFIRMED","CANCELLED","NO_SHOW","HELD"].includes(reservationObj.status) ? reservationObj.status as SingleReservation["status"] : "DRAFT",
+                    status: typeof reservationObj.status === 'string' && ["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"].includes(reservationObj.status) ? reservationObj.status as SingleReservation["status"] : "DRAFT",
                 };
                 setReservationDetails(reservationData);
             } else {
@@ -173,9 +174,20 @@ const AddChargeDialog = ({ open, setOpen, reservationId }: AddChargeDialogProps)
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="!max-w-2xl">
                 <DialogHeader className="flex flex-row items-center justify-between pb-4">
-                    <div>
+                    <div className="flex items-center">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setOpen(false)
+                                onBackToChooseOptions?.()
+                            }}
+                            aria-label="Back to choose options"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
                         <DialogTitle className="text-xl font-semibold">Add Charge</DialogTitle>
-                        <span className="text-gray-500 text-sm">{format(new Date(), 'MMMM dd, yyyy')}</span>
+                        <span className="text-gray-500 text-sm ml-2">{format(new Date(), 'MMMM dd, yyyy')}</span>
                     </div>
                 </DialogHeader>
 

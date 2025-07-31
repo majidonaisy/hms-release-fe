@@ -33,7 +33,8 @@ export const addGroupReservation = async (data: AddGroupReservationRequest): Pro
     });
     return response as ReservationResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to add reservation";
+    const data = error.response?.data;
+    const errorMessage = data?.error || data?.message || (typeof data === "string" ? data : null) || "Failed to add reservation";
     throw {
       userMessage: errorMessage,
       originalError: error,

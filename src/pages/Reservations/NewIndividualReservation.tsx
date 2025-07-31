@@ -1,5 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useDebounce } from "@/hooks/useDebounce"
 import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
@@ -9,16 +9,17 @@ import { CalendarIcon, Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
-import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse } from "@/validation"
+import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
 import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
-import { addReservation, getNightPrice, getReservations } from "@/services/Reservation"
+import { addReservation, getNightPrice } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
 import { Input } from "@/components/atoms/Input"
+import { getRoomTypes } from "@/services/RoomTypes"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
@@ -51,7 +52,6 @@ export default function NewIndividualReservation() {
         ratePlanId: '',
         roomIds: [],
     });
-    const [availableRooms, setAvailableRooms] = useState<GetRoomsResponse['data']>([]);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
     const [guestSearch, setGuestSearch] = useState("");
     const debouncedGuestSearch = useDebounce(guestSearch, 400);
@@ -59,6 +59,32 @@ export default function NewIndividualReservation() {
     const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
+    const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const allRooms = await getRooms();
+                setRooms(allRooms.data);
+            } catch (error) {
+                console.error('Error fetching rooms:', error);
+                toast("Error!", { description: "Failed to fetch rooms" });
+            }
+        };
+        fetchRooms();
+    }, []);
+
+    useEffect(() => {
+        const fetchRoomTypes = async () => {
+            try {
+                const response = await getRoomTypes();
+                setRoomTypes(response.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchRoomTypes();
+    }, []);
 
     const handleInputChange = (field: keyof AddReservationRequest, value: string | string[]) => {
         setFormData(prev => {
@@ -77,64 +103,14 @@ export default function NewIndividualReservation() {
         setGuestSearch("");
     };
 
-    const getAvailableRoomsForDates = useCallback(async (checkIn: Date, checkOut: Date) => {
-        try {
-            const reservationsResponse = await getReservations(checkIn, checkOut);
-
-            const reservedRoomIds = new Set<string>();
-
-            if (reservationsResponse.data?.reservations) {
-                reservationsResponse.data.reservations.forEach(reservation => {
-                    reservation.Room.forEach(room => {
-                        const hasOverlap = room.reservations.some(res => {
-                            const resCheckIn = new Date(res.checkIn);
-                            const resCheckOut = new Date(res.checkOut);
-
-                            return (
-                                (checkIn >= resCheckIn && checkIn < resCheckOut) ||
-                                (checkOut > resCheckIn && checkOut <= resCheckOut) ||
-                                (checkIn <= resCheckIn && checkOut >= resCheckOut)
-                            );
-                        });
-
-                        if (hasOverlap) {
-                            reservedRoomIds.add(room.id);
-                        }
-                    });
-                });
-            }
-
-            const availableRooms = rooms.filter(room =>
-                !reservedRoomIds.has(room.id) &&
-                room.status === 'AVAILABLE'
-            );
-
-            setAvailableRooms(availableRooms);
-
-        } catch (error) {
-            console.error('Error fetching available rooms:', error);
-            toast("Error!", {
-                description: "Failed to fetch available rooms"
-            });
-        }
-    }, [rooms]);
-
-    useEffect(() => {
-        if (formData.checkIn && formData.checkOut && rooms.length > 0) {
-            getAvailableRoomsForDates(formData.checkIn, formData.checkOut);
-        }
-    }, [formData.checkIn, formData.checkOut, rooms, getAvailableRoomsForDates]);
-
     const handleRoomSelection = async (roomId: string) => {
         if (!formData.roomIds?.includes(roomId)) {
             const updatedRoomIds = [...(formData.roomIds || []), roomId];
             handleInputChange('roomIds', updatedRoomIds);
 
-            // If this is the first room selected, get its connectable rooms
             if (formData.roomIds?.length === 0) {
                 try {
                     const roomResponse = await getRoomById(roomId);
-                    // The service returns { data: apiResponse }, and apiResponse has { status, data }
                     const actualRoomData = roomResponse.data;
                     const connectedRooms = actualRoomData.connectedRooms || [];
                     console.log('Full room response:', roomResponse);
@@ -159,21 +135,6 @@ export default function NewIndividualReservation() {
         }
     };
 
-    const getFilteredAvailableRooms = () => {
-        if (!formData.roomIds || formData.roomIds.length === 0) {
-            return availableRooms.filter(room =>
-                (!selectedRoomType || room.roomType?.id === selectedRoomType) &&
-                !formData.roomIds?.includes(room.id)
-            );
-        }
-
-        const connectableRoomIds = connectableRooms.map(connectedRoom => connectedRoom.id);
-        return availableRooms.filter(room =>
-            connectableRoomIds.includes(room.id) &&
-            !formData.roomIds?.includes(room.id)
-        );
-    };
-
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -181,7 +142,7 @@ export default function NewIndividualReservation() {
             toast("Success!", {
                 description: "Reservation was created successfully.",
             })
-            navigate('/guests-profile');
+            navigate('/calendar');
         } catch (error: any) {
             let errorMessage = 'Failed to create reservation. Please try again.';
 
@@ -249,8 +210,6 @@ export default function NewIndividualReservation() {
         handleGetGuests()
     }, [debouncedGuestSearch])
 
-    const filteredAvailableRooms = getFilteredAvailableRooms();
-
     const getNights = () => {
         if (!formData.checkIn || !formData.checkOut) return 0;
         const diffTime = formData.checkOut.getTime() - formData.checkIn.getTime();
@@ -278,6 +237,10 @@ export default function NewIndividualReservation() {
             fetchNightPrice();
         }
     }, [formData.ratePlanId, selectedRoomType]);
+
+    const roomsToShow = selectedRoomType
+        ? rooms.filter(room => room.roomType?.id === selectedRoomType)
+        : rooms;
 
     const renderStepContent = (stepNumber: number) => {
         if (currentStep !== stepNumber) return null
@@ -468,7 +431,7 @@ export default function NewIndividualReservation() {
                                 Showing available rooms for {format(formData.checkIn, "MMM dd")} - {format(formData.checkOut, "MMM dd, yyyy")}
                             </p>
                             <p className="text-xs text-hms-primary mt-1">
-                                {filteredAvailableRooms.length} room(s) available
+                                {rooms.length} room(s) available
                             </p>
                         </div>
 
@@ -482,13 +445,11 @@ export default function NewIndividualReservation() {
                                     <SelectValue placeholder="Select Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Array.from(new Map(availableRooms.map(room => [room.roomType?.id, room.roomType])).values())
-                                        .filter(rt => rt && rt.id)
-                                        .map(rt => (
-                                            <SelectItem key={rt.id} value={rt.id}>
-                                                {rt.name}
-                                            </SelectItem>
-                                        ))}
+                                    {roomTypes.map(rt => (
+                                        <SelectItem key={rt.id} value={rt.id}>
+                                            {rt.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -508,12 +469,12 @@ export default function NewIndividualReservation() {
                                         } />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {filteredAvailableRooms.length === 0 ? (
+                                        {rooms.length === 0 ? (
                                             <SelectItem value="no-rooms" disabled>
                                                 No rooms available for selected dates
                                             </SelectItem>
                                         ) : (
-                                            filteredAvailableRooms.map(room => (
+                                            roomsToShow.map(room => (
                                                 <SelectItem key={room.id} value={room.id}>
                                                     {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
                                                 </SelectItem>

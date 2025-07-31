@@ -43,8 +43,6 @@ interface Employee {
     };
 }
 
-
-
 const NewHousekeepingDialog = ({
     isOpen,
     onConfirm,
@@ -160,7 +158,6 @@ const NewHousekeepingDialog = ({
         onCancel();
     };
 
-
     const getPriorityBadgeColor = (priority: string) => {
         switch (priority) {
             case 'HIGH':
@@ -240,7 +237,6 @@ const NewHousekeepingDialog = ({
                                 <p className="text-sm text-red-600">{errors.userId}</p>
                             )}
                         </div>
-
 
                         {/* Priority */}
                         <div className="space-y-2">

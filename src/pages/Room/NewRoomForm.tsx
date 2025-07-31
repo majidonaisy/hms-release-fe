@@ -108,7 +108,6 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }
   }, [initialData]);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -136,8 +135,6 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
         : (prev.amenities || []).filter(id => id !== amenityId)
     }));
   };
-
-
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);

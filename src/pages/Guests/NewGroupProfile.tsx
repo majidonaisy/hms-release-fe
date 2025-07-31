@@ -340,8 +340,7 @@ const NewGroupProfile = () => {
                             />
                         </div>
                     </div>
-
-
+                    
                     <div className='px-5 space-y-4'>
                         <h2 className='font-bold text-lg'>Linked Guests:</h2>
 

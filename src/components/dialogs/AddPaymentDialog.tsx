@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/atoms/Checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select";
 import { Separator } from "@/components/atoms/Separator";
 import { ScrollArea } from "@/components/atoms/ScrollArea";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { getUnsetledCharges, addPayment } from "@/services/Charges";
 import { convertRate, getAllCurrencies } from "@/services/Currency";
@@ -26,12 +26,14 @@ interface PaymentChargeItem {
     unitPrice: string;
     status: string;
     selected: boolean;
+    onBackToChooseOptions: () => void;
 }
 
-const AddPaymentDialog = ({ open, setOpen, reservationId }: {
+const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }: {
     open: boolean;
     setOpen: (open: boolean) => void;
     reservationId?: string;
+    onBackToChooseOptions: () => void;
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -56,11 +58,10 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         { value: 'CREDIT_CARD', label: 'Credit Card' },
         { value: 'DEBIT_CARD', label: 'Debit Card' },
         { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
-        { value:"PAYPAL", label: "PayPal" },
+        { value: "PAYPAL", label: "PayPal" },
         { value: 'CHECK', label: 'Check' },
         { value: 'OTHER', label: 'Other' }
     ];
-
 
     // Calculate total amount
     const totalAmount = selectedItems.reduce((sum, item) => sum + parseFloat(item.amount), 0);
@@ -203,7 +204,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
         }).format(amount);
     };
 
-
     // Filter and sort charge items
     const filteredAndSortedItems = chargeItems
         .filter(item =>
@@ -295,6 +295,17 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
             <DialogContent className="!max-w-5xl px-6 !max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center justify-start gap-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                                setOpen(false)
+                                onBackToChooseOptions?.()
+                            }}
+                            aria-label="Back to choose options"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
                         <span>Add Payment</span>
                         <span className="text-sm font-normal text-gray-500">
                             {new Date().toLocaleDateString('en-US', {
@@ -498,8 +509,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                                     </div>
                                 </div>
 
-
-
                                 {/* Payment Method Selection */}
                                 <div>
                                     <Label htmlFor="paymentMethod">Payment Method</Label>
@@ -531,8 +540,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId }: {
                             </div>
                         </div>
                     </div>
-
-
 
                     {/* Confirm Payment Button - Always Visible */}
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">

@@ -190,7 +190,6 @@ const TeamMemberProfile = () => {
                             </Card>
                         </div>
 
-
                         <Card className="p-3">
                             <CardHeader className='p-0'>
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
