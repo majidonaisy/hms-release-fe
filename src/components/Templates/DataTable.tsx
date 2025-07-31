@@ -1,4 +1,3 @@
-"use client"
 import React, { useState, type ReactNode } from "react"
 import { Search, Filter, Plus, EllipsisVertical, ChevronDown, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/atoms/Button"
@@ -13,6 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/atoms/DropdownMenu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/molecules/Select"
 import Pagination from "@/components/atoms/Pagination"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import TableSkeleton from "@/components/Templates/TableSkeleton"
@@ -38,10 +44,23 @@ export interface ActionMenuItem<T = any> {
   subject?: string | ((item: T) => string)
 }
 
+export interface StatusFilterOption {
+  value: string
+  label: string
+  color?: string
+}
+
 export interface FilterConfig {
   searchPlaceholder?: string
   searchFields?: string[]
   customFilters?: ReactNode
+  showFilter?: boolean // New property to control filter visibility
+  statusFilter?: {
+    enabled: boolean
+    options: StatusFilterOption[]
+    defaultLabel?: string
+    onStatusChange?: (status: string) => void
+  }
 }
 
 export interface DataTableProps<T = any> {
@@ -186,6 +205,7 @@ const DataTable = <T,>({
   const navigate = useNavigate()
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState("all")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<T | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -199,6 +219,12 @@ const DataTable = <T,>({
   const clearSearch = () => {
     setSearchText("")
     onSearch?.("")
+  }
+
+  // Handle status filter
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status)
+    filter?.statusFilter?.onStatusChange?.(status)
   }
 
   // Handle delete
@@ -383,6 +409,9 @@ const DataTable = <T,>({
   const deleteAction = actions?.find((action) => action.label.toLowerCase() === "delete")
   const otherActions = actions?.filter((action) => action.label.toLowerCase() !== "delete")
 
+  // Determine if we should show the filter button (only for custom filters now)
+  const shouldShowFilterButton = filter?.showFilter !== false && filter?.customFilters
+
   if (loading) {
     return <TableSkeleton title={title} />
   }
@@ -432,15 +461,34 @@ const DataTable = <T,>({
               <Search className="h-4 w-4 text-gray-400" />
             </div>
 
-            {/* Filter Button */}
-            <Button
-              variant="outline"
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
-            >
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
+            {/* Status Filter - Always visible if enabled */}
+            {filter?.statusFilter?.enabled && (
+              <Select value={selectedStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={filter.statusFilter.defaultLabel || "All Statuses"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{filter.statusFilter.defaultLabel || "All Statuses"}</SelectItem>
+                  {filter.statusFilter.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Filter Button - Only for custom filters */}
+            {filter?.customFilters && (
+              <Button
+                variant="outline"
+                onClick={() => setShowFilter(!showFilter)}
+                className="flex items-center gap-2 px-3 py-2 border-2 border-gray-300 hover:border-gray-400"
+              >
+                <Filter className="h-4 w-4" />
+                Filter
+              </Button>
+            )}
 
             {/* Custom Filters */}
             {showFilter && filter?.customFilters && (

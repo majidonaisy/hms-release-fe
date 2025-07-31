@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Search, Plus, EllipsisVertical, Wrench } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Plus, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
-import { Input } from '@/components/atoms/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
 import { Badge } from '@/components/atoms/Badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
@@ -13,11 +12,10 @@ import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
+import TableSkeleton from '@/components/Templates/TableSkeleton';
 
 const MaintenancePage = () => {
-    const [searchText, setSearchText] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [typeFilter, setTypeFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(8);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceType[]>([]);
@@ -39,43 +37,33 @@ const MaintenancePage = () => {
         hasPrevious: boolean;
     } | null>(null);
 
-    // With server-side pagination, we'll use the filtered data directly
-    // Client-side filtering will be done later or if there's no pagination from backend
-    const filteredRequests = maintenanceRequests;
+    const filteredRequests = maintenanceRequests.filter((request) => {
+        const statusMatch = statusFilter === 'ALL' || request.status === statusFilter;
+        return statusMatch;
+    });
 
-    // Status badge styling - Updated for new status values
-    const getStatusBadge = (status: MaintenanceType['status']) => {
-        const styles = {
-            PENDING: 'bg-chart-1/20 text-chart-1 hover:bg-chart-1/20',
-            IN_PROGRESS: 'bg-chart-2/20 text-chart-2 hover:bg-chart-2/20',
-            COMPLETED: 'bg-chart-3/20 text-chart-3 hover:bg-chart-3/20',
-            CANCELED: 'bg-chart-4/20 text-chart-4 hover:bg-chart-4/20' // Updated from CANCELLED to CANCELED
-        };
-        return styles[status];
-    };
 
-    // Priority badge styling - Updated for new priority values
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
             LOW: 'bg-green-100 text-green-700 hover:bg-green-100',
             MEDIUM: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
-            HIGH: 'bg-red-100 text-red-700 hover:bg-red-100', // Updated from CRITICAL to HIGH
+            HIGH: 'bg-red-100 text-red-700 hover:bg-red-100',
         };
         return styles[priority];
     };
 
-    // Status dot color - Updated for new status values
+
     const getStatusDotColor = (status: MaintenanceType['status']) => {
         const dotColors = {
-            PENDING: 'bg-chart-1',
-            IN_PROGRESS: 'bg-chart-2',
-            COMPLETED: 'bg-chart-3',
-            CANCELED: 'bg-chart-4' // Updated from CANCELLED to CANCELED
+            PENDING: 'bg-chart-7/30',
+            IN_PROGRESS: 'bg-chart-4/20',
+            COMPLETED: 'bg-chart-1/20',
+            CANCELED: 'bg-chart-5/10'
         };
         return dotColors[status];
     };
 
-    const fetchMaintenanceRequests = async () => {
+    const fetchMaintenanceRequests = useCallback(async () => {
         setLoading(true);
         try {
             const response = await getMaintenances({
@@ -96,7 +84,7 @@ const MaintenancePage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, pageSize]);
 
 
 
@@ -283,24 +271,23 @@ const MaintenancePage = () => {
         }
     };
 
-    // Define fetchMaintenanceRequests within the useEffect to avoid dependency issues
     useEffect(() => {
-        // Reset to page 1 when filters change
         setCurrentPage(1);
-    }, [searchText, statusFilter, typeFilter]);
+    }, [statusFilter]);
 
-    // Fetch data whenever page, pageSize, or filter changes
     useEffect(() => {
         fetchMaintenanceRequests();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, pageSize, searchText, statusFilter, typeFilter]);
+    }, [currentPage, pageSize, fetchMaintenanceRequests]);
+
+    if (loading) {
+        return (<TableSkeleton title='Maintenance' />)
+    }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section */}
             <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <Wrench className="h-6 w-6 text-hms-primary" />
+                <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold text-gray-900">Maintenance</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                         {pagination ? pagination.totalItems : filteredRequests.length} Request{(pagination ? pagination.totalItems : filteredRequests.length) !== 1 ? 's' : ''}
@@ -308,21 +295,11 @@ const MaintenancePage = () => {
                 </div>
 
                 {/* Search and Filters */}
-                <div className="flex items-center gap-4 flex-wrap">
-                    <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3 min-w-80">
-                        <Input
-                            type="text"
-                            placeholder="Search by room, description, or assignee..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
-                        />
-                        <Search className="h-4 w-4 text-gray-400" />
-                    </div>
+                <div className="flex gap-2 justify-end text-end">
 
                     {/* Status Filter - Updated for new status values */}
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-40">
+                        <SelectTrigger className="w-40 border-hms-primary text-hms-primary font-semibold">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -334,22 +311,8 @@ const MaintenancePage = () => {
                         </SelectContent>
                     </Select>
 
-                    {/* Type Filter */}
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All Types</SelectItem>
-                            <SelectItem value="ROUTINE">Routine</SelectItem>
-                            <SelectItem value="REPAIR">Repair</SelectItem>
-                            <SelectItem value="URGENT">Urgent</SelectItem>
-                            <SelectItem value="CLEANING">Cleaning</SelectItem>
-                        </SelectContent>
-                    </Select>
-
                     {/* Action Button */}
-                    <div className="flex gap-2 ml-auto">
+                    <div className="">
                         <Button onClick={() => {
                             setIsEditMode(false);
                             setEditingMaintenance(null);
@@ -363,18 +326,18 @@ const MaintenancePage = () => {
             </div>
 
             {/* Table Section */}
-            <div className="bg-white rounded-lg shadow">
-                <Table>
-                    <TableHeader>
+            <div className="bg-white rounded-lg shadow ">
+                <Table >
+                    <TableHeader className="bg-hms-accent/15">
                         <TableRow className="border-b border-gray-200">
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">
                                 Type
                             </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Room</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Description</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Priority</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Status</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">Assigned To</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Room</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Description</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Priority</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Status</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Assigned To</TableHead>
                             <TableHead className="w-[100px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -409,15 +372,13 @@ const MaintenancePage = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <Badge className={`${getPriorityBadge(request.priority)} border-0`}>
-                                            {request.priority.toLowerCase()}
+                                            {request.priority.charAt(0).toUpperCase() + request.priority.slice(1).toLowerCase()}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${getStatusDotColor(request.status)}`}></div>
-                                            <Badge className={`${getStatusBadge(request.status)} border-0`}>
-                                                {request.status.replace('_', ' ').toLowerCase()}
-                                            </Badge>
+                                        <div className={`flex items-center gap-2 rounded-lg ${getStatusDotColor(request.status)}`}>
+                                            <div className={`w-2 h-2 rounded-full`}></div>
+                                            {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.slice(1).toLowerCase()}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">

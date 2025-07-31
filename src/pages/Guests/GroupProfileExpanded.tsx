@@ -1,67 +1,91 @@
 import { Button } from "@/components/atoms/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
-import { getGroupProfileById } from "@/services/Guests";
-import { GroupProfileResponse } from "@/validation";
+import { ScrollArea } from "@/components/atoms/ScrollArea";
+import { Skeleton } from "@/components/atoms/Skeleton";
+import { GuestSelectionDialog } from "@/components/dialogs/AddGuestDialog";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/Organisms/Card";
+import EditingSkeleton from "@/components/Templates/EditingSkeleton";
+import { getGroupProfileById, getGuests, linkGuestsToGroup } from "@/services/Guests";
+import { GetGuestsResponse, GroupProfileResponse } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { ChevronLeft, Mail, Phone, User } from "lucide-react";
+import { ChevronLeft, Mail, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 const GroupProfileExpanded = () => {
     const { id } = useParams<{ id: string }>();
-    const location = useLocation();
     const navigate = useNavigate();
+
     const [group, setGroup] = useState<GroupProfileResponse['data'] | null>(null);
+    const [linkedGuestsToGroup, setLinkedGuestsToGroup] = useState<GetGuestsResponse['data']>([]);
+    const [allGuests, setAllGuests] = useState<GetGuestsResponse['data']>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [dialogOpen, setDialogOpen] = useState(false);
+
     const getBusinessTypeDisplay = (businessType: string) => {
-        const businessTypeMap = {
+        const map = {
             "CORPORATE": "Corporate",
             "TRAVEL_AGENCY": "Travel Agency",
             "EVENT_PLANNER": "Event Planner",
             "GOVERNMENT": "Government",
-            "OTHER": "Other"
+            "OTHER": "Other",
         };
-        return businessTypeMap[businessType as keyof typeof businessTypeMap] || businessType;
+        return map[businessType as keyof typeof map] || businessType;
+    };
+
+
+    const fetchData = async () => {
+        if (!id) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const [groupRes, allGuestsRes] = await Promise.all([
+                getGroupProfileById(id),
+                getGuests(),
+            ]);
+            setGroup(groupRes.data);
+            setLinkedGuestsToGroup(groupRes.data.LinkedGuests || []);
+            setAllGuests(allGuestsRes.data);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.userMessage || "Failed to load group profile");
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        const fetchGuestData = async () => {
-            if (!id) return;
+        fetchData();
+    }, [id]);
 
-            setLoading(true);
-            setError(null);
+    const handleGuestSelect = async (selectedGuests: GetGuestsResponse['data']) => {
+        if (!id) return;
 
-            try {
-                const guestResponse = await getGroupProfileById(id);
-                setGroup(guestResponse.data);
+        // Filter out any duplicates (optional but good)
+        const existingIds = linkedGuestsToGroup.map(g => g.id);
+        const newGuests = selectedGuests.filter(g => !existingIds.includes(g.id));
 
-            } catch (error: any) {
-                console.error('Error fetching guest data:', error);
-                setError(error.userMessage || 'Failed to load guest data');
-            } finally {
-                setLoading(false);
-            }
-        };
+        // Combine old + new for the request:
+        const updatedGuests = [...linkedGuestsToGroup, ...newGuests];
 
-        fetchGuestData();
-    }, [id, location.state]);
+        try {
+            await linkGuestsToGroup(updatedGuests.map(g => g.id), id);
+            toast("Linked guests updated");
+            fetchData(); // Refresh whole state from server
+        } catch (err) {
+            console.error(err);
+            toast("Failed to save linked guests");
+        } finally {
+            setDialogOpen(false);
+        }
+    };
+
 
     if (loading && !group) {
         return (
-            <div className="p-6 bg-gray-50 min-h-screen">
-                <div className="flex items-center gap-4 mb-6">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(-1)}
-                        className="p-1"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
-                </div>
-            </div>
+            <EditingSkeleton />
         );
     }
 
@@ -77,7 +101,7 @@ const GroupProfileExpanded = () => {
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-2xl font-semibold text-gray-900">
-                        {error || 'Guest Not Found'}
+                        {error || "Group not found"}
                     </h1>
                 </div>
             </div>
@@ -94,36 +118,31 @@ const GroupProfileExpanded = () => {
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-xl font-bold">
-                    Group Profile
-                </h1>
+                <h1 className="text-xl font-bold">Group Profile</h1>
             </div>
 
             <div className="grid grid-cols-3 gap-7">
                 <div className="space-y-3">
-                    <Card className="text-center gap-2">
-                        <CardHeader className="">
-                            <CardTitle className="text-xl font-bold">
-                                {group.name}
-                            </CardTitle>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{group.name}</CardTitle>
                         </CardHeader>
-                        <CardContent className="">
-                            <span className="font-semibold">Profile Type: </span>
+                        <CardContent>
+                            <span className="font-semibold">Profile Type:</span>{" "}
                             {getBusinessTypeDisplay(group.businessType)}
                         </CardContent>
                     </Card>
-                    <Card className='p-3 gap-2'>
-                        <CardHeader className='p-0'>
-                            <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+
+                    <Card className="p-3">
+                        <CardHeader className="p-0">
+                            <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
                                 Corporate Information
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 space-y-2">
                             <span className="flex justify-between">
                                 <p className="font-semibold">Business Type</p>
-                                <p>
-                                    {getBusinessTypeDisplay(group.businessType)}
-                                </p>
+                                <p>{getBusinessTypeDisplay(group.businessType)}</p>
                             </span>
                             <span className="flex justify-between">
                                 <p className="font-semibold">Business Address</p>
@@ -133,41 +152,39 @@ const GroupProfileExpanded = () => {
                             </span>
                         </CardContent>
                     </Card>
-                    <Card className='p-3 gap-2'>
-                        <CardHeader className='p-0'>
-                            <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+
+                    <Card className="p-3">
+                        <CardHeader className="p-0">
+                            <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
                                 Contact Person
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 space-y-2">
                             <span className="flex justify-between">
                                 <p className="font-semibold">Name</p>
-                                <p>
-                                    {group.primaryContact.name}
-                                </p>
+                                <p>{group.primaryContact.name}</p>
                             </span>
                             <span className="flex justify-between">
                                 <p className="font-semibold">Email Address</p>
-                                <p>
-                                    {group.primaryContact.email}
-                                </p>
+                                <p>{group.primaryContact.email}</p>
                             </span>
                             <span className="flex justify-between">
                                 <p className="font-semibold">Phone Number</p>
-                                <p>
-                                    {group.primaryContact.phone}
-                                </p>
+                                <p>{group.primaryContact.phone}</p>
                             </span>
                         </CardContent>
                     </Card>
-                    <Card className='p-3 gap-2'>
-                        <CardHeader className='p-0'>
-                            <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+
+                    <Card className="p-3">
+                        <CardHeader className="p-0">
+                            <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
                                 Special Requests
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 space-y-2">
-                            {group.specialRequirements ? group.specialRequirements : (
+                            {group.specialRequirements ? (
+                                group.specialRequirements
+                            ) : (
                                 <div className="text-center text-muted-foreground">
                                     No special requests
                                 </div>
@@ -175,31 +192,41 @@ const GroupProfileExpanded = () => {
                         </CardContent>
                     </Card>
                 </div>
-                <Card className='p-3 gap-2'>
-                    <CardHeader className='p-0'>
-                        <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
-                            Linked Guests
-                        </CardTitle>
+
+                <Card>
+                    <CardHeader className="flex justify-between items-center">
+                        <CardTitle>Linked Guests</CardTitle>
+                        <Button onClick={() => setDialogOpen(true)} className="h-7" disabled={loading}>
+                            + Add Guests
+                        </Button>
                     </CardHeader>
-                    <CardContent className="p-0 space-y-2">
-                        {group.LinkedGuests && group.LinkedGuests.length > 0 ? (
-                            <div className="space-y-3">
-                                {group.LinkedGuests.map((guest) => (
-                                    <div
-                                        key={guest.id}
-                                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                                        onClick={() => navigate(`/guests-profile/${guest.id}/view`)}
-                                    >
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage />
-                                            <AvatarFallback className="bg-hms-primary/10">
-                                                {guest.firstName.charAt(0)}{guest.lastName.charAt(0)}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <p className="font-medium text-gray-900">
-                                                {guest.firstName} {guest.lastName}
-                                            </p>
+
+                    <ScrollArea className="h-[30rem] px-2">
+                        {loading ? (
+                            <div className=" space-y-3">
+                                <Skeleton className="w-full h-20" />
+                                <Skeleton className="w-full h-20" />
+                                <Skeleton className="w-full h-20" />
+                                <Skeleton className="w-full h-20" />
+                                <Skeleton className="w-full h-20" />
+                            </div>
+                        ) :
+                            linkedGuestsToGroup.map((guest) => (
+                                <div
+                                    key={guest.id}
+                                    className="grid-cols-5 grid items-center gap-3 p-3 bg-hms-accent/10 mb-2 rounded-lg hover:bg-hms-accent/30 transition-colors cursor-pointer"
+                                    onClick={() => navigate(`/guests-profile/${guest.id}/view`)}
+                                >
+                                    <Avatar className="h-10 w-10 bg-hms-accent-35 rounded-full flex justify-center items-center">
+                                        <AvatarImage />
+                                        <AvatarFallback>
+                                            {guest.firstName.charAt(0).toUpperCase()}
+                                            {guest.lastName.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex justify-between col-span-3">
+                                        <p className="font-medium text-gray-900">
+                                            {guest.firstName} {guest.lastName}
                                             {guest.email && (
                                                 <div className="flex items-center gap-1 text-sm text-gray-500">
                                                     <Mail className="h-3 w-3" />
@@ -212,35 +239,36 @@ const GroupProfileExpanded = () => {
                                                     {guest.phoneNumber}
                                                 </div>
                                             )}
-                                        </div>
-                                        <Button variant="ghost" size="sm">
-                                            <User className="h-4 w-4" />
-                                        </Button>
+                                        </p>
+
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center text-muted-foreground py-8">
-                                <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                                <p className="text-lg font-medium">No linked guests</p>
-                                <p className="text-sm">This group profile has no linked individual guests yet.</p>
-                            </div>
-                        )}
-                    </CardContent>
+
+                                </div>
+                            ))}
+                    </ScrollArea>
+
                 </Card>
-                <Card className='p-3 gap-2'>
-                    <CardHeader className='p-0'>
-                        <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+
+                <Card className="p-3">
+                    <CardHeader className="p-0">
+                        <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
                             Reservation History / Upcoming Stays
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
-
+                        {/* Reservation content goes here */}
                     </CardContent>
                 </Card>
             </div>
-        </div>
-    )
-}
 
-export default GroupProfileExpanded
+            <GuestSelectionDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                onGuestSelect={handleGuestSelect}
+                guestsData={allGuests}
+            />
+        </div >
+    );
+};
+
+export default GroupProfileExpanded;

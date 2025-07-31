@@ -4,8 +4,10 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
 import { Search, Plus, Check } from 'lucide-react';
-import { Guest } from '@/validation';
+import { GetGuestsResponse, Guest } from '@/validation';
 import { ScrollArea } from '../atoms/ScrollArea';
+import { useDebounce } from '@/hooks/useDebounce';
+import { getGuests, searchGuests } from '@/services/Guests';
 
 interface GuestSelectionDialogProps {
     open: boolean;
@@ -20,31 +22,29 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
     onOpenChange,
     onGuestSelect,
     onNewGuestProfile,
-    guestsData,
 }) => {
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [filteredGuests, setFilteredGuests] = useState<Guest[]>([]);
     const [selectedGuests, setSelectedGuests] = useState<Guest[]>([]);
+    const [guestSearch, setGuestSearch] = useState("");
+    const [guestSearchLoading, setGuestSearchLoading] = useState(false);
+    const debouncedGuestSearch = useDebounce(guestSearch, 400);
+    const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
 
-    // Filter guests based on search term
     useEffect(() => {
-        if (searchTerm.trim() === '') {
-            setFilteredGuests(guestsData);
-        } else {
-            const filtered = guestsData.filter(guest =>
-                guest.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                guest.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setFilteredGuests(filtered);
-        }
-    }, [searchTerm, guestsData]);
-
-    // Initialize filtered guests when dialog opens
-    useEffect(() => {
-        if (open) {
-            setFilteredGuests(guestsData);
-        }
-    }, [open, guestsData]);
+        const fetchGuests = async (searchTerm: string) => {
+            setGuestSearchLoading(true);
+            try {
+                const guests = searchTerm
+                    ? (await searchGuests({ q: searchTerm }) as GetGuestsResponse)
+                    : await getGuests();
+                setGuests(guests.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setGuestSearchLoading(false);
+            }
+        };
+        fetchGuests(debouncedGuestSearch);
+    }, [debouncedGuestSearch]);
 
     const handleGuestToggle = (guest: Guest): void => {
         setSelectedGuests(prev => {
@@ -60,7 +60,6 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
     const handleDone = (): void => {
         onGuestSelect?.(selectedGuests);
         setSelectedGuests([]);
-        setSearchTerm('');
         onOpenChange(false);
     };
 
@@ -81,42 +80,26 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
                         <div className="relative mt-3 border border- rounded-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
-                                placeholder="Search by first name or last name..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                type="text"
                                 className="pl-10 bg-white"
+                                placeholder="Search guests..."
+                                value={guestSearch}
+                                onChange={e => setGuestSearch(e.target.value)}
                             />
                         </div>
 
-                        {/* Selected Guests (when searching) */}
-                        {searchTerm && selectedGuests.length > 0 && (
-                            <div className="space-y-2 ">
-                                {selectedGuests.map((guest) => (
-                                    <div key={guest.id} className="flex items-center justify-between p-3  rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback className="text-sm">
-                                                    {getInitials(guest.firstName, guest.lastName)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium text-sm">{guest.firstName} {guest.lastName}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}``
-                            </div>
-                        )}
-
-                        {/* Guest List */}
                         <ScrollArea className='h-[200px]'>
                             <div className="overflow-y-auto space-y-2">
-                                {filteredGuests.length === 0 ? (
-                                    <div className="flex justify-center rounded-lg py-8 text-gray-500 bg-white h-[200px] items-center"> 
-                                        {searchTerm ? 'No guest found' : 'No guests available'}
+                                {guestSearchLoading ? (
+                                    <div className="flex justify-center rounded-lg py-8 text-gray-500 bg-white h-[200px] items-center">
+                                        Loading...
+                                    </div>
+                                ) : guests.length === 0 ? (
+                                    <div className="flex justify-center rounded-lg py-8 text-gray-500 bg-white h-[200px] items-center">
+                                        No guests found.
                                     </div>
                                 ) : (
-                                    filteredGuests.map((guest) => {
+                                    guests.map((guest) => {
                                         const isSelected = selectedGuests.some(g => g.id === guest.id);
                                         return (
                                             <div key={guest.id} className="flex items-center justify-between p-3 bg-white rounded-lg">

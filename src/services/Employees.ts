@@ -60,3 +60,21 @@ export const addTeamMember = async (data: AddEmployeeRequest): Promise<AddTeamMe
     };
   }
 }
+
+export const searchEmployees = async (params: { q: string }): Promise<GetEmployeesResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Employees.Search,
+      baseURL,
+      params,
+    });
+    return response as GetEmployeesResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to search employees";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};

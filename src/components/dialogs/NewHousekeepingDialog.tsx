@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, User, Home, CheckCircle2 } from 'lucide-react';
+import { User, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
-import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
@@ -183,14 +182,6 @@ const NewHousekeepingDialog = ({
                         <CheckCircle2 className="h-5 w-5 text-blue-600" />
                         {isEditMode ? 'Edit Housekeeping Task' : 'New Housekeeping Task'}
                     </DialogTitle>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-4 top-4"
-                        onClick={handleClose}
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
                 </DialogHeader>
 
                 {loadingData ? (

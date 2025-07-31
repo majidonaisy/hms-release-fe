@@ -28,7 +28,7 @@ export interface GuestSearchParams {
   limit?: number;
 }
 
-export const searchGuests = async (params: GuestSearchParams) => {
+export const searchGuests = async (params: GuestSearchParams): Promise<GetGuestsResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
@@ -36,7 +36,7 @@ export const searchGuests = async (params: GuestSearchParams) => {
       baseURL,
       params,
     });
-    return response;
+    return response as GetGuestsResponse;
   } catch (error: any) {
     throw {
       userMessage: error.response?.data?.message || "Failed to search guests",
@@ -52,7 +52,7 @@ export interface GroupProfileSearchParams {
   limit?: number;
 }
 
-export const searchGroupProfiles = async (params: GroupProfileSearchParams) => {
+export const searchGroupProfiles = async (params: GroupProfileSearchParams): Promise<GetGroupProfilesResponse> => {
   try {
     const response = await apiClient({
       method: "GET",
@@ -60,7 +60,7 @@ export const searchGroupProfiles = async (params: GroupProfileSearchParams) => {
       baseURL,
       params,
     });
-    return response;
+    return response as GetGroupProfilesResponse;
   } catch (error: any) {
     throw {
       userMessage: error.response?.data?.message || "Failed to search group profiles",
