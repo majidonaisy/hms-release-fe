@@ -9,7 +9,7 @@ import { updateReservation } from "@/services/Reservation"
 import { getRatePlans } from "@/services/RatePlans"
 import { getRooms } from "@/services/Rooms"
 import { Popover, PopoverContent, PopoverTrigger } from "../molecules/Popover"
-import { Calendar as CalendarIcon } from 'lucide-react'
+import { ArrowLeft, Calendar as CalendarIcon } from 'lucide-react'
 import { Calendar } from "../molecules/Calendar"
 import { toast } from "sonner"
 import { Label } from "../atoms/Label"
@@ -22,6 +22,7 @@ interface EditReservationDialogProps {
     reservationData?: UIReservation | null;
     onSave?: (updatedReservation: UIReservation) => void;
     onRefresh?: () => void;
+    onBackToChooseOptions: () => void;
 }
 
 const EditReservationDialog = ({
@@ -29,7 +30,8 @@ const EditReservationDialog = ({
     setOpen,
     reservationData,
     onSave,
-    onRefresh
+    onRefresh,
+    onBackToChooseOptions
 }: EditReservationDialogProps) => {
     const [formData, setFormData] = useState({
         checkIn: new Date(),
@@ -165,7 +167,18 @@ const EditReservationDialog = ({
                 return (
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogContent className="max-w-2xl">
-                        <DialogHeader>
+                        <DialogHeader className="flex flex-row items-center">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                    setOpen(false)
+                                    onBackToChooseOptions?.()
+                                }}
+                                aria-label="Back to choose options"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
                             <DialogTitle>Edit Reservation</DialogTitle>
                         </DialogHeader>
 

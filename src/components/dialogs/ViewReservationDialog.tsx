@@ -4,17 +4,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/components/atoms/Badge"
 import { Separator } from "@/components/atoms/Separator"
 import { format } from "date-fns"
-import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, X } from "lucide-react"
+import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, ArrowLeft } from "lucide-react"
 import { GetReservationById } from "@/validation"
 import { getReservationById } from "@/services/Reservation"
+import { Button } from "../atoms/Button"
 
 interface ViewReservationDialogProps {
     open: boolean
     setOpen: (open: boolean) => void
     reservationId: string
+    onBackToChooseOptions: () => void
 }
 
-const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, setOpen, reservationId }) => {
+const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, setOpen, reservationId, onBackToChooseOptions }) => {
     const [reservation, setReservation] = useState<GetReservationById['data'] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -71,11 +73,22 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
             <DialogContent className=" flex flex-col !max-w-2xl">
                 <DialogHeader className="flex-shrink-0 pb-4">
                     <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex flex-row">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                    setOpen(false)
+                                    onBackToChooseOptions?.()
+                                }}
+                                aria-label="Back to choose options"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
                             <DialogTitle className="text-2xl font-semibold">Reservation</DialogTitle>
-                            <DialogDescription className="text-sm text-muted-foreground mt-1">#{reservationId}</DialogDescription>
                         </div>
-                        
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">#{reservationId}</DialogDescription>
+
                     </div>
                 </DialogHeader>
 
