@@ -1,33 +1,21 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice";
 import currencyReducer from "./slices/currencySlice";
-// Persist configuration for auth slice
-const authPersistConfig = {
-  key: "auth",
-  storage,
-  whitelist: ["accessToken", "refreshToken","isAuthenticated", "permissions"], // Specify which parts of the state to persist
-};
-
-const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
 export const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,
-    currency: currencyReducer, // Importing currency slice
+    auth: authReducer, // Use the original reducer
+    currency: currencyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ["persist/FLUSH", "persist/REHYDRATE", "persist/PAUSE", "persist/PERSIST", "persist/PURGE", "persist/REGISTER"],
+        ignoredActions: [],
       },
     }),
 });
-export const persistor = persistStore(store);
 
-// Enable listener behavior for the store
 setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
