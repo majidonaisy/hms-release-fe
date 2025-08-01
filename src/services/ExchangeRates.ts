@@ -1,5 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
+import { GetCurrenciesResponse } from "@/validation/schemas/Currency";
 import { ExchangeRateRequest, ExchangeRateResponse, GetExchangeRateByIdResponse, GetExchangeRateResponse } from "@/validation/schemas/ExchangeRates";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
@@ -73,6 +74,23 @@ export const updateExchangeRate = async (id: string, data: ExchangeRateRequest):
         return response as ExchangeRateResponse;
     } catch (error: any) {
         const errorMessage = error.response?.data?.message || "Failed to update exchange rate";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
+};
+
+export const getExchangeRateCurrencies = async () => {
+    try {
+        const response = await apiClient({
+            method: "GET",
+            endpoint: ENDPOINTS.Currency.GetExchangeRateCurrencies,
+            baseURL,
+        });
+        return response as GetCurrenciesResponse;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Login failed";
         throw {
             userMessage: errorMessage,
             originalError: error,

@@ -11,10 +11,10 @@ import { Checkbox } from '../atoms/Checkbox';
 import { Input } from '../atoms/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { settleLateCheckoutFee, getLateCheckoutFee } from '@/services/Charges';
-import { getAllCurrencies } from '@/services/Currency';
 import { Currency } from '@/validation/schemas/Currency';
 import { store } from '@/redux/store';
 import { toast } from 'sonner';
+import { getExchangeRateCurrencies } from '@/services/ExchangeRates';
 
 interface CheckInCheckoutDialogProps {
     open: boolean;
@@ -69,7 +69,7 @@ const CheckOutDialog = ({
     // Fetch currencies data
     const fetchCurrencies = useCallback(async () => {
         try {
-            const response = await getAllCurrencies();
+            const response = await getExchangeRateCurrencies();
             const currenciesData = response.data || [];
             setCurrencies(currenciesData);
         } catch (error: any) {

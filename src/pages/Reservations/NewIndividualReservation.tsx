@@ -473,12 +473,16 @@ export default function NewIndividualReservation() {
                                             <SelectItem value="no-rooms" disabled>
                                                 No rooms available for selected dates
                                             </SelectItem>
-                                        ) : (
+                                        ) : roomsToShow.length > 0 ? (
                                             roomsToShow.map(room => (
                                                 <SelectItem key={room.id} value={room.id}>
                                                     {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
                                                 </SelectItem>
                                             ))
+                                        ) : (
+                                            <SelectItem value="no-rooms" disabled>
+                                                There are no rooms for the selected room type
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>

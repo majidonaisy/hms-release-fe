@@ -185,8 +185,7 @@ const TeamMembers = () => {
             onRowClick={handleRowClick}
             getRowKey={(member) => member.id}
             filter={{
-                searchPlaceholder: "Search rooms...",
-                searchFields: ['roomNumber', 'status', 'roomType.name'],
+                searchPlaceholder: "Search team members...",
                 showFilter: true,
                 statusFilter: {
                     enabled: true,
