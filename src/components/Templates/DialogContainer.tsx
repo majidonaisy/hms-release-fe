@@ -57,7 +57,8 @@ const DialogContainer: React.FC = () => {
             isOpen={isOpen}
             onConfirm={(dialogProps as any).onConfirm}
             onCancel={closeDialog}
-            />
+            editingExchangeRate={(dialogProps as any).editingExchangeRate}
+          />
         );
 
       case 'delete':

@@ -4,7 +4,7 @@ export const ExchangeRateShape = z.object({
     id: z.string(),
     baseCurrency: z.string(),
     targetCurrency: z.string(),
-    rate: z.string(),
+    rate: z.number(),
     createdAt: z.date(),
     updatedAt: z.date(),
     hotelId: z.string(),

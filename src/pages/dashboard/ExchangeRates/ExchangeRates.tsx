@@ -46,7 +46,7 @@ const ExchangeRates = () => {
 
     const handleUpdateExchangeRate = (exchangeRate: ExchangeRate) => {
         openDialog('exchangeRate', {
-            editData: exchangeRate,
+            editingExchangeRate: exchangeRate,
             onConfirm: async (data: ExchangeRateRequest) => {
                 try {
                     await updateExchangeRate(exchangeRate.id, data);
