@@ -8,7 +8,7 @@ import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { getHotelSettings, updateHotelSettings } from '@/services/Hotel';
-import { getAllCurrencies } from '@/services/Currency';
+import { getAddChargeCurrencies } from '@/services/Currency';
 import { HotelSettings, UpdateHotelSettingsRequest, LateFeeType } from '@/validation/schemas/Hotel';
 import { Currency } from '@/validation/schemas/Currency';
 
@@ -48,7 +48,7 @@ const HotelSettingsPage: React.FC = () => {
                 setIsLoading(true);
                 const [settingsResponse, currenciesResponse] = await Promise.all([
                     getHotelSettings(),
-                    getAllCurrencies()
+                    getAddChargeCurrencies()
                 ]);
                 console.log('settingsResponse', settingsResponse)
                 setSettings(settingsResponse.data);

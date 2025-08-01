@@ -5,10 +5,9 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { toast } from 'sonner';
 import { ExchangeRate, ExchangeRateRequest, ExchangeRateRequestSchema } from '@/validation/schemas/ExchangeRates';
-import { getAllCurrencies } from '@/services/Currency';
 import { Currency } from '@/validation/schemas/Currency';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select } from '../molecules/Select';
-import { updateExchangeRate } from '@/services/ExchangeRates';
+import { getExchangeRateCurrencies, updateExchangeRate } from '@/services/ExchangeRates';
 import { Skeleton } from '../atoms/Skeleton';
 
 interface NewExchangeRateDialogProps {
@@ -37,7 +36,7 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
     const fetchCurrencies = async () => {
         try {
             setIsLoading(true);
-            const response = await getAllCurrencies();
+            const response = await getExchangeRateCurrencies();
             const currenciesData = response.data || [];
             setCurrencies(currenciesData);
         } catch (error: any) {
