@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from "electron";
+import { app, ipcMain, BrowserWindow, screen } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -11,6 +11,7 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
+let isQuitting = false;
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
@@ -38,15 +39,41 @@ function createWindow() {
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
+  win.on("close", (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      win == null ? void 0 : win.webContents.send("app-closing");
+      isQuitting = true;
+      setTimeout(() => {
+        app.quit();
+      }, 3e3);
+    }
+  });
 }
+app.on("before-quit", (event) => {
+  if (win && !win.isDestroyed() && !isQuitting) {
+    event.preventDefault();
+    isQuitting = true;
+    win.webContents.send("app-closing");
+    setTimeout(() => {
+      app.quit();
+    }, 2e3);
+  }
+});
+ipcMain.on("logout-complete", () => {
+  console.log("Logout complete, quitting app...");
+  app.quit();
+});
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
+    isQuitting = true;
     app.quit();
     win = null;
   }
 });
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
+    isQuitting = false;
     createWindow();
   }
 });

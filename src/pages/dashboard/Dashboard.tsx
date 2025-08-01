@@ -12,6 +12,8 @@ import { GetRoomTypesResponse, AddRoomTypeRequest } from '@/validation/schemas/R
 import { AmenityResponse } from '@/validation/schemas/amenity';
 import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
 import { AddRoleRequest, RoleResponse } from '@/validation/schemas/Roles';
+import { ExchangeRateRequest, GetExchangeRateResponse } from '@/validation/schemas/ExchangeRates';
+import { addExchangeRate, getExchangeRates } from '@/services/ExchangeRates';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ const Dashboard = () => {
     const [amenities, setAmenities] = useState<AmenityResponse>({ status: 0, data: [] });
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse>({ status: 0, data: [] });
     const [roles, setRoles] = useState<RoleResponse>({ status: 0, data: [] });
+    const [exchangeRates, setExchangeRates] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
     const [loading, setLoading] = useState<boolean>(true);
 
     const fetchRoomTypes = async () => {
@@ -60,6 +63,22 @@ const Dashboard = () => {
             const response = await getRoles();
             if (response && response.status === 200) {
                 setRoles(response);
+            } else {
+                throw new Error("Invalid response format");
+            }
+        } catch (error: any) {
+            console.error("Error fetching roles:", error);
+            toast.error(error.userMessage || "Failed to fetch roles");
+            // Set an empty data array to prevent undefined errors
+            setRoles({ status: 0, data: [] });
+        }
+    }
+
+    const fetchExchangeRates = async () => {
+        try {
+            const response = await getExchangeRates();
+            if (response && response.status === 200) {
+                setExchangeRates(response);
             } else {
                 throw new Error("Invalid response format");
             }
@@ -146,6 +165,21 @@ const Dashboard = () => {
         });
     };
 
+    const handleExchangeRatesDialog = () => {
+        openDialog('exchangeRate', {
+            onConfirm: async (data: ExchangeRateRequest) => {
+                try {
+                    await addExchangeRate(data);
+                    await fetchExchangeRates();
+                    return true;
+                } catch (error: any) {
+                    toast.error(error.userMessage || 'Error creating exchange rate');
+                    throw error;
+                }
+            }
+        });
+    };
+
     useEffect(() => {
         setLoading(true);
 
@@ -153,7 +187,8 @@ const Dashboard = () => {
             fetchRoomTypes().catch(err => console.error('Room types fetch error:', err)),
             fetchAmenities().catch(err => console.error('Amenities fetch error:', err)),
             fetchRoles().catch(err => console.error('Roles fetch error:', err)),
-            fetchRatePlans().catch(err => console.error('Rate plans fetch error:', err))
+            fetchRatePlans().catch(err => console.error('Rate plans fetch error:', err)),
+            fetchExchangeRates().catch(err => console.error('Exchange Rate fetch error:', err))
         ])
             .finally(() => {
                 setLoading(false);
@@ -219,6 +254,18 @@ const Dashboard = () => {
                     onViewClick={() => navigate('/roles-permissions')}
                     createButtonText="New role"
                     viewButtonText="View roles"
+                />
+
+                <DashboardCard
+                    title="Exchange Rates"
+                    description="Define staff roles and their system permissions."
+                    totalItems={exchangeRates.data?.length || 0}
+                    imageSrc="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070"
+                    imageAlt="Exchange Rates"
+                    onCreateClick={handleExchangeRatesDialog}
+                    onViewClick={() => navigate('/exchangeRates')}
+                    createButtonText="New Exchange Rate"
+                    viewButtonText="View Exchange Rates"
                 />
 
                 <HotelSettingsCard

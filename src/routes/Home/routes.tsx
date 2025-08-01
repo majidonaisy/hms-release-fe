@@ -12,6 +12,7 @@ import MaintenancePage from "@/pages/Maintenance/Maintenance";
 import NewGroupReservation from "@/pages/Reservations/NewGroupReservation";
 import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
 import HotelSettingsPage from "@/pages/management/HotelSettings";
+import ExchangeRates from "@/pages/dashboard/ExchangeRates/ExchangeRates";
 
 const RoutesList = () => {
 
@@ -288,6 +289,18 @@ const RoutesList = () => {
                     requiredPermissions: {
                         action: "manage",
                         subject: "HotelSettings"
+                    }
+                },
+                {
+                    path: '/exchangeRates',
+                    title: "Exchange Rates",
+                    icon: <Settings className=" " />,
+                    component: ExchangeRates,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "manage",
+                        subject: "ExchangeRates"
                     }
                 },
             ]

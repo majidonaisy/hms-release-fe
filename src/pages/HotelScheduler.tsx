@@ -368,6 +368,18 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     }
   }
 
+  const handleBackToChooseOptions = () => {
+    setAddChargeDialog(false)
+    setCheckInCheckOutDialog(false)
+    setCheckOutDialog(false)
+    setAddChargesDialog(false)
+    setEditReservationDialog(false)
+    setViewPaymentsDialog(false)
+    setViewReservationDialog(false)
+    setCancelReservationDialog(false)
+    setChooseOptionDialog(true)
+  }
+
   return (
     <TooltipProvider>
       <div className="px-4">
@@ -579,24 +591,27 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </ScrollArea>
         </div>
       </div>
-      <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} />
-      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckOutComplete={refreshReservations} />
+      <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
+      <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckOutComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
       <EditReservationDialog
         open={editReservationDialog}
         setOpen={setEditReservationDialog}
         reservationData={dialogReservation}
         onSave={handleReservationUpdate}
         onRefresh={refreshReservations}
+        onBackToChooseOptions={handleBackToChooseOptions}
       />
       <AddChargesDialog
         open={addChargesDialog}
         setOpen={setAddChargesDialog}
         reservationId={dialogReservation?.id}
+        onBackToChooseOptions={handleBackToChooseOptions}
       />
       <AddChargeDialog
         open={addChargeDialog}
         setOpen={setAddChargeDialog}
         reservationId={dialogReservation?.id || ''}
+        onBackToChooseOptions={handleBackToChooseOptions}
       />
       <ViewPaymentsDialog
         open={viewPaymentsDialog}
@@ -605,8 +620,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         guestName={dialogReservation?.guestName || ''}
         roomNumber={dialogReservation?.roomNumber || ''}
         bookingId={dialogReservation?.bookingId || ''}
+        onBackToChooseOptions={handleBackToChooseOptions}
       />
-      <ViewReservationDialog open={viewReservationDialog} setOpen={setViewReservationDialog} reservationId={dialogReservation?.id || ''} />
+      <ViewReservationDialog open={viewReservationDialog} setOpen={setViewReservationDialog} reservationId={dialogReservation?.id || ''} onBackToChooseOptions={handleBackToChooseOptions} />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}

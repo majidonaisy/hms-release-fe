@@ -5,6 +5,7 @@ import NewAmenityDialog from '../dialogs/NewAmenityDialog';
 import NewRoleDialog from '../dialogs/NewRoleDialog';
 import { useDialog } from '@/context/useDialog';
 import NewRatePlanDialog from '../dialogs/NewRateplanDialog';
+import NewExchangeRateDialog from '../dialogs/NewExchangeRateDialog';
 
 const DialogContainer: React.FC = () => {
   const { isOpen, dialogType, dialogProps, closeDialog } = useDialog();
@@ -50,6 +51,16 @@ const DialogContainer: React.FC = () => {
             editingRole={(dialogProps as any).editingRole}
           />
         );
+      case 'exchangeRate':
+        return (
+          <NewExchangeRateDialog
+            isOpen={isOpen}
+            onConfirm={(dialogProps as any).onConfirm}
+            onCancel={closeDialog}
+            editingExchangeRate={(dialogProps as any).editingExchangeRate}
+          />
+        );
+
       case 'delete':
         return (
           <DeleteDialog

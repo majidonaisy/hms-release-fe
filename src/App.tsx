@@ -3,8 +3,7 @@ import { RoleProvider } from './context/CASLContext';
 import HomeRoutes from './routes/Home/homeRoutes';
 import { PostHogProvider } from 'posthog-js/react'
 import { Provider } from 'react-redux';
-import { store, persistor } from './redux/store';
-import { PersistGate } from 'redux-persist/integration/react';
+import { store } from './redux/store';
 import { Toaster } from './components/molecules/Sonner';
 import { DialogProvider } from './context/DialogContext';
 import DialogContainer from './components/Templates/DialogContainer';
@@ -12,11 +11,15 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setTokens } from '@/redux/slices/authSlice';
+import { useElectronLogout } from './hooks/useLogout';
 
 // Token restoration component
 const TokenRestoration: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  // Use the logout hook
+  useElectronLogout();
 
   useEffect(() => {
     // Only restore tokens if not already authenticated
@@ -45,19 +48,17 @@ function App() {
       }}
     >
       <Provider store={store}>
-        <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
-          <TokenRestoration>
-            <RoleProvider>
-              <DialogProvider>
-                <Router>
-                  <HomeRoutes />
-                  <Toaster />
-                  <DialogContainer />
-                </Router>
-              </DialogProvider>
-            </RoleProvider>
-          </TokenRestoration>
-        </PersistGate>
+        <TokenRestoration>
+          <RoleProvider>
+            <DialogProvider>
+              <Router>
+                <HomeRoutes />
+                <Toaster />
+                <DialogContainer />
+              </Router>
+            </DialogProvider>
+          </RoleProvider>
+        </TokenRestoration>
       </Provider>
     </PostHogProvider>
   );

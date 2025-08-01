@@ -1,5 +1,3 @@
-import { Search } from "lucide-react";
-
 export const ENDPOINTS = {
   Auth: {
     Login: "auth/login",
@@ -125,4 +123,10 @@ export const ENDPOINTS = {
     SettleLateCheckoutFee: "folio-item/settle-late-checkout",
     GetLateCheckoutFee: "folio-item/late-checkout-fee",
   },
+  ExchangeRate: {
+    Get: "exchange/get",
+    GetById: "exchange/get",
+    Add: "exchange/add",
+    Update: "exchange/update"
+  }
 };

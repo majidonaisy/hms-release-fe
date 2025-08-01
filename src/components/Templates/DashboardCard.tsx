@@ -12,7 +12,7 @@ interface DashboardCardProps {
     onCreateClick?: () => void;
     onViewClick?: () => void;
     createButtonText: string;
-    viewButtonText: string;
+    viewButtonText?: string;
 }
 
 export const DashboardCard: React.FC<DashboardCardProps> = ({
