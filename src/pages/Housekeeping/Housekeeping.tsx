@@ -66,10 +66,10 @@ const HousekeepingPage = () => {
     // Status dot color
     const getStatusDotColor = (status: Housekeeping['status']) => {
         const dotColors = {
-            PENDING: 'bg-chart-7/20 rounded-lg',
-            IN_PROGRESS: 'bg-chart-4/20 rounded-lg',
-            COMPLETED: 'bg-chart-1/20 rounded-lg',
-            CANCELED: 'bg-chart-5/20 rounded-lg',
+            PENDING: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+            IN_PROGRESS: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+            COMPLETED: 'bg-green-100 text-green-700 hover:bg-green-100',
+            CANCELED: 'bg-red-100 text-red-700 hover:bg-red-100',
         };
         return dotColors[status];
     };
@@ -401,10 +401,9 @@ const HousekeepingPage = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 w-1/7 text-center">
-                                        <div className={`flex items-center justify-center  ${getStatusDotColor(task.status)}`}>
-                                            <div className={`w-2 h-2 rounded-full `}></div>
+                                        <Badge className={`  ${getStatusDotColor(task.status)}`}>
                                             {task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.slice(1).toLowerCase()}
-                                        </div>
+                                        </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <Badge className={`${getPriorityBadge(task.priority)} border-0`}>
