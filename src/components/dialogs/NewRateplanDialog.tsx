@@ -8,8 +8,6 @@ import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
 import { AddRatePlanSchema, AddRatePlanRequest } from '@/validation/schemas/RatePlan';
-import { Currency } from '@/validation/schemas/Currency';
-import { getAllCurrencies } from '@/services/Currency';
 
 interface RatePlanDialogProps {
   isOpen: boolean;
@@ -32,27 +30,9 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | number>>({});
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
-
-  // Fetch currencies when dialog opens
-  const fetchCurrencies = async () => {
-    try {
-      setLoadingCurrencies(true);
-      const response = await getAllCurrencies();
-      console.log('response', response)
-      setCurrencies(response.data || []);
-    } catch (error: any) {
-      console.error('Error fetching currencies:', error);
-      toast.error('Failed to load currencies');
-    } finally {
-      setLoadingCurrencies(false);
-    }
-  };
 
   useEffect(() => {
     if (isOpen) {
-      fetchCurrencies();
 
       if (editData) {
         setFormData({

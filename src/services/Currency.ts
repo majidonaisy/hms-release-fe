@@ -4,11 +4,11 @@ import { GetCurrenciesResponse } from "@/validation/schemas/Currency";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
-export const getAllCurrencies = async () => {
+export const getAddChargeCurrencies = async () => {
   try {
     const response = await apiClient({
       method: "GET",
-      endpoint: ENDPOINTS.Currency.GetAll,
+      endpoint: ENDPOINTS.Currency.GetAddChargeCurrencies,
       baseURL,
     });
     return response as GetCurrenciesResponse;

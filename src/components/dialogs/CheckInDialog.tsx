@@ -199,61 +199,63 @@ const CheckInDialog = ({
                     </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="deposit" className="text-sm font-semibold">Deposit</Label>
-                        <Input
-                            id="deposit"
-                            type="number"
-                            value={deposit}
-                            onChange={e => setDeposit(e.target.value)}
-                            placeholder="Enter deposit amount"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Identification</Label>
-                        <div
-                            {...getIdentificationRootProps()}
-                            className={`border h-24 p-4 rounded-md cursor-pointer flex items-center justify-center hover:bg-accent/50 transition-colors bg-white`}
-                        >
-                            <input {...getIdentificationInputProps()} />
-                            {uploadingIdentification ? (
-                                <p className="text-center text-gray-500">Uploading file...</p>
-                            ) : (
-                                <p className="text-center text-gray-500">
-                                    {isIdentificationDragActive ? "Drop the file here..." : "Drag & drop a file here, or click to select file"}
-                                </p>
-                            )}
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="deposit" className="text-sm font-semibold">Deposit</Label>
+                            <Input
+                                id="deposit"
+                                type="number"
+                                value={deposit}
+                                onChange={e => setDeposit(e.target.value)}
+                                placeholder="Enter deposit amount"
+                            />
                         </div>
-                        <div className="mt-2">
-                            {identificationFiles.length === 0 && (
-                                <p className="text-sm text-gray-500">No file selected.</p>
-                            )}
-                            {identificationFiles.length > 0 && (
-                                <ul className="flex flex-wrap gap-3">
-                                    {identificationFiles.map((fileObj, index) => (
-                                        <li key={index} className="flex items-center gap-1 p-2 border rounded-md">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-12 h-12 bg-gray-100 flex items-center justify-center rounded">
-                                                    <span className="text-xs">{fileObj.name.split('.').pop()}</span>
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold">Identification</Label>
+                            <div
+                                {...getIdentificationRootProps()}
+                                className={`border h-24 p-4 rounded-md cursor-pointer flex items-center justify-center hover:bg-accent/50 transition-colors bg-white`}
+                            >
+                                <input {...getIdentificationInputProps()} />
+                                {uploadingIdentification ? (
+                                    <p className="text-center text-gray-500">Uploading file...</p>
+                                ) : (
+                                    <p className="text-center text-gray-500">
+                                        {isIdentificationDragActive ? "Drop the file here..." : "Drag & drop a file here, or click to select file"}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="mt-2">
+                                {identificationFiles.length === 0 && (
+                                    <p className="text-sm text-gray-500">No file selected.</p>
+                                )}
+                                {identificationFiles.length > 0 && (
+                                    <ul className="flex flex-wrap gap-3">
+                                        {identificationFiles.map((fileObj, index) => (
+                                            <li key={index} className="flex items-center gap-1 p-2 border rounded-md">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-12 h-12 bg-gray-100 flex items-center justify-center rounded">
+                                                        <span className="text-xs">{fileObj.name.split('.').pop()}</span>
+                                                    </div>
+                                                    <span className="text-sm overflow-hidden text-ellipsis max-w-40">{fileObj.name}</span>
                                                 </div>
-                                                <span className="text-sm overflow-hidden text-ellipsis max-w-40">{fileObj.name}</span>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                onClick={() => {
-                                                    setIdentificationFiles([]);
-                                                    setIdentificationData(null);
-                                                    setError(null);
-                                                }}
-                                                className="h-7 w-7"
-                                            >
-                                                <X />
-                                            </Button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIdentificationFiles([]);
+                                                        setIdentificationData(null);
+                                                        setError(null);
+                                                    }}
+                                                    className="h-7 w-7"
+                                                >
+                                                    <X />
+                                                </Button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -290,7 +292,7 @@ const CheckInDialog = ({
                     <Button
                         onClick={handleCheckIn}
                         className="px-20"
-                        disabled={isLoading || !deposit || !identificationData}
+                        disabled={isLoading || !deposit}
                     >
                         {isLoading ? (
                             <>

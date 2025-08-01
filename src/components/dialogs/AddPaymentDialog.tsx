@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/atoms/ScrollArea";
 import { Search, ArrowUpDown, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { getUnsetledCharges, addPayment } from "@/services/Charges";
-import { convertRate, getAllCurrencies } from "@/services/Currency";
+import { convertRate, getAddChargeCurrencies } from "@/services/Currency";
 import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
 import { Currency } from '@/validation/schemas/Currency';
@@ -117,7 +117,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
     const fetchCurrencies = useCallback(async () => {
         try {
             setLoadingCurrencies(true);
-            const response = await getAllCurrencies();
+            const response = await getAddChargeCurrencies();
             const currenciesData = response.data || [];
             setCurrencies(currenciesData);
         } catch (error: any) {
