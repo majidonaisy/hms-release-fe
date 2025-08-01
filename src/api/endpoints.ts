@@ -100,7 +100,7 @@ export const ENDPOINTS = {
     GetPermissions: "role/get-permissions",
   },
   Currency: {
-    GetAll: "exchange/exchange-currencies",
+    GetAll: "exchange/currencies",
     Convert: "exchange/convert",
   },
   Hotel: {
