@@ -6,7 +6,6 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   permissions: Permissions[];
-  // user: User | null;
 }
 
 const initialState: AuthState = {
@@ -14,7 +13,6 @@ const initialState: AuthState = {
   refreshToken: null,
   isAuthenticated: false,
   permissions: [],
-  // user: null,
 };
 
 export const authSlice = createSlice({
@@ -27,31 +25,37 @@ export const authSlice = createSlice({
         accessToken: string;
         permissions?: Permissions[];
         refreshToken?: string;
-        // user?: User;
       }>
     ) => {
       state.accessToken = action.payload.accessToken;
       state.permissions = action.payload.permissions || [];
       state.refreshToken = action.payload.refreshToken || null;
-      // state.user = action.payload.user || null;
       state.isAuthenticated = true;
 
-      // Persist tokens
+      // Persist tokens and permissions
       localStorage.setItem("accessToken", action.payload.accessToken);
       if (action.payload.refreshToken) {
         localStorage.setItem("refreshToken", action.payload.refreshToken);
+      }
+      if (action.payload.permissions) {
+        localStorage.setItem("permissions", JSON.stringify(action.payload.permissions));
       }
     },
     logout: (state) => {
       state.accessToken = null;
       state.permissions = [];
       state.refreshToken = null;
-      // state.user = null;
       state.isAuthenticated = false;
 
-      // Clear persisted tokens
+      // Clear persisted data completely
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      localStorage.removeItem("permissions");
+
+      // Clear any other auth-related data
+      sessionStorage.clear();
+
+      console.log("🧹 Authentication state and storage cleared completely");
     },
     updateAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
@@ -63,9 +67,30 @@ export const authSlice = createSlice({
       if (action.payload.refreshToken) {
         state.refreshToken = action.payload.refreshToken;
       }
+
+      // Try to restore permissions from localStorage
+      try {
+        const storedPermissions = localStorage.getItem("permissions");
+        if (storedPermissions) {
+          state.permissions = JSON.parse(storedPermissions);
+        }
+      } catch (error) {
+        console.error("Error parsing stored permissions:", error);
+        state.permissions = [];
+      }
+    },
+    clearAuthState: (state) => {
+      // Reset to initial state
+      Object.assign(state, initialState);
+
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      console.log("🔄 Application state reset to fresh start");
     },
   },
 });
 
-export const { login, logout, updateAccessToken, setTokens } = authSlice.actions;
+export const { login, logout, updateAccessToken, setTokens, clearAuthState } = authSlice.actions;
 export default authSlice.reducer;

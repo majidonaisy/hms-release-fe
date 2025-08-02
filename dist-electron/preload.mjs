@@ -1,22 +1,28 @@
 "use strict";
 const electron = require("electron");
 electron.contextBridge.exposeInMainWorld("ipcRenderer", {
-  on(...args) {
-    const [channel, listener] = args;
-    return electron.ipcRenderer.on(channel, (event, ...args2) => listener(event, ...args2));
+  on: (channel, listener) => {
+    const validChannels = ["main-process-message", "app-closing"];
+    if (validChannels.includes(channel)) {
+      electron.ipcRenderer.on(channel, (_event, ...args) => listener(...args));
+    }
   },
-  off(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.off(channel, ...omit);
+  off: (channel, _listener) => {
+    const validChannels = ["main-process-message", "app-closing"];
+    if (validChannels.includes(channel)) {
+      electron.ipcRenderer.removeAllListeners(channel);
+    }
   },
-  send(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.send(channel, ...omit);
+  send: (channel, ...args) => {
+    const validChannels = ["logout-complete", "test-message"];
+    if (validChannels.includes(channel)) {
+      electron.ipcRenderer.send(channel, ...args);
+    }
   },
-  invoke(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.invoke(channel, ...omit);
+  invoke: (channel, ...args) => {
+    const validChannels = ["app-version"];
+    if (validChannels.includes(channel)) {
+      return electron.ipcRenderer.invoke(channel, ...args);
+    }
   }
-  // You can expose other APTs you need here.
-  // ...
 });
