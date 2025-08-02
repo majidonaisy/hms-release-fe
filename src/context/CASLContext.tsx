@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { logout as logoutAction } from '@/redux/slices/authSlice';
@@ -45,7 +45,7 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
   const isAdmin = permissions.some(
     (permission) => permission.action === 'manage' && permission.subject === 'all'
   );
-  
+
   const filterRoutesByPermissions = (routes: any[]): any[] => {
     return routes.filter(route => {
       // If user is admin (has manage all), show everything

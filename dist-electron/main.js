@@ -1,8 +1,6 @@
-import { app, ipcMain, BrowserWindow, screen } from "electron";
-import { createRequire } from "node:module";
+import { ipcMain, app, BrowserWindow, screen } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = process.env.NODE_ENV === "development";
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -10,8 +8,9 @@ const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
+let win = null;
 let isQuitting = false;
+let logoutInProgress = false;
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
@@ -19,14 +18,12 @@ function createWindow() {
     height,
     show: true,
     autoHideMenuBar: true,
-    title: "HMS - Hotal Management System",
+    title: "HMS - Hotel Management System",
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       nodeIntegration: false,
-      // Changed to false for better security
       contextIsolation: true,
-      // Changed to true to enable contextBridge
       devTools: isDev
     }
   });
@@ -40,40 +37,51 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
   win.on("close", (event) => {
-    if (!isQuitting) {
+    if (!isQuitting && !logoutInProgress) {
       event.preventDefault();
+      logoutInProgress = true;
+      console.log("🔴 Window closing - initiating logout sequence...");
       win == null ? void 0 : win.webContents.send("app-closing");
-      isQuitting = true;
       setTimeout(() => {
+        console.log("⏰ Logout timeout reached, force quitting...");
+        isQuitting = true;
+        logoutInProgress = false;
         app.quit();
-      }, 3e3);
+      }, 8e3);
     }
   });
+  win.on("closed", () => {
+    win = null;
+  });
 }
-app.on("before-quit", (event) => {
-  if (win && !win.isDestroyed() && !isQuitting) {
-    event.preventDefault();
-    isQuitting = true;
-    win.webContents.send("app-closing");
-    setTimeout(() => {
-      app.quit();
-    }, 2e3);
-  }
-});
 ipcMain.on("logout-complete", () => {
-  console.log("Logout complete, quitting app...");
+  console.log("✅ Logout completed, quitting app...");
+  isQuitting = true;
+  logoutInProgress = false;
+  if (win && !win.isDestroyed()) {
+    win.destroy();
+  }
   app.quit();
+});
+ipcMain.on("test-message", () => {
+  console.log("📧 Test message received from renderer");
+});
+app.on("before-quit", (event) => {
+  if (!isQuitting && win && !win.isDestroyed()) {
+    event.preventDefault();
+    win.close();
+  }
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     isQuitting = true;
     app.quit();
-    win = null;
   }
 });
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     isQuitting = false;
+    logoutInProgress = false;
     createWindow();
   }
 });
