@@ -7,60 +7,98 @@ import { store } from './redux/store';
 import { Toaster } from './components/molecules/Sonner';
 import { DialogProvider } from './context/DialogContext';
 import DialogContainer from './components/Templates/DialogContainer';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { setTokens } from '@/redux/slices/authSlice';
+import { setTokens, clearAuthState } from '@/redux/slices/authSlice';
 import { useElectronLogout } from './hooks/useLogout';
+import DebugIPC from './components/DebugIPC';
 
 // Token restoration component
 const TokenRestoration: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const [isRestoring, setIsRestoring] = useState(true);
 
   // Use the logout hook
   useElectronLogout();
 
   useEffect(() => {
-    // Only restore tokens if not already authenticated
-    if (!isAuthenticated) {
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
+    const restoreTokens = () => {
+      try {
+        // Clear any potential corrupted state first
+        if (!isAuthenticated) {
+          const accessToken = localStorage.getItem('accessToken');
+          const refreshToken = localStorage.getItem('refreshToken');
 
-      if (accessToken) {
-        dispatch(setTokens({
-          accessToken,
-          refreshToken: refreshToken || undefined
-        }));
+          if (accessToken) {
+            console.log('🔄 Restoring tokens from localStorage');
+            dispatch(setTokens({
+              accessToken,
+              refreshToken: refreshToken || undefined,
+            }));
+          } else {
+            // If no tokens, ensure we start fresh
+            console.log('🆕 No tokens found, starting fresh');
+            dispatch(clearAuthState());
+          }
+        }
+      } catch (error) {
+        console.error('Error restoring tokens:', error);
+        // Clear potentially corrupted tokens and start fresh
+        console.log('🔄 Clearing corrupted data and starting fresh');
+        dispatch(clearAuthState());
+      } finally {
+        setIsRestoring(false);
       }
-    }
+    };
+
+    // Add a small delay to ensure proper restoration
+    const timeoutId = setTimeout(restoreTokens, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [dispatch, isAuthenticated]);
+
+  // Show loading state while restoring tokens
+  if (isRestoring) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 };
 
 function App() {
   return (
-    <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
-      options={{
-        api_host: "https://us.i.posthog.com"
-      }}
-    >
-      <Provider store={store}>
-        <TokenRestoration>
-          <RoleProvider>
-            <DialogProvider>
-              <Router>
-                <HomeRoutes />
-                <Toaster />
-                <DialogContainer />
-              </Router>
-            </DialogProvider>
-          </RoleProvider>
-        </TokenRestoration>
-      </Provider>
-    </PostHogProvider>
+    <Provider store={store}>
+      <PostHogProvider
+        apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+        options={{
+          api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+        }}
+      >
+        <Router>
+          <TokenRestoration>
+            <RoleProvider>
+              <DialogProvider>
+                <div className="App">
+                  <DebugIPC />
+                  <HomeRoutes />
+                  <DialogContainer />
+                  <Toaster position="top-right" />
+                </div>
+              </DialogProvider>
+            </RoleProvider>
+          </TokenRestoration>
+        </Router>
+      </PostHogProvider>
+    </Provider>
   );
 }
 
