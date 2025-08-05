@@ -131,8 +131,7 @@ const Rooms = () => {
     const roomColumns: TableColumn[] = [
         {
             key: 'roomNumber',
-            label: 'Name',
-            sortable: true,
+            label: 'Room Number ',
             className: 'font-medium text-gray-900'
         },
         {
