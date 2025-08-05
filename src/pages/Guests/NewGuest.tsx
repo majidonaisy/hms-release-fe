@@ -111,10 +111,11 @@ const NewGuest = () => {
                 })
             }
             setGuestCreatedDialog(true)
-        } catch (error) {
+        } catch (error: any) {
+            const err = error?.userMessage || "Failed to submit form.";
             toast("Error!", {
-                description: "Failed to submit form.",
-            })
+                description: err,
+            });
             console.error("Failed to submit form:", error);
         } finally {
             setLoading(false);
