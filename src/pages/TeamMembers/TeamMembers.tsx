@@ -30,6 +30,7 @@ const TeamMembers = () => {
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
+    const [searchLoading, setSearchLoading] = useState(false);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -55,7 +56,7 @@ const TeamMembers = () => {
 
     useEffect(() => {
         const fetchTeamMembers = async () => {
-            // setLoading(true);
+            setSearchLoading(true);
             try {
                 const response = debouncedSearchTerm
                     ? ((await searchEmployees({ q: debouncedSearchTerm })) as GetEmployeesResponse)
@@ -63,10 +64,9 @@ const TeamMembers = () => {
                 setEmployees(response.data)
             } catch (error) {
                 console.error("Error occurred:", error);
-            } 
-            // finally {
-            //     setLoading(false);
-            // }
+            } finally {
+                setSearchLoading(false);
+            }
         };
 
         if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
@@ -178,6 +178,7 @@ const TeamMembers = () => {
             columns={teamColumns}
             title="Team Members"
             actions={teamActions}
+            searchLoading={searchLoading}
             primaryAction={{
                 label: 'New Team Member',
                 onClick: () => { navigate("/team-members/new") }

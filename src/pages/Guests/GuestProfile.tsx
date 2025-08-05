@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useAsyncError, useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
 import { searchGuests, searchGroupProfiles } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
@@ -67,10 +67,9 @@ const GuestProfile = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<CombinedGuestData | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-
-  // Debounced search terms
   const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
   const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const roomTypeMap = roomTypes.reduce(
     (map, roomType) => {
@@ -80,7 +79,6 @@ const GuestProfile = () => {
     {} as Record<string, string>,
   )
 
-  // Handle search
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
     if (activeTab === "individuals") {
@@ -103,7 +101,7 @@ const GuestProfile = () => {
     const handleGetGuests = async () => {
       if (activeTab === "groups") return
 
-      setLoading(true)
+      setSearchLoading(true)
       try {
         const response = ((await searchGuests({
           q: debouncedIndividualSearch,
@@ -118,7 +116,7 @@ const GuestProfile = () => {
       } catch (error) {
         console.error(error)
       } finally {
-        setLoading(false)
+        setSearchLoading(false)
       }
     }
     handleGetGuests()
@@ -128,7 +126,7 @@ const GuestProfile = () => {
     const handleGetGroupProfiles = async () => {
       if (activeTab === "individuals") return
 
-      setLoading(true)
+      setSearchLoading(true)
       try {
         const response = ((await searchGroupProfiles({
           q: debouncedGroupSearch,
@@ -137,7 +135,7 @@ const GuestProfile = () => {
       } catch (error) {
         console.error(error)
       } finally {
-        setLoading(false)
+        setSearchLoading(false)
       }
     }
     handleGetGroupProfiles()
@@ -158,7 +156,6 @@ const GuestProfile = () => {
     handleGetRoomTypes()
   }, [])
 
-  // Transform data based on active tab
   const getCombinedData = (): CombinedGuestData[] => {
     const transformedGuests: CombinedGuestData[] = guests.map((guest) => ({
       id: guest.id,
@@ -195,7 +192,6 @@ const GuestProfile = () => {
 
   const combinedData = getCombinedData()
 
-  // Handle delete
   const handleDeleteClick = (item: CombinedGuestData, e: React.MouseEvent) => {
     e.stopPropagation()
     setItemToDelete(item)
@@ -257,7 +253,6 @@ const GuestProfile = () => {
     }
   }
 
-  // Reset pagination when switching tabs
   const handleTabChange = (tab: string) => {
     setActiveTab(tab)
     setCurrentPage(1)
@@ -266,7 +261,6 @@ const GuestProfile = () => {
     setGroupSearchTerm("")
   }
 
-  // Get total count for display
   const getTotalCount = () => {
     switch (activeTab) {
       case "individuals":
@@ -359,12 +353,17 @@ const GuestProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No data found
+                          Loading guests...
                         </TableCell>
                       </TableRow>
+                    ) : combinedData.length === 0 ? (<TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                        No data found
+                      </TableCell>
+                    </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow
@@ -475,12 +474,17 @@ const GuestProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No individual guests found
+                          Loading guests...
                         </TableCell>
                       </TableRow>
+                    ) : combinedData.length === 0 ? (<TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                        No individual guests found
+                      </TableCell>
+                    </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow
@@ -568,12 +572,17 @@ const GuestProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No group profiles found
+                          Loading guests...
                         </TableCell>
                       </TableRow>
+                    ) : combinedData.length === 0 ? (<TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                        No group profiles found
+                      </TableCell>
+                    </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow
