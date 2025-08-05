@@ -7,17 +7,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 import { Badge } from '@/components/atoms/Badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
-import { getEmployeeById } from '@/services/Employees';
+import { deleteEMployee, getEmployeeById } from '@/services/Employees';
 import { GetEmployeeByIdResponse } from '@/validation/schemas/Employees';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
+import { toast } from 'sonner';
+import DeleteDialog from '@/components/molecules/DeleteDialog';
 
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [searchText, setSearchText] = useState<string>('');
-    const [isEditing, setIsEditing] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [teamMember, setTeamMember] = useState<GetEmployeeByIdResponse['data'] | null>(null);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [employeeToDelete, setEmployeeToDelete] = useState<GetEmployeeByIdResponse['data'] | null>(null);
 
     useEffect(() => {
         const fetchTeamProfile = async () => {
@@ -43,6 +46,30 @@ const TeamMemberProfile = () => {
             case false:
                 return 'bg-red-100 text-red-700 hover:bg-red-100';
 
+        }
+    };
+
+    const handleDeleteEmployee = async () => {
+        setLoading(true);
+        if (employeeToDelete) {
+
+            try {
+                await deleteEMployee(employeeToDelete.id);
+                setDeleteDialogOpen(false);
+                setEmployeeToDelete(null);
+                navigate('/team-members');
+                toast("Success!", {
+                    description: "Employee was deleted successfully.",
+                });
+            } catch (error) {
+                if (error instanceof Error && 'userMessage' in error) {
+                    console.error("Failed to delete employee:", (error as any).userMessage);
+                } else {
+                    console.error("Failed to delete employee:", error);
+                }
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -138,13 +165,11 @@ const TeamMemberProfile = () => {
                                 </div>
 
                                 <div className="flex gap-2 justify-center">
-                                    <Button
-                                        variant='foreground'
-                                        onClick={() => setIsEditing(!isEditing)}
-                                    >
-                                        {isEditing ? 'Save Profile' : 'Edit Profile'}
-                                    </Button>
-                                    <Button variant="primaryOutline">
+                                    <Button variant="primaryOutline"
+                                        onClick={() => {
+                                            setEmployeeToDelete(teamMember);
+                                            setDeleteDialogOpen(true);
+                                        }}>
                                         Delete Account
                                     </Button>
                                 </div>
@@ -309,6 +334,15 @@ const TeamMemberProfile = () => {
                     </div>
                 </div >
             )}
+
+            <DeleteDialog
+                isOpen={isDeleteDialogOpen}
+                onCancel={() => { setEmployeeToDelete(null); setDeleteDialogOpen(false) }}
+                onConfirm={handleDeleteEmployee}
+                loading={loading}
+                title="Delete Employee"
+                description={`Are you sure you want to delete employee ${employeeToDelete?.firstName} ${employeeToDelete?.lastName}? This action cannot be undone.`}
+            />employeeToDelete
         </>
     );
 };

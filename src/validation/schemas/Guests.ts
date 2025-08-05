@@ -195,7 +195,8 @@ export const LinkGuestsToGroupResponseSchema = z.object({
 export const GetGroupProfilesResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
-  data: z.array(GroupProfileShape)
+  data: z.array(GroupProfileShape),
+  pagination: PaginationSchema.optional(),
 });
 
 export const GetCurrentGuestsResponseSchema = z.object({

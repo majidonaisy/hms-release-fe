@@ -80,3 +80,38 @@ export const searchEmployees = async (params: { q: string }): Promise<GetEmploye
     };
   }
 };
+
+export const updateEmployee = async (id: string, data: any): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "PUT",
+      endpoint: `${ENDPOINTS.Employees.DeleteUpdate}/${id}`,
+      data,
+      baseURL,
+    })
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to update employee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const deleteEMployee = async (id: string): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "DELETE",
+      endpoint: `${ENDPOINTS.Employees.DeleteUpdate}/${id}`,
+      baseURL,
+    })
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to delete employee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

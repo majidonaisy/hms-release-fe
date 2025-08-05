@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
-import { getEmployees } from '@/services/Employees';
+import { Employee, GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
+import { deleteEMployee, getEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import { getRoles } from '@/services/Role';
 import { useDebounce } from '@/hooks/useDebounce';
+import { toast } from 'sonner';
 
 interface Role {
     id: string;
@@ -106,6 +107,40 @@ const TeamMembers = () => {
         handleGetRoles();
     }, []);
 
+    const handleDeleteEmployee = async (employee: Employee) => {
+        try {
+            await deleteEMployee(employee.id);
+
+            const params: any = {
+                page: currentPage,
+                limit: pageSize
+            };
+
+            if (debouncedSearchTerm.trim()) {
+                params.q = debouncedSearchTerm;
+            }
+
+            if (selectedStatus !== 'all') {
+                params.status = selectedStatus;
+            }
+
+            const response = await getEmployees(params);
+            setEmployees(response.data);
+
+            if (response.pagination) {
+                setPagination(response.pagination);
+                if (response.data.length === 0 && currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                }
+            } else {
+                setPagination(null);
+            }
+        } catch (error) {
+            console.error('Error deleting employee:', error);
+            toast.error('Failed to delete employee');
+        }
+    };
+
     const roleMap = roles.reduce(
         (map, role) => {
             map[role.id] = role.name;
@@ -150,8 +185,15 @@ const TeamMembers = () => {
         }
     ];
 
-    const teamActions: ActionMenuItem[] = [];
-
+    const teamActions: ActionMenuItem[] = [
+        {
+            label: 'Edit',
+            onClick: (employee, e) => {
+                e.stopPropagation();
+                navigate(`/team-members/update/${employee.id}`);
+            }
+        }
+    ];
     const handleRowClick = (member: any) => {
         navigate(`/team-members/profile/${member.id}`, { state: { teamMember: member } });
     };
@@ -193,6 +235,10 @@ const TeamMembers = () => {
                 maxVisiblePages: 7
             } : undefined}
             emptyStateMessage="No team members found"
+            deleteConfig={{
+                onDelete: handleDeleteEmployee,
+                getDeleteTitle: () => 'Delete Employee',
+            }}
         />
     );
 };

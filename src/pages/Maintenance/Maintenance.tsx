@@ -48,10 +48,10 @@ const MaintenancePage = () => {
 
     const getStatusDotColor = (status: MaintenanceType['status']) => {
         const dotColors = {
-            PENDING: 'bg-chart-7/30',
-            IN_PROGRESS: 'bg-chart-4/20',
-            COMPLETED: 'bg-chart-1/20',
-            CANCELED: 'bg-chart-5/10'
+            PENDING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+            IN_PROGRESS: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
+            COMPLETED: 'bg-green-100 text-green-800 hover:bg-green-100',
+            CANCELED: 'bg-red-100 text-red-800 hover:bg-red-100',
         };
         return dotColors[status];
     };
@@ -308,7 +308,7 @@ const MaintenancePage = () => {
                     </Select>
 
                     {/* Action Button */}
-                    <div className="flex gap-2 ml-auto">
+                    <div className="">
                         <Button onClick={() => {
                             setIsEditMode(false);
                             setEditingMaintenance(null);
@@ -326,14 +326,11 @@ const MaintenancePage = () => {
                 <Table >
                     <TableHeader className="bg-hms-accent/15">
                         <TableRow className="border-b border-gray-200">
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">
-                                Type
-                            </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Room</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Description</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Priority</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Status</TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/7">Assigned To</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/5">Room</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/5">Description</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/5">Priority</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/5">Status</TableHead>
+                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4 w-1/5">Assigned To</TableHead>
                             <TableHead className="w-[100px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -353,9 +350,6 @@ const MaintenancePage = () => {
                         ) : (
                             maintenanceRequests.map((request) => (
                                 <TableRow key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <TableCell className="px-6 py-4 font-medium text-gray-900">
-                                        {request.type || 'N/A'}
-                                    </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <div className="font-medium text-gray-900">
                                             {request.room?.roomNumber || request.roomId || 'Unknown Room'}
@@ -372,10 +366,9 @@ const MaintenancePage = () => {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
-                                        <div className={`flex items-center gap-2 rounded-lg ${getStatusDotColor(request.status)}`}>
-                                            <div className={`w-2 h-2 rounded-full`}></div>
+                                        <Badge className={`  ${getStatusDotColor(request.status)}`}>
                                             {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.slice(1).toLowerCase()}
-                                        </div>
+                                        </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
                                         {request.user?.firstName + " " + request.user?.lastName || 'Unassigned'}

@@ -172,6 +172,18 @@ const RoutesList = () => {
                         subject: "TeamMembers"
                     },
                 },
+                {
+                    path: "/team-members/update/:id",
+                    title: "Edit Team Member",
+                    icon: <User />,
+                    component: NewTeamMember,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "update",
+                        subject: "TeamMembers"
+                    },
+                },
             ]
         },
 
