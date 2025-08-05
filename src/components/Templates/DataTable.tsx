@@ -1,5 +1,5 @@
 import React, { useState, type ReactNode } from "react"
-import { Search, Filter, Plus, EllipsisVertical, ChevronDown } from "lucide-react"
+import { Search, Filter, Plus, EllipsisVertical, ChevronDown, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table"
@@ -144,6 +144,9 @@ export interface DataTableProps<T = any> {
   className?: string
   searchLoading?: boolean,
   emptyStateMessage?: string
+  // New prop for back button
+  showBackButton?: boolean
+  onBackClick?: () => void
 }
 
 export const defaultRenderers = {
@@ -214,6 +217,8 @@ const DataTable = <T,>({
   className = "",
   searchLoading = false,
   emptyStateMessage = "No data found",
+  showBackButton = false,
+  onBackClick,
 }: DataTableProps<T>) => {
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
@@ -475,9 +480,20 @@ const DataTable = <T,>({
       <div className={`p-6 bg-gray-50 min-h-screen ${className}`}>
         {/* Header Section */}
         <div className="mb-6">
-          {/* Title with Count */}
+          {/* Title with Count and Back Button */}
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-3 mb-6">
+              {/* Back Button */}
+              {showBackButton && onBackClick && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onBackClick}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-2"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              )}
               <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
               <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                 {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}

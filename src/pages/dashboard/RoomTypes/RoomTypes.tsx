@@ -3,22 +3,34 @@ import { toast } from 'sonner';
 import { getRoomTypes, deleteRoomType, updateRoomType, addRoomType } from '@/services/RoomTypes';
 import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
-import {  AddRoomTypeRequest, RoomType } from '@/validation/schemas/RoomType';
+import { AddRoomTypeRequest, RoomType } from '@/validation/schemas/RoomType';
+import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const RoomTypes = () => {
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [loading, setLoading] = useState(true);
   const { openDialog } = useDialog();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
 
   const fetchRoomTypes = async () => {
     try {
       setLoading(true);
-      const response = await getRoomTypes();
+      const params: any = {};
+      if (debouncedSearchTerm.trim()) {
+        params.q = debouncedSearchTerm;
+      }
+      const response = await getRoomTypes(params);
       setRoomTypes(response.data || []);
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to load room types');
-      console.error(error);
-      setRoomTypes([]); // Set empty array on error
+      setRoomTypes([]);
     } finally {
       setLoading(false);
     }
@@ -26,7 +38,7 @@ const RoomTypes = () => {
 
   useEffect(() => {
     fetchRoomTypes();
-  }, []);
+  }, [debouncedSearchTerm]);
 
   const handleAddRoomType = () => {
     openDialog('roomType', {
@@ -120,26 +132,27 @@ const RoomTypes = () => {
   ];
 
   return (
-    <div className="p-6">
-      <DataTable
-        data={roomTypes}
-        loading={loading}
-        columns={roomTypeColumns}
-        title="Room Types"
-        actions={actions}
-        primaryAction={{
-          label: 'Add Room Type',
-          onClick: handleAddRoomType
-        }}
-        getRowKey={(item: RoomType) => item.id}
-        deleteConfig={{
-          onDelete: handleDeleteRoomType,
-          getDeleteTitle: () => 'Delete Room Type',
-          getDeleteDescription: (item: RoomType | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this room type? This action cannot be undone.',
-          getItemName: (item: RoomType | null) => item ? item.name : 'this room type',
-        }}
-      />
-    </div>
+    <DataTable
+      data={roomTypes}
+      onSearch={handleSearch}
+      searchLoading={loading}
+      columns={roomTypeColumns}
+      title="Room Types"
+      actions={actions}
+      primaryAction={{
+        label: 'Add Room Type',
+        onClick: handleAddRoomType
+      }}
+      getRowKey={(item: RoomType) => item.id}
+      deleteConfig={{
+        onDelete: handleDeleteRoomType,
+        getDeleteTitle: () => 'Delete Room Type',
+        getDeleteDescription: (item: RoomType | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this room type? This action cannot be undone.',
+        getItemName: (item: RoomType | null) => item ? item.name : 'this room type',
+      }}
+      showBackButton
+      onBackClick={() => navigate(-1)}
+    />
   );
 };
 

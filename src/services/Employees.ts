@@ -6,6 +6,8 @@ const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 interface GetEmployeesParams {
   page?: number;
   limit?: number;
+  q?: string;
+  status?: string;
 }
 
 export const getEmployees = async (params?: GetEmployeesParams): Promise<GetEmployeesResponse> => {

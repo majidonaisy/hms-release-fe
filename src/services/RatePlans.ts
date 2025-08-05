@@ -6,6 +6,7 @@ const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 interface GetRatePlansParams {
   page?: number;
   limit?: number;
+  q?: string;
 }
 
 export const getRatePlans = async (params?: GetRatePlansParams): Promise<GetRatePlansResponse> => {

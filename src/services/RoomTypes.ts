@@ -24,6 +24,7 @@ export const addRoomType = async (data: AddRoomTypeRequest): Promise<AddRoomType
 interface GetRoomTypesParams {
   page?: number;
   limit?: number;
+  q?: string;
 }
 
 export const getRoomTypes = async (params?: GetRoomTypesParams): Promise<GetRoomTypesResponse> => {
