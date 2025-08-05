@@ -35,6 +35,7 @@ export const addHousekeepingTask = async (data: AddHousekeepingRequest): Promise
 interface GetHousekeepingParams {
   page?: number;
   limit?: number;
+  status?: string
 }
 
 export const getHousekeepingTasks = async (params?: GetHousekeepingParams): Promise<GetHousekeepingResponse> => {

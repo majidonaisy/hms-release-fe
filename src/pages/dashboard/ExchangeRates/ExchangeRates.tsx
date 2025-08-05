@@ -4,11 +4,13 @@ import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
 import { ExchangeRate, ExchangeRateRequest } from '@/validation/schemas/ExchangeRates';
 import { addExchangeRate, getExchangeRates, updateExchangeRate } from '@/services/ExchangeRates';
+import { useNavigate } from 'react-router-dom';
 
 const ExchangeRates = () => {
     const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
     const [loading, setLoading] = useState(true);
     const { openDialog } = useDialog();
+    const navigate = useNavigate();
 
     const fetchExchangeRates = async () => {
         try {
@@ -87,20 +89,20 @@ const ExchangeRates = () => {
     ];
 
     return (
-        <div className="p-6">
-            <DataTable
-                data={exchangeRates}
-                loading={loading}
-                columns={exchangeRateColumns}
-                title="Exchange Rates"
-                actions={actions}
-                primaryAction={{
-                    label: 'Add Exchange Rate',
-                    onClick: handleAddExchangeRate
-                }}
-                getRowKey={(item: ExchangeRate) => item.id}
-            />
-        </div>
+        <DataTable
+            data={exchangeRates}
+            loading={loading}
+            columns={exchangeRateColumns}
+            title="Exchange Rates"
+            actions={actions}
+            primaryAction={{
+                label: 'Add Exchange Rate',
+                onClick: handleAddExchangeRate
+            }}
+            getRowKey={(item: ExchangeRate) => item.id}
+            showBackButton
+            onBackClick={() => navigate(-1)}
+        />
     );
 };
 

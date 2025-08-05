@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { getRatePlans, deleteRatePlan } from '@/services/RatePlans';
 import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useDialog } from '@/context/useDialog';
+import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface RatePlan {
   id: string;
@@ -27,21 +29,34 @@ const RatePlans = () => {
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const { openDialog } = useDialog();
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
 
   const fetchRatePlans = async () => {
     try {
       setLoading(true);
-      const response = await getRatePlans();
-      // Map the response to include isFeatured if not present
-      const mappedData = (response.data || []).map((plan: any) => ({
+      const params: any = {};
+      if (debouncedSearchTerm.trim()) {
+        params.q = debouncedSearchTerm;
+      }
+
+      const response = await getRatePlans(params);
+
+      const mappedData: RatePlan[] = (response.data || []).map((plan: any) => ({
         ...plan,
-        isFeatured: plan.isFeatured || false
+        isFeatured: plan.isFeatured ?? false,
+        currencyId: plan.currencyId ?? '',
       }));
+
       setRatePlans(mappedData);
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to load rate plans');
-      console.error(error);
-      setRatePlans([]); // Set empty array on error
+      setRatePlans([]);
     } finally {
       setLoading(false);
     }
@@ -49,7 +64,7 @@ const RatePlans = () => {
 
   useEffect(() => {
     fetchRatePlans();
-  }, []);
+  }, [debouncedSearchTerm]);
 
   const handleAddRatePlan = () => {
     openDialog('ratePlan', {
@@ -140,7 +155,7 @@ const RatePlans = () => {
         </Badge>
       ),
     },
-  
+
   ];
 
   const actions = [
@@ -154,26 +169,27 @@ const RatePlans = () => {
   ];
 
   return (
-    <div className="p-6">
-      <DataTable<RatePlan>
-        data={ratePlans}
-        loading={loading}
-        columns={ratePlanColumns}
-        title="Rate Plans"
-        actions={actions}
-        primaryAction={{
-          label: 'Add Rate Plan',
-          onClick: handleAddRatePlan
-        }}
-        getRowKey={(item: RatePlan) => item.id}
-        deleteConfig={{
-          onDelete: handleDeleteRatePlan,
-          getDeleteTitle: () => 'Delete Rate Plan',
-          getDeleteDescription: (item: RatePlan | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this rate plan? This action cannot be undone.',
-          getItemName: (item: RatePlan | null) => item ? item.name : 'this rate plan',
-        }}
-      />
-    </div>
+    <DataTable<RatePlan>
+      data={ratePlans}
+      onSearch={handleSearch}
+      searchLoading={loading}
+      columns={ratePlanColumns}
+      title="Rate Plans"
+      actions={actions}
+      primaryAction={{
+        label: 'Add Rate Plan',
+        onClick: handleAddRatePlan
+      }}
+      getRowKey={(item: RatePlan) => item.id}
+      deleteConfig={{
+        onDelete: handleDeleteRatePlan,
+        getDeleteTitle: () => 'Delete Rate Plan',
+        getDeleteDescription: (item: RatePlan | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this rate plan? This action cannot be undone.',
+        getItemName: (item: RatePlan | null) => item ? item.name : 'this rate plan',
+      }}
+      showBackButton
+      onBackClick={() => navigate(-1)}
+    />
   );
 };
 
