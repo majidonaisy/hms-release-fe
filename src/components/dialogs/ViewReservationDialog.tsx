@@ -56,15 +56,11 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
     const getStatusBadgeVariant = (status: string) => {
         switch (status) {
             case "CHECKED_IN":
-                return "default"
-            case "CONFIRMED":
-                return "secondary"
-            case "CANCELLED":
-                return "destructive"
+                return "bg-chart-1/20 text-chart-1"
+            case "HELD":
+                return "bg-chart-3/20 text-chart-3"
             case "CHECKED_OUT":
-                return "outline"
-            default:
-                return "secondary"
+                return "bg-chart-5/20 text-chart-5"
         }
     }
 
@@ -111,7 +107,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                         <div className="space-y-6">
                             {/* Status Badge */}
                             <div className="flex justify-start">
-                                <Badge variant={getStatusBadgeVariant(reservation.status)}>
+                                <Badge className={getStatusBadgeVariant(reservation.status)}>
                                     {reservation.status.replace("_", " ")}
                                 </Badge>
                             </div>

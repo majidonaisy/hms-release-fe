@@ -327,7 +327,7 @@ const HousekeepingPage = () => {
                     </Select>
 
                     {/* Action Button */}
-                    <div className="flex gap-2 ml-auto">
+                    <div className="">
                         <Button onClick={() => {
                             setIsEditMode(false);
                             setEditingTask(null);
