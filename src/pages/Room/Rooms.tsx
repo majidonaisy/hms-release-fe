@@ -34,6 +34,7 @@ const Rooms = () => {
     } | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
+    const [searchLoading, setSearchLoading] = useState(false);
 
     const roomStatusOptions = [
         { value: 'AVAILABLE', label: 'Available', color: 'bg-chart-1/20 text-chart-1' },
@@ -62,7 +63,7 @@ const Rooms = () => {
 
     useEffect(() => {
         const fetchRooms = async () => {
-            // setLoading(true);
+            setSearchLoading(true);
             try {
                 const response = debouncedSearchTerm
                     ? ((await searchRooms(debouncedSearchTerm)) as GetRoomsResponse)
@@ -70,10 +71,9 @@ const Rooms = () => {
                 setRooms(response.data)
             } catch (error) {
                 console.error("Error occurred:", error);
+            } finally {
+                setSearchLoading(false);
             }
-            // finally {
-            //     setLoading(false);
-            // }
         };
 
         if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
@@ -84,12 +84,10 @@ const Rooms = () => {
     useEffect(() => {
         let filtered = rooms;
 
-        // Filter by status
         if (selectedStatus !== 'all') {
             filtered = filtered.filter(room => room.status === selectedStatus);
         }
 
-        // Filter by room type
         if (selectedRoomType !== 'all') {
             filtered = filtered.filter(room => room.roomType.id.toString() === selectedRoomType);
         }
@@ -130,7 +128,6 @@ const Rooms = () => {
         setSelectedStatus(status);
     };
 
-    // Add room type filter handler
     const handleRoomTypeFilter = (roomTypeId: string) => {
         setSelectedRoomType(roomTypeId);
     };
@@ -232,7 +229,7 @@ const Rooms = () => {
             await addRoomType(data);
             toast.success('Room type created successfully');
             setIsRoomTypeDialogOpen(false); // Close dialog after successful creation
-            
+
             // Refresh room types list
             const response = await getRoomTypes();
             setRoomTypes(response.data || response);
@@ -255,7 +252,7 @@ const Rooms = () => {
                 columns={roomColumns}
                 title="Rooms"
                 actions={roomActions}
-
+                searchLoading={searchLoading}
                 primaryAction={canCreate('Room') ? {
                     label: 'New Room',
                     onClick: () => navigate('/rooms/new')

@@ -60,6 +60,7 @@ export default function NewIndividualReservation() {
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
 
     useEffect(() => {
         const fetchRooms = async () => {
@@ -196,18 +197,22 @@ export default function NewIndividualReservation() {
 
     useEffect(() => {
         const handleGetGuests = async () => {
+            setSearchLoading(true);
             try {
                 const response = ((await searchGuests({
                     q: debouncedGuestSearch,
-
                 })) as GetGuestsResponse)
                 setGuests(response.data)
-
             } catch (error) {
                 console.error(error)
+            } finally {
+                setSearchLoading(false);
             }
         }
-        handleGetGuests()
+
+        if (debouncedGuestSearch.trim() !== '' || guestSearch === '') {
+            handleGetGuests()
+        }
     }, [debouncedGuestSearch])
 
     const getNights = () => {
@@ -284,7 +289,7 @@ export default function NewIndividualReservation() {
                                                 <Search className="h-4 w-4 text-gray-400" />
                                             </div>
                                         </div>
-                                        {loading ? (
+                                        {searchLoading ? (
                                             <SelectItem value="loading" disabled>
                                                 Loading guests...
                                             </SelectItem>
