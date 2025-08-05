@@ -32,7 +32,7 @@ export const searchGuests = async (params: GuestSearchParams): Promise<GetGuests
   try {
     const response = await apiClient({
       method: "GET",
-      endpoint: ENDPOINTS.Guest.Search,
+      endpoint: ENDPOINTS.Guest.GetAll,
       baseURL,
       params,
     });
@@ -41,7 +41,7 @@ export const searchGuests = async (params: GuestSearchParams): Promise<GetGuests
     throw {
       userMessage: error.response?.data?.message || "Failed to search guests",
       originalError: error,
-    };
+    }; 
   }
 };
 
@@ -56,7 +56,7 @@ export const searchGroupProfiles = async (params: GroupProfileSearchParams): Pro
   try {
     const response = await apiClient({
       method: "GET",
-      endpoint: ENDPOINTS.GroupProfile.Search,
+      endpoint: ENDPOINTS.GroupProfile.GetGroupProfiles,
       baseURL,
       params,
     });
