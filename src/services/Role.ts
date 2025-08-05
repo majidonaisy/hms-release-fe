@@ -4,26 +4,27 @@ import { DeleteRoleResponse, AddRoleRequest, UpdateRoleRequest, RoleResponse, Ad
 const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 
 interface GetRolesParams {
-  page?: number;
-  limit?: number;
+    page?: number;
+    limit?: number;
+    q?: string;
 }
 
 export const getRoles = async (params?: GetRolesParams): Promise<RoleResponse> => {
-  try {
-    const response = await apiClient({
-      method: "GET",
-      endpoint: ENDPOINTS.Role.GetAll,
-      baseURL,
-      params,
-    });
-    return response as RoleResponse;
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to get role";
-    throw {
-      userMessage: errorMessage,
-      originalError: error,
-    };
-  }
+    try {
+        const response = await apiClient({
+            method: "GET",
+            endpoint: ENDPOINTS.Role.GetAll,
+            baseURL,
+            params,
+        });
+        return response as RoleResponse;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Failed to get role";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
 };
 
 export const getPermissions = async (): Promise<PermissionsResponse> => {

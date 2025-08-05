@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
-import { deleteRoom, getRooms, searchRooms } from '@/services/Rooms';
-import { getRoomTypes } from '@/services/RoomTypes'; // Add this import
-import { AddRoomTypeRequest, GetRoomsResponse, Room, RoomType } from '@/validation'; // Add RoomType import
+import { deleteRoom, getRooms } from '@/services/Rooms';
+import { getRoomTypes } from '@/services/RoomTypes';
+import { AddRoomTypeRequest, Room, RoomType } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
 import { addRoomType } from '@/services/RoomTypes';
@@ -20,10 +20,9 @@ const Rooms = () => {
     const [loading, setLoading] = useState(false);
     const [isRoomTypeDialogOpen, setIsRoomTypeDialogOpen] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [selectedRoomType, setSelectedRoomType] = useState('all'); // Add room type filter state
-    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]); // Add room types state
+    const [selectedRoomType, setSelectedRoomType] = useState('all');
+    const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
@@ -42,20 +41,21 @@ const Rooms = () => {
         { value: 'DIRTY', label: 'Dirty', color: 'bg-chart-5/20 text-chart-5' }
     ];
 
-    // Fetch room types on component mount
     useEffect(() => {
         const fetchRoomTypes = async () => {
+            setLoading(true)
             try {
                 const response = await getRoomTypes();
-                setRoomTypes(response.data || response); // Handle different API response structures
+                setRoomTypes(response.data || response);
             } catch (error) {
                 console.error("Error fetching room types:", error);
+            } finally {
+                setLoading(false)
             }
         };
         fetchRoomTypes();
     }, []);
 
-    // Convert room types to filter options
     const roomTypeOptions = roomTypes.map(roomType => ({
         value: roomType.id.toString(),
         label: roomType.name,
@@ -65,10 +65,31 @@ const Rooms = () => {
         const fetchRooms = async () => {
             setSearchLoading(true);
             try {
-                const response = debouncedSearchTerm
-                    ? ((await searchRooms(debouncedSearchTerm)) as GetRoomsResponse)
-                    : await getRooms({ page: currentPage, limit: pageSize })
-                setRooms(response.data)
+                const params: any = {
+                    page: currentPage,
+                    limit: pageSize
+                };
+
+                if (debouncedSearchTerm.trim()) {
+                    params.q = debouncedSearchTerm;
+                }
+
+                if (selectedStatus !== 'all') {
+                    params.status = selectedStatus;
+                }
+
+                if (selectedRoomType !== 'all') {
+                    params.roomTypeId = selectedRoomType;
+                }
+
+                const response = await getRooms(params);
+                setRooms(response.data);
+
+                if (response.pagination) {
+                    setPagination(response.pagination);
+                } else {
+                    setPagination(null);
+                }
             } catch (error) {
                 console.error("Error occurred:", error);
             } finally {
@@ -76,60 +97,22 @@ const Rooms = () => {
             }
         };
 
-        if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
-            fetchRooms();
-        }
-    }, [debouncedSearchTerm, currentPage, pageSize]);
-
-    useEffect(() => {
-        let filtered = rooms;
-
-        if (selectedStatus !== 'all') {
-            filtered = filtered.filter(room => room.status === selectedStatus);
-        }
-
-        if (selectedRoomType !== 'all') {
-            filtered = filtered.filter(room => room.roomType.id.toString() === selectedRoomType);
-        }
-
-        setFilteredRooms(filtered);
-    }, [rooms, searchTerm, selectedStatus, selectedRoomType]); // Add selectedRoomType dependency
-
-    useEffect(() => {
-        const handleGetEmployees = async () => {
-            setLoading(true);
-            try {
-                const response = await getRooms({
-                    page: currentPage,
-                    limit: pageSize
-                });
-                console.log('response', response);
-                setRooms(response.data);
-                if (response.pagination) {
-                    setPagination(response.pagination);
-                } else {
-                    setPagination(null);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        handleGetEmployees();
-
-    }, [currentPage, pageSize]);
+        fetchRooms();
+    }, [debouncedSearchTerm, currentPage, pageSize, selectedStatus, selectedRoomType]);
 
     const handleSearch = (search: string) => {
         setSearchTerm(search);
+        setCurrentPage(1);
     };
 
     const handleStatusFilter = (status: string) => {
         setSelectedStatus(status);
+        setCurrentPage(1);
     };
 
     const handleRoomTypeFilter = (roomTypeId: string) => {
         setSelectedRoomType(roomTypeId);
+        setCurrentPage(1);
     };
 
     const getStatusColor = (status: string) => {
@@ -201,17 +184,29 @@ const Rooms = () => {
     const handleDeleteRoom = async (room: Room) => {
         try {
             await deleteRoom(room.id);
-            // Refresh rooms with current pagination after delete
-            const response = await getRooms({
+
+            const params: any = {
                 page: currentPage,
                 limit: pageSize
-            });
+            };
+
+            if (debouncedSearchTerm.trim()) {
+                params.q = debouncedSearchTerm;
+            }
+
+            if (selectedStatus !== 'all') {
+                params.status = selectedStatus;
+            }
+
+            if (selectedRoomType !== 'all') {
+                params.roomTypeId = selectedRoomType;
+            }
+
+            const response = await getRooms(params);
             setRooms(response.data);
 
-            // Update pagination
             if (response.pagination) {
                 setPagination(response.pagination);
-                // If we deleted the last item on a page, go back to previous page
                 if (response.data.length === 0 && currentPage > 1) {
                     setCurrentPage(currentPage - 1);
                 }
@@ -228,15 +223,14 @@ const Rooms = () => {
         try {
             await addRoomType(data);
             toast.success('Room type created successfully');
-            setIsRoomTypeDialogOpen(false); // Close dialog after successful creation
+            setIsRoomTypeDialogOpen(false);
 
-            // Refresh room types list
             const response = await getRoomTypes();
             setRoomTypes(response.data || response);
         } catch (error: any) {
             console.error('Error creating room type:', error);
             toast.error(error.userMessage || 'Error creating room type');
-            throw error; // Re-throw to let the dialog handle loading state
+            throw error;
         }
     };
 
@@ -247,7 +241,7 @@ const Rooms = () => {
     return (
         <>
             <DataTable
-                data={filteredRooms}
+                data={rooms}
                 loading={loading}
                 columns={roomColumns}
                 title="Rooms"
@@ -291,7 +285,7 @@ const Rooms = () => {
                 pagination={pagination ? {
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
-                    totalItems: filteredRooms.length,
+                    totalItems: pagination.totalItems,
                     onPageChange: setCurrentPage,
                     showPreviousNext: true,
                     maxVisiblePages: 7
@@ -299,9 +293,6 @@ const Rooms = () => {
                 deleteConfig={{
                     onDelete: handleDeleteRoom,
                     getDeleteTitle: () => 'Delete Room',
-                    // getDeleteDescription: (room) =>
-                    //     `Are you sure you want to delete room ${room.roomNumber}? This action cannot be undone.`,
-                    // getItemName: (room) => room.roomNumber
                 }}
             />
             <NewRoomTypeDialog
@@ -311,7 +302,6 @@ const Rooms = () => {
             />
         </>
     );
-
 };
 
 export default Rooms;

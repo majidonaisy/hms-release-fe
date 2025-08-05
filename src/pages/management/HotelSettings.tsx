@@ -4,7 +4,7 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
-import { Loader2, Save, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { getHotelSettings, updateHotelSettings } from '@/services/Hotel';
@@ -120,15 +120,15 @@ const HotelSettingsPage: React.FC = () => {
             <div className="mb-6">
                 <div className="flex items-center gap-4 mb-4">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => navigate('/dashboard')}
                     >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back to Dashboard
+                        <ChevronLeft className="h-4 w-4 mr-2" />
                     </Button>
+                    <h1 className="text-3xl font-bold">Hotel Settings</h1>
+
                 </div>
-                <h1 className="text-3xl font-bold">Hotel Settings</h1>
                 <p className="text-gray-600 mt-2">Configure your hotel's general settings and policies</p>
             </div>
 

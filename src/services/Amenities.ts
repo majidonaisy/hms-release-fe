@@ -7,6 +7,7 @@ const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 interface GetAmenitiesParams {
   page?: number;
   limit?: number;
+  q?: string;
 }
 
 export const getAmenities = async (params?: GetAmenitiesParams): Promise<AmenityResponse> => {

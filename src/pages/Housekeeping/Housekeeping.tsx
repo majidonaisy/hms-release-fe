@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Plus, EllipsisVertical } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/Organisms/Table';
@@ -24,8 +24,6 @@ interface HousekeepingFormData {
 }
 
 const HousekeepingPage = () => {
-    const [statusFilter, setStatusFilter] = useState('ALL');
-    const [priorityFilter, setPriorityFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(7);
     const [housekeepingTasks, setHousekeepingTasks] = useState<Housekeeping[]>([]);
@@ -46,12 +44,7 @@ const HousekeepingPage = () => {
         hasNext: boolean;
         hasPrevious: boolean;
     } | null>(null);
-
-    const filteredTasks = housekeepingTasks.filter((task) => {
-        const statusMatch = statusFilter === 'ALL' || task.status === statusFilter;
-        const priorityMatch = priorityFilter === 'ALL' || task.priority === priorityFilter;
-        return statusMatch && priorityMatch;
-    });
+    const [statusFilter, setStatusFilter] = useState('ALL');
 
     // Priority badge styling
     const getPriorityBadge = (priority: Housekeeping['priority']) => {
@@ -74,27 +67,34 @@ const HousekeepingPage = () => {
         return dotColors[status];
     };
 
-    const fetchHousekeepingTasks = async () => {
+    const fetchHousekeepingTasks = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getHousekeepingTasks({
+            const params: any = {
                 page: currentPage,
-                limit: pageSize
-            });
-            setHousekeepingTasks(response.data || []);
+                limit: pageSize,
+            };
 
-            // Set pagination if available in response
+            if (statusFilter !== 'ALL') {
+                params.status = statusFilter;
+            }
+
+            const response = await getHousekeepingTasks(params);
+            setHousekeepingTasks(response.data);
+
             if (response.pagination) {
                 setPagination(response.pagination);
             } else {
                 setPagination(null);
             }
-        } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to fetch housekeeping tasks');
+        } catch (error) {
+            console.error('Failed to fetch maintenance requests:', error);
+            toast.error('Failed to load maintenance requests');
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, pageSize, statusFilter]);
+
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -285,16 +285,14 @@ const HousekeepingPage = () => {
         }
     };
 
-    // Reset to page 1 when filters change
-    useEffect(() => {
+    const handleStatusFilterChange = (value: string) => {
         setCurrentPage(1);
-    }, [statusFilter, priorityFilter]);
+        setStatusFilter(value);
+    };
 
-    // Fetch data whenever page, pageSize, or filter changes
     useEffect(() => {
         fetchHousekeepingTasks();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, pageSize]);
+    }, [fetchHousekeepingTasks]);
 
     if (loading) {
         return <TableSkeleton title='HouseKeeping' />;
@@ -307,15 +305,15 @@ const HousekeepingPage = () => {
                 <div className="flex items-center gap-2 mb-4">
                     <h1 className="text-2xl font-semibold text-gray-900">Housekeeping</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        {pagination?.totalItems || filteredTasks.length} Task{(pagination?.totalItems || filteredTasks.length) !== 1 ? 's' : ''}
+                        {pagination?.totalItems || housekeepingTasks.length} Task{(pagination?.totalItems || housekeepingTasks.length) !== 1 ? 's' : ''}
                     </span>
                 </div>
 
                 {/* Search and Filters */}
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex gap-2 justify-end text-end">
 
                     {/* Status Filter */}
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
@@ -325,19 +323,6 @@ const HousekeepingPage = () => {
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                             <SelectItem value="COMPLETED">Completed</SelectItem>
                             <SelectItem value="CANCELED">Canceled</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    {/* Priority Filter */}
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All Priority</SelectItem>
-                            <SelectItem value="HIGH">High</SelectItem>
-                            <SelectItem value="MEDIUM">Medium</SelectItem>
-                            <SelectItem value="LOW">Low</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -376,14 +361,14 @@ const HousekeepingPage = () => {
                                     Loading housekeeping tasks...
                                 </TableCell>
                             </TableRow>
-                        ) : filteredTasks.length === 0 ? (
+                        ) : housekeepingTasks.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="py-10 text-center text-gray-600">
                                     No housekeeping tasks found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredTasks.map((task) => (
+                            housekeepingTasks.map((task) => (
                                 <TableRow key={task.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <div className="font-medium text-gray-900">

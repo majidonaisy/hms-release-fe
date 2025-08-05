@@ -37,11 +37,6 @@ const MaintenancePage = () => {
         hasPrevious: boolean;
     } | null>(null);
 
-    const filteredRequests = maintenanceRequests.filter((request) => {
-        const statusMatch = statusFilter === 'ALL' || request.status === statusFilter;
-        return statusMatch;
-    });
-
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
             LOW: 'bg-green-100 text-green-700 hover:bg-green-100',
@@ -64,13 +59,18 @@ const MaintenancePage = () => {
     const fetchMaintenanceRequests = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getMaintenances({
+            const params: any = {
                 page: currentPage,
-                limit: pageSize
-            });
+                limit: pageSize,
+            };
+
+            if (statusFilter !== 'ALL') {
+                params.status = statusFilter;
+            }
+
+            const response = await getMaintenances(params);
             setMaintenanceRequests(response.data);
 
-            // Set pagination if available in response
             if (response.pagination) {
                 setPagination(response.pagination);
             } else {
@@ -82,11 +82,10 @@ const MaintenancePage = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize]);
+    }, [currentPage, pageSize, statusFilter]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Data will be fetched in the useEffect when currentPage changes
     };
 
     const handleEditClick = (e: React.MouseEvent, requestId: string) => {
@@ -267,13 +266,14 @@ const MaintenancePage = () => {
         }
     };
 
-    useEffect(() => {
+    const handleStatusFilterChange = (value: string) => {
         setCurrentPage(1);
-    }, [statusFilter]);
+        setStatusFilter(value);
+    };
 
     useEffect(() => {
         fetchMaintenanceRequests();
-    }, [currentPage, pageSize, fetchMaintenanceRequests]);
+    }, [fetchMaintenanceRequests]);
 
     if (loading) {
         return (<TableSkeleton title='Maintenance' />)
@@ -286,7 +286,7 @@ const MaintenancePage = () => {
                 <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold text-gray-900">Maintenance</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                        {pagination ? pagination.totalItems : filteredRequests.length} Request{(pagination ? pagination.totalItems : filteredRequests.length) !== 1 ? 's' : ''}
+                        {pagination ? pagination.totalItems : maintenanceRequests.length} Request{(pagination ? pagination.totalItems : maintenanceRequests.length) !== 1 ? 's' : ''}
                     </span>
                 </div>
 
@@ -294,8 +294,8 @@ const MaintenancePage = () => {
                 <div className="flex gap-2 justify-end text-end">
 
                     {/* Status Filter - Updated for new status values */}
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-40 border-hms-primary text-hms-primary font-semibold">
+                    <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                        <SelectTrigger className="w-40">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -308,7 +308,7 @@ const MaintenancePage = () => {
                     </Select>
 
                     {/* Action Button */}
-                    <div className="">
+                    <div className="flex gap-2 ml-auto">
                         <Button onClick={() => {
                             setIsEditMode(false);
                             setEditingMaintenance(null);
@@ -344,14 +344,14 @@ const MaintenancePage = () => {
                                     Loading maintenance requests...
                                 </TableCell>
                             </TableRow>
-                        ) : filteredRequests.length === 0 ? (
+                        ) : maintenanceRequests.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                                     No maintenance requests found
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredRequests.map((request) => (
+                            maintenanceRequests.map((request) => (
                                 <TableRow key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4 font-medium text-gray-900">
                                         {request.type || 'N/A'}

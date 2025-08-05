@@ -35,6 +35,7 @@ export const addMaintenance = async (data: AddMaintenanceRequest): Promise<AddMa
 interface GetMaintenancesParams {
   page?: number;
   limit?: number;
+  status?: string
 }
 
 export const getMaintenances = async (params?: GetMaintenancesParams): Promise<GetMaintenancesResponse> => {

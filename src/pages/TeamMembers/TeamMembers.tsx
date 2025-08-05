@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Employee, GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
-import { getEmployees, searchEmployees } from '@/services/Employees';
+import { GetEmployeesResponse, Pagination } from '@/validation/schemas/Employees';
+import { getEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import { getRoles } from '@/services/Role';
@@ -22,15 +22,14 @@ const TeamMembers = () => {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState<GetEmployeesResponse['data']>([]);
     const [roles, setRoles] = useState<Role[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
+    const [pageSize] = useState(8);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
     const [searchLoading, setSearchLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -48,20 +47,39 @@ const TeamMembers = () => {
 
     const handleSearch = (search: string) => {
         setSearchTerm(search);
+        setCurrentPage(1);
     };
 
     const handleStatusFilter = (status: string) => {
         setSelectedStatus(status);
+        setCurrentPage(1);
     };
 
     useEffect(() => {
         const fetchTeamMembers = async () => {
             setSearchLoading(true);
             try {
-                const response = debouncedSearchTerm
-                    ? ((await searchEmployees({ q: debouncedSearchTerm })) as GetEmployeesResponse)
-                    : await getEmployees({ page: currentPage, limit: pageSize })
-                setEmployees(response.data)
+                const params: any = {
+                    page: currentPage,
+                    limit: pageSize
+                };
+
+                if (debouncedSearchTerm.trim()) {
+                    params.q = debouncedSearchTerm;
+                }
+
+                if (selectedStatus !== 'all') {
+                    params.status = selectedStatus;
+                }
+
+                const response = await getEmployees(params);
+                setEmployees(response.data);
+
+                if (response.pagination) {
+                    setPagination(response.pagination);
+                } else {
+                    setPagination(null);
+                }
             } catch (error) {
                 console.error("Error occurred:", error);
             } finally {
@@ -69,57 +87,24 @@ const TeamMembers = () => {
             }
         };
 
-        if (debouncedSearchTerm.trim() || !searchTerm.trim()) {
-            fetchTeamMembers();
-        }
-    }, [debouncedSearchTerm, currentPage, pageSize]);
+        fetchTeamMembers();
+    }, [debouncedSearchTerm, currentPage, pageSize, selectedStatus]);
 
     useEffect(() => {
-        let filtered = employees;
-
-        if (selectedStatus !== 'all') {
-            filtered = filtered.filter(member => member.online === (selectedStatus === 'online'));
-        }
-
-        setFilteredEmployees(filtered);
-    }, [employees, searchTerm, selectedStatus]);
-
-    useEffect(() => {
-        const handleGetEmployees = async () => {
-            setLoading(true);
-            try {
-                const response = await getEmployees({
-                    page: currentPage,
-                    limit: pageSize
-                });
-                console.log('response', response);
-                setEmployees(response.data);
-                if (response.pagination) {
-                    setPagination(response.pagination);
-                } else {
-                    setPagination(null);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         const handleGetRoles = async () => {
+            setSearchLoading(true)
             try {
                 const rolesResponse = await getRoles();
                 setRoles(rolesResponse.data);
             } catch (error) {
                 console.error('Failed to fetch roles:', error);
+            } finally {
+                setLoading(false)
             }
         };
 
-        Promise.all([
-            handleGetEmployees(),
-            handleGetRoles()
-        ]);
-    }, [currentPage, pageSize]);
+        handleGetRoles();
+    }, []);
 
     const roleMap = roles.reduce(
         (map, role) => {
@@ -173,7 +158,7 @@ const TeamMembers = () => {
 
     return (
         <DataTable
-            data={filteredEmployees}
+            data={employees}
             loading={loading}
             columns={teamColumns}
             title="Team Members"
@@ -188,12 +173,15 @@ const TeamMembers = () => {
             filter={{
                 searchPlaceholder: "Search team members...",
                 showFilter: true,
-                statusFilter: {
-                    enabled: true,
-                    options: teamMembersStatusOptions,
-                    defaultLabel: "All Statuses",
-                    onStatusChange: handleStatusFilter
-                }
+                selectFilters: [
+                    {
+                        key: 'status',
+                        label: 'Status',
+                        options: teamMembersStatusOptions,
+                        defaultLabel: "All Statuses",
+                        onFilterChange: handleStatusFilter
+                    }
+                ]
             }}
             onSearch={handleSearch}
             pagination={pagination ? {
