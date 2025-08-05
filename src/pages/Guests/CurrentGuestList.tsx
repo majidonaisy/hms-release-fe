@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
-import type {  Guest, RoomType, GetGroupProfilesResponse, GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation"
+import type { Guest, RoomType, GetGroupProfilesResponse, GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
@@ -56,8 +56,7 @@ const CurrentGuestList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<CombinedGuestData | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
-
-  // Debounced search terms
+  const [searchLoading, setSearchLoading] = useState(false);
   const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
   const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
 
@@ -69,7 +68,6 @@ const CurrentGuestList = () => {
     {} as Record<string, string>,
   )
 
-  // Handle search
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
     if (activeTab === "individuals") {
@@ -92,7 +90,7 @@ const CurrentGuestList = () => {
     const handleGetGuests = async () => {
       if (activeTab === "groups") return
 
-      setLoading(true)
+      setSearchLoading(true)
       try {
         const response = ((await getCurrentGuests({
           q: debouncedIndividualSearch,
@@ -102,7 +100,7 @@ const CurrentGuestList = () => {
       } catch (error) {
         console.error(error)
       } finally {
-        setLoading(false)
+        setSearchLoading(false)
       }
     }
     handleGetGuests()
@@ -112,7 +110,7 @@ const CurrentGuestList = () => {
     const handleGetGroupProfiles = async () => {
       if (activeTab === "individuals") return
 
-      setLoading(true)
+      setSearchLoading(true)
       try {
         const response = ((await getCurrentGroupProfiles({
           q: debouncedGroupSearch,
@@ -121,7 +119,7 @@ const CurrentGuestList = () => {
       } catch (error) {
         console.error(error)
       } finally {
-        setLoading(false)
+        setSearchLoading(false)
       }
     }
     handleGetGroupProfiles()
@@ -334,7 +332,13 @@ const CurrentGuestList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          Loading guests...
+                        </TableCell>
+                      </TableRow>
+                    ) : combinedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                           No data found
@@ -450,7 +454,13 @@ const CurrentGuestList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          Loading guests...
+                        </TableCell>
+                      </TableRow>
+                    ) : combinedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                           No individual guests found
@@ -543,12 +553,17 @@ const CurrentGuestList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {combinedData.length === 0 ? (
+                    {searchLoading || loading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No group profiles found
+                          Loading guests...
                         </TableCell>
                       </TableRow>
+                    ) : combinedData.length === 0 ? (<TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                        No group profiles found
+                      </TableCell>
+                    </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow

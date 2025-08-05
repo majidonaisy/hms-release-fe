@@ -1,21 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 
 export const useDebounce = (value: string, delay: number) => {
- const [debouncedValue, setDebouncedValue] = useState(value);
-  const isFirstSearch = useRef(true);
-  const lastExecutedValue = useRef("");
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (isFirstSearch.current || (lastExecutedValue.current === "" && value !== "")) {
+    // On first render, just set the initial value without delay
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       setDebouncedValue(value);
-      lastExecutedValue.current = value;
-      isFirstSearch.current = false;
       return;
     }
 
+    // For all subsequent changes, apply the delay
     const handler = setTimeout(() => {
       setDebouncedValue(value);
-      lastExecutedValue.current = value;
     }, delay);
 
     return () => {

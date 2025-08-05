@@ -79,6 +79,7 @@ export default function NewGroupReservation() {
     const [selectedRoomType, setSelectedRoomType] = useState<string>("");
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
 
     const handleInputChange = (field: keyof GroupReservationRequest, value: any) => {
         setFormData(prev => ({
@@ -178,6 +179,7 @@ export default function NewGroupReservation() {
 
     useEffect(() => {
         const handleGetGroupProfiles = async () => {
+            setSearchLoading(true)
             try {
                 const response = ((await searchGroupProfiles({
                     q: debouncedGroupProfileSearch,
@@ -185,6 +187,8 @@ export default function NewGroupReservation() {
                 setGroupProfiles(response.data)
             } catch (error) {
                 console.error(error)
+            } finally {
+                setSearchLoading(false)
             }
         }
         handleGetGroupProfiles()
@@ -303,7 +307,7 @@ export default function NewGroupReservation() {
                                                 <Search className="h-4 w-4 text-gray-400" />
                                             </div>
                                         </div>
-                                        {loading ? (
+                                        {searchLoading ? (
                                             <SelectItem value="loading" disabled>
                                                 Loading...
                                             </SelectItem>

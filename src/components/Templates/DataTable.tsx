@@ -142,6 +142,7 @@ export interface DataTableProps<T = any> {
     }
   }
   className?: string
+  searchLoading?: boolean,
   emptyStateMessage?: string
 }
 
@@ -211,28 +212,29 @@ const DataTable = <T,>({
   deleteConfig,
   permissions,
   className = "",
+  searchLoading = false,
   emptyStateMessage = "No data found",
 }: DataTableProps<T>) => {
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
-  
+
   // Dynamic filter states - stores filter values by key
   const [filterValues, setFilterValues] = useState<Record<string, string>>(() => {
     const initialValues: Record<string, string> = {}
-    
+
     // Initialize with default values
     filter?.selectFilters?.forEach(selectFilter => {
       initialValues[selectFilter.key] = selectFilter.defaultValue || "all"
     })
-    
+
     // Backward compatibility with statusFilter
     if (filter?.statusFilter?.enabled) {
       initialValues['status'] = "all"
     }
-    
+
     return initialValues
   })
-  
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<T | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -254,13 +256,13 @@ const DataTable = <T,>({
       ...prev,
       [filterKey]: value
     }))
-    
+
     // Find the corresponding filter and call its onChange handler
     const selectFilter = filter?.selectFilters?.find(f => f.key === filterKey)
     if (selectFilter) {
       selectFilter.onFilterChange(value)
     }
-    
+
     // Backward compatibility with statusFilter
     if (filterKey === 'status' && filter?.statusFilter?.onStatusChange) {
       filter.statusFilter.onStatusChange(value)
@@ -508,9 +510,9 @@ const DataTable = <T,>({
 
             {/* Dynamic Select Filters */}
             {allSelectFilters.map((selectFilter) => (
-              <Select 
+              <Select
                 key={selectFilter.key}
-                value={filterValues[selectFilter.key] || "all"} 
+                value={filterValues[selectFilter.key] || "all"}
                 onValueChange={(value) => handleFilterChange(selectFilter.key, value)}
               >
                 <SelectTrigger className="w-[180px]">
@@ -600,74 +602,84 @@ const DataTable = <T,>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length === 0 ? (
+              {searchLoading ? (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length + (hasVisibleActions() ? 1 : 0)}
                     className="py-10 text-center text-gray-600"
                   >
-                    {emptyStateMessage}
+                    Loading...
                   </TableCell>
                 </TableRow>
-              ) : (
-                data.map((item) => {
-                  const handleRowClick = () => {
-                    if (!onRowClick) return
-                    if (permissions?.rowClick?.action && permissions?.rowClick?.subject) {
-                      onRowClick(item)
-                    } else {
-                      onRowClick(item)
-                    }
-                  }
-
-                  return (
-                    <TableRow
-                      key={getRowKey(item)}
-                      onClick={handleRowClick}
-                      className={`border-b-2 hover:bg-accent ${onRowClick ? "cursor-pointer" : ""}`}
+              ) :
+                data.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length + (hasVisibleActions() ? 1 : 0)}
+                      className="py-10 text-center text-gray-600"
                     >
-                      {columns.map((column) => (
-                        <TableCell key={column.key} className={`px-6 py-4 ${column.className || ""}`}>
-                          {renderCell(item, column)}
-                        </TableCell>
-                      ))}
-                      {/* Always render the actions cell if there are actions */}
-                      {hasVisibleActions() && (
-                        <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                          {permissions?.showActionsColumn ? (
-                            <Can
-                              action={permissions.showActionsColumn.action}
-                              subject={permissions.showActionsColumn.subject}
-                            >
-                              <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <EllipsisVertical />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                  {otherActions?.map((action, index) =>
-                                    renderActionWithPermission(action, item, index),
-                                  )}
-                                  {deleteConfig && otherActions && otherActions.length > 0 && <DropdownMenuSeparator />}
-                                  {deleteConfig && renderDeleteAction(item)}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </Can>
-                          ) : (
-                            <ConditionalDropdown item={item} />
-                          )}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )
-                })
-              )}
+                      {emptyStateMessage}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((item) => {
+                    const handleRowClick = () => {
+                      if (!onRowClick) return
+                      if (permissions?.rowClick?.action && permissions?.rowClick?.subject) {
+                        onRowClick(item)
+                      } else {
+                        onRowClick(item)
+                      }
+                    }
+
+                    return (
+                      <TableRow
+                        key={getRowKey(item)}
+                        onClick={handleRowClick}
+                        className={`border-b-2 hover:bg-accent ${onRowClick ? "cursor-pointer" : ""}`}
+                      >
+                        {columns.map((column) => (
+                          <TableCell key={column.key} className={`px-6 py-4 ${column.className || ""}`}>
+                            {renderCell(item, column)}
+                          </TableCell>
+                        ))}
+                        {/* Always render the actions cell if there are actions */}
+                        {hasVisibleActions() && (
+                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                            {permissions?.showActionsColumn ? (
+                              <Can
+                                action={permissions.showActionsColumn.action}
+                                subject={permissions.showActionsColumn.subject}
+                              >
+                                <DropdownMenu modal={false}>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <EllipsisVertical />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                    {otherActions?.map((action, index) =>
+                                      renderActionWithPermission(action, item, index),
+                                    )}
+                                    {deleteConfig && otherActions && otherActions.length > 0 && <DropdownMenuSeparator />}
+                                    {deleteConfig && renderDeleteAction(item)}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </Can>
+                            ) : (
+                              <ConditionalDropdown item={item} />
+                            )}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    )
+                  })
+                )}
             </TableBody>
           </Table>
         </div>
