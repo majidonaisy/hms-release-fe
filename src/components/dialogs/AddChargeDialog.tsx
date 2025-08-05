@@ -12,6 +12,7 @@ import { getReservationById } from '@/services/Reservation';
 import { SingleReservation } from '@/validation';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
+import { ScrollArea } from '../atoms/ScrollArea';
 
 interface AddChargeDialogProps {
     open: boolean;
@@ -173,7 +174,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="!max-w-2xl">
-                <DialogHeader className="flex flex-row items-center justify-between pb-4">
+                <DialogHeader className="flex flex-row items-center justify-between">
                     <div className="flex items-center">
                         <Button
                             variant="ghost"
@@ -196,7 +197,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                     <div className="border rounded-lg p-4 bg-hms-primary/15">
                         <h3 className="font-semibold text-lg mb-3">Reservation Summary</h3>
                         {isLoadingReservation ? (
-                            <div className="flex justify-center items-center py-4">
+                            <div className="flex justify-center items-center py-4 h-[200px]">
                                 <div className="text-sm text-gray-500">Loading reservation details...</div>
                             </div>
                         ) : (
@@ -246,100 +247,101 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                             </div>
                         )}
                     </div>
+                    <ScrollArea className='h-[20rem]'>
+                        {/* Charge Type */}
+                        <div className=" rounded-lg ">
+                            <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
+                            <Select value={itemType} onValueChange={setItemType}>
+                                <SelectTrigger className="mt-2 w-full">
+                                    <SelectValue placeholder="Select charge type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {itemTypes.map((type) => (
+                                        <SelectItem key={type.value} value={type.value}>
+                                            {type.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    {/* Charge Type */}
-                    <div className=" rounded-lg ">
-                        <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
-                        <Select value={itemType} onValueChange={setItemType}>
-                            <SelectTrigger className="mt-2 w-full">
-                                <SelectValue placeholder="Select charge type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {itemTypes.map((type) => (
-                                    <SelectItem key={type.value} value={type.value}>
-                                        {type.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Quantity */}
-                    <div className=" rounded-lg ">
-                        <Label htmlFor="amount" className="text-base font-semibold">Quantity</Label>
-                        <Input
-                            id="amount"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="e.g. 2"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            className="mt-2"
-                        />
-                    </div>
-
-                    {/* Unit Price */}
-                    <div className=" rounded-lg ">
-                        <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
-                        <div className="flex mt-2 gap-2">
+                        {/* Quantity */}
+                        <div className=" rounded-lg ">
+                            <Label htmlFor="amount" className="text-base font-semibold">Quantity</Label>
                             <Input
-                                id="unitPrice"
+                                id="amount"
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                placeholder="e.g. 150.00"
-                                value={unitPrice}
-                                onChange={(e) => setUnitPrice(e.target.value)}
-                                className="flex-1"
+                                placeholder="e.g. 2"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                className="mt-2"
                             />
                         </div>
-                    </div>
 
-                    {/* Description */}
-                    <div className=" rounded-lg ">
-                        <Label htmlFor="description" className="text-base font-semibold">Description</Label>
-                        <Textarea
-                            id="description"
-                            placeholder="Optional description for this charge"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={4}
-                            className="mt-2 resize-none"
-                        />
-                    </div>
+                        {/* Unit Price */}
+                        <div className=" rounded-lg ">
+                            <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
+                            <div className="flex mt-2 gap-2">
+                                <Input
+                                    id="unitPrice"
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="e.g. 150.00"
+                                    value={unitPrice}
+                                    onChange={(e) => setUnitPrice(e.target.value)}
+                                    className="flex-1"
+                                />
+                            </div>
+                        </div>
 
-                    {/* Receipt ID */}
-                    <div className=" rounded-lg ">
-                        <Label htmlFor="receiptId" className="text-base font-semibold">Receipt ID</Label>
-                        <Input
-                            id="receiptId"
-                            type="text"
-                            placeholder="Receipt ID"
-                            value={receiptId}
-                            onChange={(e) => setReceiptId(e.target.value)}
-                            className="mt-2"
-                        />
-                    </div>
+                        {/* Description */}
+                        <div className=" rounded-lg ">
+                            <Label htmlFor="description" className="text-base font-semibold">Description</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Optional description for this charge"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={4}
+                                className="mt-2 resize-none"
+                            />
+                        </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-center gap-4 mt-6">
-                        <Button
-                            variant="outline"
-                            onClick={handleCancel}
-                            disabled={isLoading}
-                            className="py-3 text-lg font-medium"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleConfirmCharge}
-                            disabled={isLoading}
-                            className="py-3 text-lg font-medium"
-                        >
-                            {isLoading ? 'Processing...' : 'Confirm Charge'}
-                        </Button>
-                    </div>
+                        {/* Receipt ID */}
+                        <div className=" rounded-lg ">
+                            <Label htmlFor="receiptId" className="text-base font-semibold">Receipt ID</Label>
+                            <Input
+                                id="receiptId"
+                                type="text"
+                                placeholder="Receipt ID"
+                                value={receiptId}
+                                onChange={(e) => setReceiptId(e.target.value)}
+                                className="mt-2"
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-center gap-4 mt-6">
+                            <Button
+                                variant="outline"
+                                onClick={handleCancel}
+                                disabled={isLoading}
+                                className="py-3 text-lg font-medium"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleConfirmCharge}
+                                disabled={isLoading}
+                                className="py-3 text-lg font-medium"
+                            >
+                                {isLoading ? 'Processing...' : 'Confirm Charge'}
+                            </Button>
+                        </div>
+                    </ScrollArea>
                 </div>
             </DialogContent>
         </Dialog>

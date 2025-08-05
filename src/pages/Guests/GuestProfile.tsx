@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useAsyncError, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
 import { searchGuests, searchGroupProfiles } from "@/services/Guests"
 import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
@@ -8,7 +8,7 @@ import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
 import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
-import { Search, Plus, EllipsisVertical, ChevronLeft } from "lucide-react"
+import { Search, Plus, EllipsisVertical } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table"
 import {
   DropdownMenu,
@@ -42,7 +42,7 @@ type CombinedGuestData = {
 const GuestProfile = () => {
   const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(5)
+  const [pageSize] = useState(8)
 
   const [searchTerm, setSearchTerm] = useState("")
   const [individualSearchTerm, setIndividualSearchTerm] = useState("")
@@ -63,7 +63,7 @@ const GuestProfile = () => {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [openGuestDialog, setOpenGuestDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState("all")
+  const [activeTab, setActiveTab] = useState("individuals")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<CombinedGuestData | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -103,10 +103,11 @@ const GuestProfile = () => {
 
       setSearchLoading(true)
       try {
-        const response = ((await searchGuests({
+        const response = await searchGuests({
           q: debouncedIndividualSearch,
-
-        })) as GetGuestsResponse)
+          page: currentPage,
+          limit: pageSize,
+        })
         setGuests(response.data)
         if (response.pagination) {
           setPagination(response.pagination)
@@ -114,7 +115,8 @@ const GuestProfile = () => {
           setPagination(null)
         }
       } catch (error) {
-        console.error(error)
+        console.error("Error fetching guests:", error)
+        setGuests([])
       } finally {
         setSearchLoading(false)
       }
@@ -128,12 +130,20 @@ const GuestProfile = () => {
 
       setSearchLoading(true)
       try {
-        const response = ((await searchGroupProfiles({
+        const response = await searchGroupProfiles({
           q: debouncedGroupSearch,
-        })) as GetGroupProfilesResponse)
+          page: currentPage,
+          limit: pageSize,
+        })
         setGroupProfiles(response.data)
+        if (response.pagination) {
+          setPagination(response.pagination)
+        } else {
+          setPagination(null)
+        }
       } catch (error) {
-        console.error(error)
+        console.error("Error fetching group profiles:", error)
+        setGroupProfiles([])
       } finally {
         setSearchLoading(false)
       }
@@ -264,7 +274,7 @@ const GuestProfile = () => {
   const getTotalCount = () => {
     switch (activeTab) {
       case "individuals":
-        return pagination?.totalItems || guests.length
+        return guests.length
       case "groups":
         return groupProfiles.length
       default:
@@ -284,9 +294,6 @@ const GuestProfile = () => {
           {/* Title with Count */}
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-3 mb-6">
-              <Button variant="ghost" onClick={() => navigate(-1)} className="p-0 hover:bg-slate-100">
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
               <h1 className="text-2xl font-semibold text-gray-900">Guests Profile</h1>
               <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                 {getTotalCount()} {getTotalCount() === 1 ? "item" : "items"}
@@ -328,132 +335,10 @@ const GuestProfile = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="individuals">Individuals</TabsTrigger>
               <TabsTrigger value="groups">Groups</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="all" className="mt-6">
-              <div className="bg-white rounded-lg">
-                <Table>
-                  <TableHeader className="bg-hms-accent/15">
-                    <TableRow className="border-b border-gray-200">
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
-                        Email
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
-                        Contact Info
-                      </TableHead>
-                      <TableHead className="w-[100px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {searchLoading || loading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          Loading guests...
-                        </TableCell>
-                      </TableRow>
-                    ) : combinedData.length === 0 ? (<TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                        No data found
-                      </TableCell>
-                    </TableRow>
-                    ) : (
-                      combinedData.map((item) => (
-                        <TableRow
-                          key={`${item.isGroup ? "group" : "guest"}-${item.id}`}
-                          onClick={() => handleRowClick(item)}
-                          className="border-b-2 hover:bg-accent cursor-pointer"
-                        >
-                          <TableCell className="px-6 py-4">
-                            {item.isGroup ? (
-                              <div className="flex items-center gap-3">
-                                <Avatar>
-                                  <AvatarImage />
-                                  <AvatarFallback>{item.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <div className="font-medium text-gray-900">{item.name}</div>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-3">
-                                <Avatar>
-                                  <AvatarImage />
-                                  <AvatarFallback>
-                                    {item.firstName?.charAt(0).toUpperCase()}
-                                    {item.lastName?.charAt(0).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="font-medium text-gray-900">
-                                  {item.firstName} {item.lastName}
-                                </div>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium">
-                              {item.type === "individual" ? "INDIVIDUAL" : item.type.replace("_", " ")}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
-                          <TableCell className="px-6 py-4">
-                            {item.isGroup ? (
-                              <span className="text-gray-600">N/A</span>
-                            ) : (
-                              <span className="text-gray-600">
-                                {(item.preferences?.roomType && roomTypeMap[item.preferences.roomType]) || "Unknown"}
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-6 py-4">
-                            {item.isGroup ? (
-                              <span className="text-gray-600">
-                                {(item.originalData as GetGroupProfilesResponse["data"][0]).specialRequirements ||
-                                  "None"}
-                              </span>
-                            ) : (
-                              <span className="text-gray-600">
-                                {item.preferences?.smoking ? "Smoking" : "No Smoking"}
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
-                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu modal={false}>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <EllipsisVertical />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => handleDeleteClick(item, e)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
 
             <TabsContent value="individuals" className="mt-6">
               <div className="bg-white rounded-lg">

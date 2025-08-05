@@ -3,12 +3,13 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { ChevronLeft, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import { getRoles } from '@/services/Role';
-import { addTeamMember } from '@/services/Employees';
+import { addTeamMember, getEmployeeById, updateEmployee } from '@/services/Employees';
+import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 
 interface Role {
     id: string;
@@ -32,8 +33,11 @@ interface CreateTeamMemberRequest {
 
 const NewTeamMember = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const [loading, setLoading] = useState(false);
+    const [employeeLoading, setEmployeeLoading] = useState(false);
     const [roles, setRoles] = useState<Role[]>([]);
+    const [isEditMode, setIsEditMode] = useState(false);
     const [formData, setFormData] = useState<CreateTeamMemberRequest>({
         email: '',
         username: '',
@@ -43,6 +47,35 @@ const NewTeamMember = () => {
         roleId: ''
     });
     const [teamMemberCreatedDialog, setTeamMemberCreatedDialog] = useState(false);
+
+    // Check if in edit mode and fetch employee data
+    useEffect(() => {
+        if (id) {
+            setIsEditMode(true);
+            const fetchEmployee = async () => {
+                setEmployeeLoading(true);
+                try {
+                    const employee = await getEmployeeById(id);
+                    setFormData({
+                        email: employee.data.email,
+                        username: employee.data.username,
+                        password: '', // Don't populate password for security
+                        firstName: employee.data.firstName,
+                        lastName: employee.data.lastName,
+                        roleId: employee.data.roleId
+                    });
+                } catch (error) {
+                    console.error("Failed to fetch employee:", error);
+                    toast("Error!", {
+                        description: "Failed to load employee data.",
+                    });
+                } finally {
+                    setEmployeeLoading(false);
+                }
+            };
+            fetchEmployee();
+        }
+    }, [id]);
 
     useEffect(() => {
         const handleGetRoles = async () => {
@@ -68,9 +101,15 @@ const NewTeamMember = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!formData.email || !formData.username || !formData.password || 
-            !formData.firstName || !formData.lastName || !formData.roleId) {
+
+        // For edit mode, password is optional
+        const requiredFields = isEditMode
+            ? ['email', 'username', 'firstName', 'lastName', 'roleId']
+            : ['email', 'username', 'password', 'firstName', 'lastName', 'roleId'];
+
+        const missingFields = requiredFields.filter(field => !formData[field as keyof CreateTeamMemberRequest]);
+
+        if (missingFields.length > 0) {
             toast("Error!", {
                 description: "Please fill in all required fields.",
             });
@@ -79,20 +118,33 @@ const NewTeamMember = () => {
 
         setLoading(true);
         try {
-            console.log('Creating team member:', formData);
-            
-            await addTeamMember(formData)
-            
-            toast("Success!", {
-                description: "Team member was created successfully.",
-            });
-            
+            if (isEditMode) {
+                if (id) {
+                    // For updates, only send password if it's been changed
+                    const updateData = { ...formData };
+                  
+                    await updateEmployee(id, updateData);
+                    toast("Success!", {
+                        description: "Team member was updated successfully.",
+                    });
+                } else {
+                    console.error("Employee ID is undefined.");
+                    return;
+                }
+            } else {
+                await addTeamMember(formData);
+                toast("Success!", {
+                    description: "Team member was created successfully.",
+                });
+            }
+
             setTeamMemberCreatedDialog(true);
-        } catch (error) {
+        } catch (error: any) {
+            const err = error?.userMessage || `Failed to ${isEditMode ? 'update' : 'create'} team member.`;
             toast("Error!", {
-                description: "Failed to create team member.",
+                description: err,
             });
-            console.error("Failed to create team member:", error);
+            console.error(`Failed to ${isEditMode ? 'update' : 'create'} team member:`, error);
         } finally {
             setLoading(false);
         }
@@ -111,6 +163,9 @@ const NewTeamMember = () => {
 
     return (
         <>
+            {employeeLoading && (
+                <EditingSkeleton />
+            )}
             <div className="p-5">
                 <div className="flex items-center gap-3 mb-5">
                     <Button
@@ -120,12 +175,14 @@ const NewTeamMember = () => {
                     >
                         <ChevronLeft className="" />
                     </Button>
-                    <h1 className="text-xl font-bold">New Team Member</h1>
+                    <h1 className="text-xl font-bold">
+                        {isEditMode ? 'Edit Team Member' : 'New Team Member'}
+                    </h1>
                 </div>
                 <form onSubmit={handleSubmit} className='px-7 grid grid-cols-2 gap-8'>
                     <div className='space-y-5'>
                         <h2 className='text-lg font-bold'>Personal Information</h2>
-                        
+
                         <div className='space-y-1'>
                             <Label>First Name *</Label>
                             <Input
@@ -176,21 +233,23 @@ const NewTeamMember = () => {
                         </div>
 
                         <div className='space-y-1'>
-                            <Label>Password *</Label>
+                            <Label>
+                                Password {isEditMode ? '(leave blank to keep current)' : '*'}
+                            </Label>
                             <Input
                                 type='password'
                                 value={formData.password}
                                 onChange={(e) => handleInputChange('password', e.target.value)}
                                 className='border border-slate-300'
                                 placeholder='••••••••'
-                                required
+                                required={!isEditMode}
                             />
                         </div>
 
                         <div className='space-y-1'>
                             <Label>Role *</Label>
-                            <Select 
-                                value={formData.roleId} 
+                            <Select
+                                value={formData.roleId}
                                 onValueChange={(value) => handleInputChange('roleId', value)}
                             >
                                 <SelectTrigger className='w-full border border-slate-300'>
@@ -222,7 +281,13 @@ const NewTeamMember = () => {
                             className="px-8"
                             disabled={loading}
                         >
-                            {loading ? "Creating..." : "Create Team Member"}
+                            {loading
+                                ? isEditMode
+                                    ? "Updating..."
+                                    : "Creating..."
+                                : isEditMode
+                                    ? "Update Team Member"
+                                    : "Create Team Member"}
                         </Button>
                     </div>
                 </form>
@@ -232,25 +297,30 @@ const NewTeamMember = () => {
                         <DialogHeader>
                             <DialogTitle className="flex flex-col items-center gap-2">
                                 <Check className="bg-green-500 text-white rounded-full p-1 w-6 h-6" />
-                                Team member has been created successfully
+                                Team member has been {isEditMode ? 'updated' : 'created'} successfully
                             </DialogTitle>
                         </DialogHeader>
                         <DialogDescription>
-                            The new team member can now log in with their credentials.
+                            {isEditMode
+                                ? "The team member's information has been updated."
+                                : "The new team member can now log in with their credentials."
+                            }
                         </DialogDescription>
                         <DialogFooter>
-                            <Button 
-                                onClick={() => { 
-                                    setTeamMemberCreatedDialog(false); 
-                                    navigate('/team-members'); 
-                                }} 
+                            <Button
+                                onClick={() => {
+                                    setTeamMemberCreatedDialog(false);
+                                    navigate('/team-members');
+                                }}
                                 variant='background'
                             >
                                 Back to Team Members
                             </Button>
-                            <Button onClick={() => navigate('/team-members/new')}>
-                                Add Another Member
-                            </Button>
+                            {!isEditMode && (
+                                <Button onClick={() => navigate('/team-members/new')}>
+                                    Add Another Member
+                                </Button>
+                            )}
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
