@@ -44,7 +44,27 @@ export const GetEmployeesResponseSchema = z.object({
 export const GetEmployeeByIdResponseSchema = z.object({
   status: z.number(),
   message: z.string().optional(),
-  data: EmployeeShape,
+  data: z.object({
+    id: z.string(),
+    email: z.string(),
+    username: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    isActive: z.boolean(),
+    roleId: z.string(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    createdBy: z.string().nullable(),
+    updatedBy: z.string().nullable(),
+    Session: z.array(z.object({
+      id: z.string(),
+      hotelId: z.string(),
+      userId: z.string(),
+      isActive: z.boolean(),
+      lastActivity: z.date(),
+      createdAt: z.date()
+    }))
+  }),
 });
 
 export const AddEmployeeRequestSchema = z.object({

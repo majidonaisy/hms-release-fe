@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Badge } from '@/components/atoms/Badge';
@@ -18,7 +18,6 @@ import { Role } from '@/validation/schemas/Roles';
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [searchText, setSearchText] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [teamMember, setTeamMember] = useState<GetEmployeeByIdResponse['data'] | null>(null);
     const [roles, setRoles] = useState<Role[]>([]);
@@ -153,6 +152,63 @@ const TeamMemberProfile = () => {
         return role?.name || 'Unknown Role';
     };
 
+    const formatDate = (date: Date): string => {
+        const today = new Date();
+        const sessionDate = new Date(date);
+
+        // Check if it's today
+        if (sessionDate.toDateString() === today.toDateString()) {
+            return 'Today';
+        }
+
+        // Check if it's yesterday
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (sessionDate.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        }
+
+        // Return formatted date
+        return sessionDate.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const formatTime = (date: Date): string => {
+        return new Date(date).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).toLowerCase();
+    };
+
+    const getActivityDescription = (session: any): string => {
+        if (session.isActive) {
+            return 'Logged in';
+        } else {
+            return 'Logged out';
+        }
+    };
+
+    // Group sessions by date
+    const groupSessionsByDate = (sessions: any[]) => {
+        const grouped: { [key: string]: any[] } = {};
+
+        sessions
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .forEach((session) => {
+                const dateKey = formatDate(new Date(session.createdAt));
+                if (!grouped[dateKey]) {
+                    grouped[dateKey] = [];
+                }
+                grouped[dateKey].push(session);
+            });
+
+        return grouped;
+    };
+
     return (
         <>
             {loading ? (
@@ -178,7 +234,6 @@ const TeamMemberProfile = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1 space-y-6">
                             <Card className="bg-white rounded-lg shadow p-6">
-                                
                                 <p className='text-center font-semibold'>
                                     {isEditMode ? `${formData.firstName} ${formData.lastName}` : `${teamMember.firstName} ${teamMember.lastName}`}
                                 </p>
@@ -345,29 +400,59 @@ const TeamMemberProfile = () => {
                         <Card className="p-3">
                             <CardHeader className='p-0'>
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>Activity Logs</CardTitle>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="flex items-center rounded-lg border px-1">
-                                        <Input
-                                            type="text"
-                                            placeholder="Search here"
-                                            value={searchText}
-                                            onChange={(e) => setSearchText(e.target.value)}
-                                            className="border-none outline-none focus-visible:ring-0 bg-transparent text-sm h-5"
-                                        />
-                                        <Search className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <Button variant="outline" className='h-6'>
-                                        <Filter className="h-4 w-4 text-muted-foreground" />
-                                        <p className='text-sm text-muted-foreground'>Filter</p>
-                                    </Button>
-                                </div>
+
                             </CardHeader>
                             <CardContent className="p-0">
-                                <div className="text-center text-gray-500 py-8">
-                                    <div className="w-12 h-12 bg-hms-primary/15 rounded-full flex items-center justify-center mx-auto mb-2">
-                                        <Search className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <p className="text-sm">No activity logs available</p>
+                                <div className="space-y-4">
+                                    {teamMember.Session.length === 0 ? (
+                                        <div className="text-center text-muted-foreground text-sm py-8">
+                                            No activity logs found
+                                        </div>
+                                    ) : (
+                                        (() => {
+                                            const groupedSessions = groupSessionsByDate(teamMember.Session);
+
+                                            return Object.entries(groupedSessions).map(([dateKey, sessions]) => (
+                                                <div key={dateKey} className="space-y-3">
+                                                    {/* Date Header */}
+                                                    <div className="text-sm font-medium bg-hms-primary/15 px-2 py-1 mb-5 rounded">
+                                                        {dateKey}
+                                                    </div>
+
+                                                    {/* Sessions for this date */}
+                                                    <div className="space-y-3 pl-4">
+                                                        {sessions.map((session) => {
+                                                            return (
+                                                                <div key={session.id} className="ml-10">
+                                                                    <div className="right-30 relative -top-5" >
+                                                                        <div className="flex-shrink-0">
+                                                                            <div className="w-px h-10 bg-hms-primary mt-1 absolute left-20">
+                                                                                <div className='w-10 bg-hms-primary h-px relative top-9'></div>
+                                                                                <div className='w-2 h-2 rounded-full bg-hms-primary relative top-8 -left-1'></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex justify-between ml-2 bg-hms-accent/15 p-2 rounded-lg">
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-sm font-medium">
+                                                                                {getActivityDescription(session)}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="text-xs flex flex-col text-gray-500">
+                                                                            <p className='text-end'>{formatTime(new Date(session.lastActivity || session.createdAt))}</p>
+                                                                            {session.isActive && (
+                                                                                <span className="text-xs text-green-600">Currently active</span>
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            ));
+                                        })()
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
