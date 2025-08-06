@@ -122,6 +122,18 @@ const RoutesList = () => {
                         action: "read",
                         subject: "Guest"
                     }
+                },
+                {
+                    path: "/group-profile/:id",
+                    title: "Edit Guest Profile",
+                    icon: <Eye />,
+                    component: NewGroupProfile,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "read",
+                        subject: "Guest"
+                    }
                 }
 
             ]

@@ -262,7 +262,7 @@ const CurrentGuestList = () => {
         <div className="mb-6">
           {/* Title with Count */}
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 ">
               <h1 className="text-2xl font-semibold text-gray-900">Current Guests</h1>
               <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                 {getTotalCount()} {getTotalCount() === 1 ? "item" : "items"}

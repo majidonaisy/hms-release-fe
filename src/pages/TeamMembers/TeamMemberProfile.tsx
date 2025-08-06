@@ -179,15 +179,7 @@ const TeamMemberProfile = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1 space-y-6">
                             <Card className="bg-white rounded-lg shadow p-6">
-                                <div className="flex items-center justify-center">
-                                    <Avatar className="h-32 w-32">
-                                        <AvatarImage alt={isEditMode ? formData.firstName : teamMember.firstName} />
-                                        <AvatarFallback className="text-2xl">
-                                            {(isEditMode ? formData.firstName : teamMember.firstName).charAt(0).toUpperCase()}
-                                            {(isEditMode ? formData.lastName : teamMember.lastName).charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </div>
+                                
                                 <p className='text-center font-semibold'>
                                     {isEditMode ? `${formData.firstName} ${formData.lastName}` : `${teamMember.firstName} ${teamMember.lastName}`}
                                 </p>

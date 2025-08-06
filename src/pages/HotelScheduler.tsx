@@ -20,6 +20,7 @@ import DeleteDialog from "@/components/molecules/DeleteDialog"
 import { toast } from "sonner"
 import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
+import { Skeleton } from "@/components/atoms/Skeleton"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -62,10 +63,12 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [cancelReservationDialog, setCancelReservationDialog] = useState(false)
   const [reservationToCancel, setReservationToCancel] = useState('')
   const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
-  const [viewReservationDialog, setViewReservationDialog] = useState(false)
+  const [viewReservationDialog, setViewReservationDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchReservations = async () => {
+      setLoading(true)
       try {
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
         const apiReservations = response.data.reservations;
@@ -127,6 +130,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         setReservations(flattened)
       } catch (err) {
         console.error("Failed to fetch reservations:", err);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -490,6 +495,19 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
             })}
           </div>
         </div>
+
+        {
+          loading && (
+            <>
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+            </>
+          )
+        }
 
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-[calc(100vh-280px)]">

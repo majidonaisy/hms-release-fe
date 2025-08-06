@@ -302,7 +302,7 @@ const HousekeepingPage = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section */}
             <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold text-gray-900">Housekeeping</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                         {pagination?.totalItems || housekeepingTasks.length} Task{(pagination?.totalItems || housekeepingTasks.length) !== 1 ? 's' : ''}
