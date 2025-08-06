@@ -186,6 +186,7 @@ const GuestProfile = () => {
       email: group.email,
       phoneNumber: group.phone,
       type: group.businessType,
+      isVip: group.isVip,
       isGroup: true,
       originalData: group,
     }))
@@ -441,6 +442,9 @@ const GuestProfile = () => {
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Contact Info
                       </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        VIP
+                      </TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -484,6 +488,9 @@ const GuestProfile = () => {
                             </span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4 text-gray-600">
+                            {(item.originalData as GetGroupProfilesResponse["data"][0]).isVip ? "Yes" : "No"}
+                          </TableCell>
                           <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu modal={false}>
                               <DropdownMenuTrigger asChild>

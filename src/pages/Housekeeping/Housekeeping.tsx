@@ -88,8 +88,8 @@ const HousekeepingPage = () => {
                 setPagination(null);
             }
         } catch (error) {
-            console.error('Failed to fetch maintenance requests:', error);
-            toast.error('Failed to load maintenance requests');
+            console.error('Failed to fetch housekeeping tasks:', error);
+            toast.error('Failed to load housekeeping tasks');
         } finally {
             setLoading(false);
         }
@@ -318,7 +318,7 @@ const HousekeepingPage = () => {
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">All Status</SelectItem>
+                            <SelectItem value="ALL">All Statuses</SelectItem>
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                             <SelectItem value="COMPLETED">Completed</SelectItem>
