@@ -1,11 +1,9 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
 import { useEffect, useState } from "react"
 import { useDebounce } from "@/hooks/useDebounce"
-import { Calendar as CalendarComponent } from "@/components/molecules/Calendar"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
-import { CalendarIcon, Check, ChevronLeft, X, Search } from "lucide-react"
+import { Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { GetGroupProfilesResponse, GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
@@ -20,6 +18,7 @@ import { Separator } from "@/components/atoms/Separator"
 import { Checkbox } from "@/components/atoms/Checkbox"
 import { Input } from "@/components/atoms/Input"
 import { getRoomTypes } from "@/services/RoomTypes"
+import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 
 interface GroupReservationRequest {
     groupProfileId: string;
@@ -341,66 +340,38 @@ export default function NewGroupReservation() {
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
                         <div className="space-y-1">
-                            <Label>Check In</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        data-empty={!formData.checkIn}
-                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
-                                    >
-                                        <CalendarIcon />
-                                        {formData.checkIn ? format(formData.checkIn, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <CalendarComponent
-                                        mode="single"
-                                        selected={formData.checkIn}
-                                        onSelect={(date) => {
-                                            if (date) {
-                                                setFormData({ ...formData, checkIn: date });
-                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
-                                            }
-                                        }}
-                                        disabled={(date) => date < new Date()}
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                            <DateTimePicker
+                                label="Check In"
+                                date={formData.checkIn}
+                                onDateTimeChange={(date) => {
+                                    if (date) {
+                                        setFormData({ ...formData, checkIn: date });
+                                        setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                    }
+                                }}
+                                placeholder="Select check-in date and time"
+                                disabled={(date) => date < new Date()}
+                            />
                         </div>
                         <div className="space-y-1">
-                            <Label>Check Out</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        data-empty={!formData.checkOut}
-                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
-                                    >
-                                        <CalendarIcon />
-                                        {formData.checkOut ? format(formData.checkOut, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <CalendarComponent
-                                        mode="single"
-                                        selected={formData.checkOut}
-                                        onSelect={(date) => {
-                                            if (date) {
-                                                setFormData({ ...formData, checkOut: date });
-                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
-                                            }
-                                        }}
-                                        disabled={(date) => {
-                                            const today = new Date();
-                                            today.setHours(0, 0, 0, 0);
-                                            if (date < today) return true;
-                                            if (formData.checkIn && date <= formData.checkIn) return true;
-                                            return false;
-                                        }}
-                                    />
-                                </PopoverContent>
-                            </Popover>
+                            <DateTimePicker
+                                label="Check Out"
+                                date={formData.checkOut}
+                                onDateTimeChange={(date) => {
+                                    if (date) {
+                                        setFormData({ ...formData, checkOut: date });
+                                        setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                    }
+                                }}
+                                placeholder="Select check-out date and time"
+                                disabled={(date) => {
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    if (date < today) return true;
+                                    if (formData.checkIn && date <= formData.checkIn) return true;
+                                    return false;
+                                }}
+                            />
                         </div>
                         <div className="space-y-1">
                             <Label>Rate Plan</Label>

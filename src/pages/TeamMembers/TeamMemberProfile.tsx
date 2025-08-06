@@ -7,11 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 import { Badge } from '@/components/atoms/Badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
-import { deleteEMployee, getEmployeeById } from '@/services/Employees';
-import { GetEmployeeByIdResponse } from '@/validation/schemas/Employees';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
+import { deleteEMployee, getEmployeeById, updateEmployee } from '@/services/Employees';
+import { GetEmployeeByIdResponse, UpdateTeamMemberRequest } from '@/validation/schemas/Employees';
+import { getRoles } from '@/services/Role';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 import { toast } from 'sonner';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
+import { Role } from '@/validation/schemas/Roles';
 
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
@@ -19,19 +22,45 @@ const TeamMemberProfile = () => {
     const [searchText, setSearchText] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [teamMember, setTeamMember] = useState<GetEmployeeByIdResponse['data'] | null>(null);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState<GetEmployeeByIdResponse['data'] | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [formData, setFormData] = useState<UpdateTeamMemberRequest>({
+        email: '',
+        username: '',
+        firstName: '',
+        lastName: '',
+        roleId: ''
+    });
 
     useEffect(() => {
         const fetchTeamProfile = async () => {
             if (!id) return;
             setLoading(true);
             try {
-                const response = await getEmployeeById(id);
-                setTeamMember(response.data);
+                const [employeeResponse, rolesResponse] = await Promise.all([
+                    getEmployeeById(id),
+                    getRoles()
+                ]);
+
+                setTeamMember(employeeResponse.data);
+                setRoles(rolesResponse.data);
+
+                // Initialize form data
+                setFormData({
+                    email: employeeResponse.data.email,
+                    username: employeeResponse.data.username,
+                    firstName: employeeResponse.data.firstName,
+                    lastName: employeeResponse.data.lastName,
+                    roleId: employeeResponse.data.roleId
+                });
             } catch (error: any) {
                 console.error('Failed to fetch team member:', error);
                 setTeamMember(null);
+                toast("Error!", {
+                    description: "Failed to load team member data.",
+                });
             } finally {
                 setLoading(false);
             }
@@ -45,14 +74,60 @@ const TeamMemberProfile = () => {
                 return 'bg-green-100 text-green-700 hover:bg-green-100';
             case false:
                 return 'bg-red-100 text-red-700 hover:bg-red-100';
-
         }
+    };
+
+    const handleInputChange = (field: keyof UpdateTeamMemberRequest, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSaveEdit = async () => {
+        if (!id) return;
+
+        setLoading(true);
+        try {
+            // Remove password if empty to keep current password
+            const updateData = { ...formData };
+            await updateEmployee(id, updateData);
+            toast("Success!", {
+                description: "Team member was updated successfully.",
+            });
+
+            // Refresh team member data
+            const employeeResponse = await getEmployeeById(id);
+            setTeamMember(employeeResponse.data);
+            setIsEditMode(false);
+        } catch (error: any) {
+            const err = error?.userMessage || "Failed to update team member.";
+            toast("Error!", {
+                description: err,
+            });
+            console.error("Failed to update team member:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        if (teamMember) {
+            // Reset form data to original values
+            setFormData({
+                email: teamMember.email,
+                username: teamMember.username,
+                firstName: teamMember.firstName,
+                lastName: teamMember.lastName,
+                roleId: teamMember.roleId
+            });
+        }
+        setIsEditMode(false);
     };
 
     const handleDeleteEmployee = async () => {
         setLoading(true);
         if (employeeToDelete) {
-
             try {
                 await deleteEMployee(employeeToDelete.id);
                 setDeleteDialogOpen(false);
@@ -73,58 +148,11 @@ const TeamMemberProfile = () => {
         }
     };
 
-    // const formatTime = (timeString: string): string => {
-    //     const [time, period] = timeString.split(' ');
-    //     return `${time} ${period}`;
-    // };
-
-    // const isToday = (dateString: string): boolean => {
-    //     const today = new Date();
-    //     const logDate = new Date(dateString);
-    //     return today.toDateString() === logDate.toDateString();
-    // };
-
-    // const isYesterday = (dateString: string): boolean => {
-    //     const yesterday = new Date();
-    //     yesterday.setDate(yesterday.getDate() - 1);
-    //     const logDate = new Date(dateString);
-    //     return yesterday.toDateString() === logDate.toDateString();
-    // };
-
-    // const formatDateLabel = (dateString: string): string => {
-    //     const logDate = new Date(dateString);
-    //     const options: Intl.DateTimeFormatOptions = {
-    //         day: 'numeric',
-    //         month: 'long',
-    //         year: 'numeric'
-    //     };
-    //     return logDate.toLocaleDateString('en-GB', options);
-    // };
-
-    // const groupLogsByDate = (logs: TeamProfile['activityLogs']): GroupedActivityLog[] => {
-    //     const grouped: Record<string, TeamProfile['activityLogs']> = {};
-
-    //     logs.forEach(log => {
-    //         const date = log.date;
-    //         if (!grouped[date]) {
-    //             grouped[date] = [];
-    //         }
-    //         grouped[date].push(log);
-    //     });
-
-    //     // Sort dates in descending order (most recent first)
-    //     const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-    //     return sortedDates.map(date => ({
-    //         date,
-    //         logs: grouped[date].sort((a, b) => {
-    //             // Sort logs within each day by time (most recent first)
-    //             const timeA = new Date(`${date} ${a.time}`);
-    //             const timeB = new Date(`${date} ${b.time}`);
-    //             return timeB.getTime() - timeA.getTime();
-    //         })
-    //     }));
-    // };
+    // Get role name from role ID
+    const getRoleName = (roleId: string): string => {
+        const role = roles.find(r => r.id === roleId);
+        return role?.name || 'Unknown Role';
+    };
 
     return (
         <>
@@ -135,7 +163,7 @@ const TeamMemberProfile = () => {
             ) : (
                 <div className="p-4">
                     {/* Header */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 mb-6">
                         <Button
                             variant="ghost"
                             onClick={() => navigate(-1)}
@@ -143,7 +171,9 @@ const TeamMemberProfile = () => {
                         >
                             <ChevronLeft className="h-5 w-5" />
                         </Button>
-                        <h1 className="text-xl font-bold">Staff Profile</h1>
+                        <h1 className="text-xl font-bold">
+                            {isEditMode ? 'Edit Staff Profile' : 'Staff Profile'}
+                        </h1>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -151,27 +181,55 @@ const TeamMemberProfile = () => {
                             <Card className="bg-white rounded-lg shadow p-6">
                                 <div className="flex items-center justify-center">
                                     <Avatar className="h-32 w-32">
-                                        <AvatarImage alt={teamMember.firstName} />
+                                        <AvatarImage alt={isEditMode ? formData.firstName : teamMember.firstName} />
                                         <AvatarFallback className="text-2xl">
-                                            {teamMember.firstName.charAt(0).toUpperCase()}{teamMember.lastName.charAt(0).toUpperCase()}
+                                            {(isEditMode ? formData.firstName : teamMember.firstName).charAt(0).toUpperCase()}
+                                            {(isEditMode ? formData.lastName : teamMember.lastName).charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                 </div>
-                                <p className='text-center font-semibold'>{teamMember.firstName} {teamMember.lastName}</p>
+                                <p className='text-center font-semibold'>
+                                    {isEditMode ? `${formData.firstName} ${formData.lastName}` : `${teamMember.firstName} ${teamMember.lastName}`}
+                                </p>
                                 <div className="text-center">
                                     <Badge className={`${getStatusColor(teamMember.isActive)} border-0 mb-2`}>
                                         • {teamMember.isActive ? 'Active' : 'Inactive'}
                                     </Badge>
                                 </div>
 
-                                <div className="flex gap-2 justify-center">
-                                    <Button variant="primaryOutline"
-                                        onClick={() => {
-                                            setEmployeeToDelete(teamMember);
-                                            setDeleteDialogOpen(true);
-                                        }}>
-                                        Delete Account
-                                    </Button>
+                                <div className='flex gap-2 text-center justify-center'>
+                                    {isEditMode ? (
+                                        <>
+                                            <Button
+                                                onClick={handleSaveEdit}
+                                                disabled={loading}
+                                            >
+                                                {loading ? 'Saving...' : 'Save Changes'}
+                                            </Button>
+                                            <Button
+                                                variant='primaryOutline'
+                                                onClick={handleCancelEdit}
+                                                disabled={loading}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button onClick={() => setIsEditMode(true)}>
+                                                Edit Profile
+                                            </Button>
+                                            <Button
+                                                variant="primaryOutline"
+                                                onClick={() => {
+                                                    setEmployeeToDelete(teamMember);
+                                                    setDeleteDialogOpen(true);
+                                                }}
+                                            >
+                                                Delete Account
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </Card>
 
@@ -184,12 +242,46 @@ const TeamMemberProfile = () => {
 
                                 <CardContent className="p-0 space-y-3">
                                     <div className='flex justify-between items-center'>
-                                        <Label className="font-semibold">Full Name</Label>
-                                        <p className="">{teamMember.firstName} {teamMember.lastName}</p>
+                                        <Label className="font-semibold">First Name</Label>
+                                        {isEditMode ? (
+                                            <Input
+                                                value={formData.firstName}
+                                                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                                className='w-40 h-8 text-sm'
+                                                placeholder='John'
+                                            />
+                                        ) : (
+                                            <p className="">{teamMember.firstName}</p>
+                                        )}
                                     </div>
+
+                                    <div className='flex justify-between items-center'>
+                                        <Label className="font-semibold">Last Name</Label>
+                                        {isEditMode ? (
+                                            <Input
+                                                value={formData.lastName}
+                                                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                                className='w-40 h-8 text-sm'
+                                                placeholder='Doe'
+                                            />
+                                        ) : (
+                                            <p className="">{teamMember.lastName}</p>
+                                        )}
+                                    </div>
+
                                     <div className='flex justify-between items-center'>
                                         <Label className="font-semibold">Email</Label>
-                                        <p className="">{teamMember.email}</p>
+                                        {isEditMode ? (
+                                            <Input
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                                className='w-40 h-8 text-sm'
+                                                placeholder='john.doe@example.com'
+                                            />
+                                        ) : (
+                                            <p className="">{teamMember.email}</p>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -203,15 +295,27 @@ const TeamMemberProfile = () => {
 
                                 <CardContent className="p-0 space-y-3">
                                     <div className='flex justify-between items-center'>
-                                        <Label className="font-semibold">Email</Label>
-                                        <p className="">{teamMember.email}</p>
+                                        <Label className="font-semibold">Username</Label>
+                                        {isEditMode ? (
+                                            <Input
+                                                value={formData.username}
+                                                onChange={(e) => handleInputChange('username', e.target.value)}
+                                                className='w-40 h-8 text-sm'
+                                                placeholder='johndoe'
+                                            />
+                                        ) : (
+                                            <p className="">{teamMember.username}</p>
+                                        )}
                                     </div>
                                 </CardContent>
-                                <CardFooter className='p-0 flex justify-end'>
-                                    <Button size="sm" className='h-6 rounded-full'>
-                                        Reset Password
-                                    </Button>
-                                </CardFooter>
+
+                                {!isEditMode && (
+                                    <CardFooter className='p-0 flex justify-end'>
+                                        <Button size="sm" className='h-6 rounded-full'>
+                                            Reset Password
+                                        </Button>
+                                    </CardFooter>
+                                )}
                             </Card>
                         </div>
 
@@ -224,27 +328,33 @@ const TeamMemberProfile = () => {
                             <CardContent className="p-0 space-y-3">
                                 <div className='flex justify-between items-center'>
                                     <Label className="font-semibold">Assigned Role</Label>
-                                    {/* <p className="">{teamMember.role.name}</p> */}
+                                    {isEditMode ? (
+                                        <Select
+                                            value={formData.roleId}
+                                            onValueChange={(value) => handleInputChange('roleId', value)}
+                                        >
+                                            <SelectTrigger className='w-40 h-8 text-sm'>
+                                                <SelectValue placeholder="Select role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {roles.map((role) => (
+                                                    <SelectItem key={role.id} value={role.id}>
+                                                        {role.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <p className="">{getRoleName(teamMember.roleId)}</p>
+                                    )}
                                 </div>
-                                {/* {teamMember.performanceNotes.length > 0 && (
-                            <div className="mt-6">
-                                <label className="font-semibold">Performance Notes</label>
-                                <div className="space-y-1">
-                                    {teamMember.performanceNotes.map((note, index) => (
-                                        <div key={index} className="p-3 pb-0 rounded text-sm">
-                                            • {note}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )} */}
                             </CardContent>
                         </Card>
 
                         <Card className="p-3">
                             <CardHeader className='p-0'>
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>Activity Logs</CardTitle>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-2">
                                     <div className="flex items-center rounded-lg border px-1">
                                         <Input
                                             type="text"
@@ -261,78 +371,17 @@ const TeamMemberProfile = () => {
                                     </Button>
                                 </div>
                             </CardHeader>
-
-                            {/* {teamProfile.activityLogs.length > 0 ? (
-                        <CardContent className="p-0">
-                            <div className="space-y-4">
-                                {groupLogsByDate(teamProfile.activityLogs)
-                                    .filter((group: GroupedActivityLog) => {
-                                        if (!searchText) return true;
-                                        return group.logs.some((log: TeamProfile['activityLogs'][0]) =>
-                                            log.description.toLowerCase().includes(searchText.toLowerCase())
-                                        );
-                                    })
-                                    .map((group: GroupedActivityLog, groupIndex: number) => (
-                                        <div key={groupIndex}>
-                                            <div className='bg-hms-primary/15 text-xs font-medium px-3 py-1 rounded-full mb-3 inline-block'>
-                                                {isToday(group.date)
-                                                    ? 'Today'
-                                                    : isYesterday(group.date)
-                                                        ? 'Yesterday'
-                                                        : formatDateLabel(group.date)
-                                                }
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                {group.logs
-                                                    .filter((log: TeamProfile['activityLogs'][0]) =>
-                                                        !searchText ||
-                                                        log.description.toLowerCase().includes(searchText.toLowerCase())
-                                                    )
-                                                    .map((log: TeamProfile['activityLogs'][0], logIndex: number) => (
-                                                        <div key={logIndex} className="flex items-start gap-3">
-                                                            <div className="flex flex-col items-center">
-                                                                <div className='w-2 h-2 rounded-full bg-hms-primary'></div>
-                                                                <div className="w-px h-6 bg-hms-primary"></div>
-                                                                <div className=" ml-6 w-6 h-px bg-hms-primary"></div>
-                                                            </div>
-
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex justify-between items-start bg-hms-accent/15 rounded-lg py-2 px-3">
-                                                                    <p className="text-sm text-gray-900 flex-1 pr-4">
-                                                                        {log.description}
-                                                                    </p>
-                                                                    <span className="text-xs text-gray-500 ">
-                                                                        {formatTime(log.time)}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                <div className="text-center pt-4 border-t border-gray-200">
-                                    <Button variant="outline" size="sm" className="text-xs px-4 py-2">
-                                        Load more
-                                    </Button>
+                            <CardContent className="p-0">
+                                <div className="text-center text-gray-500 py-8">
+                                    <div className="w-12 h-12 bg-hms-primary/15 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <Search className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm">No activity logs available</p>
                                 </div>
-                            </div>
-                        </CardContent>
-                    ) : (
-                        <CardContent className="p-0">
-                            <div className="text-center text-gray-500 py-8">
-                                <div className="w-12 h-12 bg-hms-primary/15 rounded-full flex items-center justify-center">
-                                    <Search className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <p className="text-sm">No activity logs available</p>
-                            </div>
-                        </CardContent>
-                    )} */}
+                            </CardContent>
                         </Card>
                     </div>
-                </div >
+                </div>
             )}
 
             <DeleteDialog
@@ -342,7 +391,7 @@ const TeamMemberProfile = () => {
                 loading={loading}
                 title="Delete Employee"
                 description={`Are you sure you want to delete employee ${employeeToDelete?.firstName} ${employeeToDelete?.lastName}? This action cannot be undone.`}
-            />employeeToDelete
+            />
         </>
     );
 };
