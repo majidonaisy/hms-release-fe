@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, GroupProfileResponse, LinkGuestsToGroupResponse, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
+import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, GroupProfileResponse, LinkGuestsToGroupResponse, UpdateGroupProfileRequest, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
 
 const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
@@ -41,7 +41,7 @@ export const searchGuests = async (params: GuestSearchParams): Promise<GetGuests
     throw {
       userMessage: error.response?.data?.message || "Failed to search guests",
       originalError: error,
-    }; 
+    };
   }
 };
 
@@ -229,3 +229,21 @@ export const linkGuestsToGroup = async (guestIds: string[], groupId: string): Pr
     };
   }
 };
+
+export const updateGroupProfile = async (id: string, data: UpdateGroupProfileRequest): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "PUT",
+      endpoint: `${ENDPOINTS.GroupProfile.UpdateGroupProfile}/${id}`,
+      baseURL,
+      data
+    });
+    return response
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to update group";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}

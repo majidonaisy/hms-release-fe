@@ -211,6 +211,15 @@ export const GetCurrentGroupProfilesResponseSchema = z.object({
   data: z.array(GroupProfileShape),
 });
 
+export const UpdateGroupProfileRequestSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
+  isVip: z.boolean(),
+  notes: z.string(),
+})
+
 export type Guest = z.infer<typeof GuestShape>;
 export type GroupProfile = z.infer<typeof GroupProfileShape>;
 export type AddGuestRequest = z.infer<typeof AddGuestRequestSchema>;
@@ -228,3 +237,4 @@ export type GetGroupProfilesResponse = z.infer<typeof GetGroupProfilesResponseSc
 export type GroupProfileResponse = z.infer<typeof GroupProfileResponseSchema>
 export type GetCurrentGuestsResponse = z.infer<typeof GetCurrentGuestsResponseSchema>;
 export type GetCurrentGroupProfilesResponse = z.infer<typeof GetCurrentGroupProfilesResponseSchema>;
+export type UpdateGroupProfileRequest = z.infer<typeof UpdateGroupProfileRequestSchema>

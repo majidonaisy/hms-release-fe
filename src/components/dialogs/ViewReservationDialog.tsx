@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/components/atoms/Badge"
 import { Separator } from "@/components/atoms/Separator"
 import { format } from "date-fns"
-import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, ArrowLeft } from "lucide-react"
+import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, ArrowLeft, Pencil, CalendarClock } from "lucide-react"
 import { GetReservationById } from "@/validation"
 import { getReservationById } from "@/services/Reservation"
 import { Button } from "../atoms/Button"
@@ -14,9 +14,11 @@ interface ViewReservationDialogProps {
     setOpen: (open: boolean) => void
     reservationId: string
     onBackToChooseOptions: () => void
+    createdByUser?: string,
+    checkedInAt?: Date
 }
 
-const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, setOpen, reservationId, onBackToChooseOptions }) => {
+const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, setOpen, reservationId, onBackToChooseOptions, createdByUser, checkedInAt }) => {
     const [reservation, setReservation] = useState<GetReservationById['data'] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -51,6 +53,16 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
         } catch {
             return "Invalid date"
         }
+    }
+
+    const formatCheckedInDate = (dateString: undefined | Date) => {
+        if (!dateString) return ""
+        return new Date(dateString).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        })
     }
 
     const getStatusBadgeVariant = (status: string) => {
@@ -113,7 +125,8 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                             </div>
 
                             {/* Main Information Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <h1 className="text-lg font-semibold">Reservation Info</h1>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Guest Information */}
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -129,19 +142,30 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                                         <MapPin className="h-4 w-4" />
-                                        Room Type
+                                        Room
                                     </div>
-                                    <div className="text-lg font-semibold">Standard Room</div>
+                                    <div className="text-lg font-semibold">{reservation.rooms.map((room) => (
+                                        room.roomNumber
+                                    ))}</div>
                                 </div>
 
-                                {/* Room Number */}
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <MapPin className="h-4 w-4" />
-                                        Room Number
+                                        <Pencil className="h-4 w-4" />
+                                        Booked By
                                     </div>
                                     <div className="text-lg font-semibold">
-                                        {reservation.rooms.map((room) => room.roomNumber).join(", ")}
+                                        {createdByUser}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                        <CalendarClock className="h-4 w-4" />
+                                        Checked In At
+                                    </div>
+                                    <div className="text-lg font-semibold">
+                                        {formatCheckedInDate(checkedInAt)}
                                     </div>
                                 </div>
                             </div>
@@ -158,10 +182,10 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-sm">
-                                            <span className="font-medium">Check-in:</span> {formatDate(reservation.checkIn)}
+                                            <span className="font-medium">Check In Time:</span> {formatDate(reservation.checkIn)}
                                         </div>
                                         <div className="text-sm">
-                                            <span className="font-medium">Check-out:</span> {formatDate(reservation.checkOut)}
+                                            <span className="font-medium">Check Out Time:</span> {formatDate(reservation.checkOut)}
                                         </div>
                                     </div>
                                 </div>

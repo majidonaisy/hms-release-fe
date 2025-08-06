@@ -102,6 +102,7 @@ const ExchangeRates = () => {
             getRowKey={(item: ExchangeRate) => item.id}
             showBackButton
             onBackClick={() => navigate(-1)}
+            showSearch={false}
         />
     );
 };

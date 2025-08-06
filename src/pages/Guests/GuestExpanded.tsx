@@ -470,7 +470,7 @@ const GuestProfileView = () => {
                                     </Label>
                                 </div>
                             ) : (
-                                <p className="text-sm text-muted-foreground">No documents uploaded</p>
+                                <p className="text-sm text-muted-foreground text-center">No documents uploaded</p>
                             )}
                         </CardContent>
                     </Card>

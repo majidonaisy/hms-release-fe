@@ -1,16 +1,20 @@
 import { Button } from "@/components/atoms/Button";
 import { ScrollArea } from "@/components/atoms/ScrollArea";
 import { Skeleton } from "@/components/atoms/Skeleton";
+import { Input } from "@/components/atoms/Input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select";
+import { Switch } from "@/components/atoms/Switch";
 import { GuestSelectionDialog } from "@/components/dialogs/AddGuestDialog";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/Organisms/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import EditingSkeleton from "@/components/Templates/EditingSkeleton";
-import { getGroupProfileById, getGuests, linkGuestsToGroup } from "@/services/Guests";
-import { GetGuestsResponse, GroupProfileResponse } from "@/validation";
+import { getGroupProfileById, getGuests, linkGuestsToGroup, updateGroupProfile, deleteGroupProfile } from "@/services/Guests";
+import { GetGuestsResponse, GroupProfileResponse, UpdateGroupProfileRequest } from "@/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { ChevronLeft, Mail, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import DeleteDialog from "@/components/molecules/DeleteDialog";
 
 const GroupProfileExpanded = () => {
     const { id } = useParams<{ id: string }>();
@@ -21,8 +25,28 @@ const GroupProfileExpanded = () => {
     const [allGuests, setAllGuests] = useState<GetGuestsResponse['data']>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [groupToDelete, setGroupToDelete] = useState<GroupProfileResponse['data'] | null>(null);
 
     const [dialogOpen, setDialogOpen] = useState(false);
+
+    const [formData, setFormData] = useState<UpdateGroupProfileRequest>({
+        name: '',
+        email: '',
+        phone: '',
+        businessType: 'CORPORATE',
+        isVip: false,
+        notes: ''
+    });
+
+    const businessTypeOptions = [
+        { value: "CORPORATE", label: "Corporate" },
+        { value: "TRAVEL_AGENCY", label: "Travel Agency" },
+        { value: "EVENT_PLANNER", label: "Event Planner" },
+        { value: "GOVERNMENT", label: "Government" },
+        { value: "OTHER", label: "Other" }
+    ];
 
     const getBusinessTypeDisplay = (businessType: string) => {
         const map = {
@@ -33,6 +57,13 @@ const GroupProfileExpanded = () => {
             "OTHER": "Other",
         };
         return map[businessType as keyof typeof map] || businessType;
+    };
+
+    const handleInputChange = (field: keyof UpdateGroupProfileRequest, value: string | boolean) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const fetchData = async () => {
@@ -47,6 +78,16 @@ const GroupProfileExpanded = () => {
             setGroup(groupRes.data);
             setLinkedGuestsToGroup(groupRes.data.LinkedGuests || []);
             setAllGuests(allGuestsRes.data);
+
+            // Initialize form data
+            setFormData({
+                name: groupRes.data.name,
+                email: groupRes.data.email,
+                phone: groupRes.data.phone,
+                businessType: groupRes.data.businessType,
+                isVip: groupRes.data.isVip || false,
+                notes: groupRes.data.notes || ''
+            });
         } catch (err: any) {
             console.error(err);
             setError(err.userMessage || "Failed to load group profile");
@@ -58,6 +99,69 @@ const GroupProfileExpanded = () => {
     useEffect(() => {
         fetchData();
     }, [id]);
+
+    const handleSaveEdit = async () => {
+        if (!id) return;
+
+        setLoading(true);
+        try {
+            await updateGroupProfile(id, formData);
+            toast("Success!", {
+                description: "Group profile was updated successfully.",
+            });
+
+            fetchData();
+            setIsEditMode(false);
+        } catch (error) {
+            toast("Error!", {
+                description: "Failed to update group profile.",
+            });
+            console.error("Failed to update group profile:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        if (group) {
+            setFormData({
+                name: group.name,
+                email: group.email,
+                phone: group.phone,
+                businessType: group.businessType,
+                isVip: group.isVip || false,
+                notes: group.notes || ''
+            });
+        }
+        setIsEditMode(false);
+    };
+
+    const handleDeleteGroup = async () => {
+        if (!groupToDelete || !id) return;
+
+        setLoading(true);
+        try {
+            await deleteGroupProfile(id);
+            setDeleteDialogOpen(false);
+            setGroupToDelete(null);
+            navigate('/guests-profile');
+            toast("Success!", {
+                description: "Group profile was deleted successfully.",
+            });
+        } catch (error) {
+            toast("Error!", {
+                description: "Failed to delete group profile.",
+            });
+            console.error("Failed to delete group profile:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteCancel = (): void => {
+        setDeleteDialogOpen(false);
+        setGroupToDelete(null);
+    };
 
     const handleGuestSelect = async (selectedGuests: GetGuestsResponse['data']) => {
         if (!id) return;
@@ -116,19 +220,61 @@ const GroupProfileExpanded = () => {
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-xl font-bold">Group Profile</h1>
+                <h1 className="text-xl font-bold">
+                    {isEditMode ? 'Edit Group Profile' : 'Group Profile'}
+                </h1>
             </div>
 
             <div className="grid grid-cols-3 gap-7">
                 <div className="space-y-3">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>{group.name}</CardTitle>
+                        <CardHeader className="text-center">
+                            <CardTitle>
+                                {isEditMode ? formData.name : group.name}
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="text-center">
                             <span className="font-semibold">Profile Type:</span>{" "}
-                            {getBusinessTypeDisplay(group.businessType)}
+                            {isEditMode ?
+                                getBusinessTypeDisplay(formData.businessType) :
+                                getBusinessTypeDisplay(group.businessType)
+                            }
                         </CardContent>
+
+                        <div className='flex gap-2 text-center justify-center pb-4'>
+                            {isEditMode ? (
+                                <>
+                                    <Button
+                                        onClick={handleSaveEdit}
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Saving...' : 'Save Changes'}
+                                    </Button>
+                                    <Button
+                                        variant='primaryOutline'
+                                        onClick={handleCancelEdit}
+                                        disabled={loading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button onClick={() => setIsEditMode(true)}>
+                                        Edit Profile
+                                    </Button>
+                                    <Button
+                                        variant='primaryOutline'
+                                        onClick={() => {
+                                            setGroupToDelete(group);
+                                            setDeleteDialogOpen(true);
+                                        }}
+                                    >
+                                        Delete Profile
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </Card>
 
                     <Card className="p-3">
@@ -138,15 +284,89 @@ const GroupProfileExpanded = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 space-y-2">
-                            <span className="flex justify-between">
-                                <p className="font-semibold">Business Type</p>
-                                <p>{getBusinessTypeDisplay(group.businessType)}</p>
+                            <span className="flex justify-between items-center">
+                                <p className="font-semibold">Business Name</p>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='Business Name'
+                                    />
+                                ) : (
+                                    <p>{group.name}</p>
+                                )}
                             </span>
+
+                            <span className="flex justify-between items-center">
+                                <p className="font-semibold">Business Type</p>
+                                {isEditMode ? (
+                                    <Select
+                                        value={formData.businessType}
+                                        onValueChange={(value) => handleInputChange('businessType', value)}
+                                    >
+                                        <SelectTrigger className='w-40 h-8 text-sm'>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {businessTypeOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <p>{getBusinessTypeDisplay(group.businessType)}</p>
+                                )}
+                            </span>
+
                             <span className="flex justify-between">
                                 <p className="font-semibold">Business Address</p>
                                 <p>
                                     {group.address.country} {group.address.city}
                                 </p>
+                            </span>
+
+                            <span className="flex justify-between items-center">
+                                <p className="font-semibold">Email</p>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.email}
+                                        onChange={(e) => handleInputChange('email', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='Email'
+                                    />
+                                ) : (
+                                    <p>{group.email}</p>
+                                )}
+                            </span>
+
+                            <span className="flex justify-between items-center">
+                                <p className="font-semibold">Phone</p>
+                                {isEditMode ? (
+                                    <Input
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        className='w-40 h-8 text-sm'
+                                        placeholder='Phone'
+                                    />
+                                ) : (
+                                    <p>{group.phone}</p>
+                                )}
+                            </span>
+
+                            <span className="flex justify-between items-center">
+                                <p className="font-semibold">VIP Status</p>
+                                {isEditMode ? (
+                                    <Switch
+                                        checked={formData.isVip}
+                                        onCheckedChange={(checked) => handleInputChange('isVip', checked)}
+                                        className='data-[state=checked]:bg-hms-primary'
+                                    />
+                                ) : (
+                                    <p>{group.isVip ? 'VIP' : 'Regular'}</p>
+                                )}
                             </span>
                         </CardContent>
                     </Card>
@@ -170,6 +390,32 @@ const GroupProfileExpanded = () => {
                                 <p className="font-semibold">Phone Number</p>
                                 <p>{group.primaryContact.phone}</p>
                             </span>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="p-3">
+                        <CardHeader className="p-0">
+                            <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
+                                Notes
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 space-y-2">
+                            {isEditMode ? (
+                                <Input
+                                    value={formData.notes}
+                                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                                    className='w-full text-sm'
+                                    placeholder='Additional notes'
+                                />
+                            ) : (
+                                group.notes ? (
+                                    <p>{group.notes}</p>
+                                ) : (
+                                    <div className="text-center text-muted-foreground">
+                                        No notes
+                                    </div>
+                                )
+                            )}
                         </CardContent>
                     </Card>
 
@@ -208,7 +454,9 @@ const GroupProfileExpanded = () => {
                                 <Skeleton className="w-full h-20" />
                                 <Skeleton className="w-full h-20" />
                             </div>
-                        ) :
+                        ) : linkedGuestsToGroup.length == 0 ? (
+                            <p className="text-center text-muted-foreground h-[25rem] flex items-center justify-center">No guests are linked to this group</p>
+                        ) : (
                             linkedGuestsToGroup.map((guest) => (
                                 <div
                                     key={guest.id}
@@ -242,7 +490,7 @@ const GroupProfileExpanded = () => {
                                     </div>
 
                                 </div>
-                            ))}
+                            )))}
                     </ScrollArea>
 
                 </Card>
@@ -254,7 +502,7 @@ const GroupProfileExpanded = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
-                        {/* Reservation content goes here */}
+
                     </CardContent>
                 </Card>
             </div>
@@ -264,6 +512,15 @@ const GroupProfileExpanded = () => {
                 onOpenChange={setDialogOpen}
                 onGuestSelect={handleGuestSelect}
                 guestsData={allGuests}
+            />
+
+            <DeleteDialog
+                isOpen={isDeleteDialogOpen}
+                onCancel={handleDeleteCancel}
+                onConfirm={handleDeleteGroup}
+                loading={loading}
+                title="Delete Group Profile"
+                description={`Are you sure you want to delete group profile ${groupToDelete?.name}? This action cannot be undone.`}
             />
         </div >
     );

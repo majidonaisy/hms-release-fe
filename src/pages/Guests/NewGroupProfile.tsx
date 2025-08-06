@@ -3,19 +3,24 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { ChevronLeft, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { AddGroupProfileRequest, GetGuestsResponse } from '@/validation';
-import { addGroupProfile, getGuests, linkGuestsToGroup } from '@/services/Guests';
+import { AddGroupProfileRequest, GetGuestsResponse, UpdateGroupProfileRequest } from '@/validation';
+import { addGroupProfile, getGuests, linkGuestsToGroup, getGroupProfileById, updateGroupProfile } from '@/services/Guests';
 import { toast } from 'sonner';
 import { Switch } from '@/components/atoms/Switch';
 import { Card, CardContent, CardFooter } from '@/components/Organisms/Card';
 import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
 import { GuestSelectionDialog } from '@/components/dialogs/AddGuestDialog';
+import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 
 const NewGroupProfile = () => {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
     const [loading, setLoading] = useState(false);
+    const [groupLoading, setGroupLoading] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+
     const [formData, setFormData] = useState<AddGroupProfileRequest>({
         address: {
             city: '',
@@ -39,6 +44,7 @@ const NewGroupProfile = () => {
         },
         specialRequirements: '',
     });
+
     const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
     const businessTypeOptions = [
         { value: "CORPORATE", label: "Corporate" },
@@ -50,6 +56,44 @@ const NewGroupProfile = () => {
     const [guests, setGuests] = useState<GetGuestsResponse["data"]>([])
     const [linkedGuests, setLinkedGuests] = useState<GetGuestsResponse["data"]>([])
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (id) {
+            setIsEditMode(true);
+            const fetchGroup = async () => {
+                setGroupLoading(true);
+                try {
+                    const groupResponse = await getGroupProfileById(id);
+                    const groupData = groupResponse.data;
+
+                    setFormData({
+                        address: groupData.address || { city: '', country: '' },
+                        billingAddress: groupData.billingAddress || { city: '', country: '' },
+                        businessType: groupData.businessType,
+                        email: groupData.email,
+                        isVip: groupData.isVip || false,
+                        legalName: groupData.legalName || '',
+                        name: groupData.name,
+                        notes: groupData.notes || '',
+                        phone: groupData.phone,
+                        primaryContact: groupData.primaryContact || { email: '', name: '', phone: '' },
+                        specialRequirements: groupData.specialRequirements || '',
+                    });
+
+                    setLinkedGuests(groupData.LinkedGuests || []);
+                    setCreatedGroupId(id);
+                } catch (error) {
+                    console.error("Failed to fetch group:", error);
+                    toast("Error!", {
+                        description: "Failed to load group data.",
+                    });
+                } finally {
+                    setGroupLoading(false);
+                }
+            };
+            fetchGroup();
+        }
+    }, [id]);
 
     useEffect(() => {
         const handleGetGuests = async () => {
@@ -91,34 +135,70 @@ const NewGroupProfile = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
+
         try {
-            const response = await addGroupProfile(formData);
+            if (isEditMode && id) {
+                // Update existing group
+                const updateData: UpdateGroupProfileRequest = {
+                    name: formData.name,
+                    email: formData.email,
+                    phone: formData.phone,
+                    businessType: formData.businessType,
+                    isVip: formData.isVip,
+                    notes: formData.notes,
+                };
 
-            const groupId = response.data?.id;
-            setCreatedGroupId(groupId);
+                await updateGroupProfile(id, updateData);
 
-            if (linkedGuests.length > 0 && groupId) {
-                const guestIds = linkedGuests.map(guest => guest.id);
-                try {
-                    await linkGuestsToGroup(guestIds, groupId);
+                if (linkedGuests.length > 0) {
+                    const guestIds = linkedGuests.map(guest => guest.id);
+                    try {
+                        await linkGuestsToGroup(guestIds, id);
+                        toast("Success!", {
+                            description: "Group profile updated and guests linked successfully.",
+                        });
+                    } catch (linkError) {
+                        console.error("Failed to link guests:", linkError);
+                        toast("Partial Success", {
+                            description: "Group profile updated but failed to link some guests.",
+                        });
+                    }
+                } else {
                     toast("Success!", {
-                        description: "Group profile created and guests linked successfully.",
-                    });
-                } catch (linkError) {
-                    console.error("Failed to link guests:", linkError);
-                    toast("Partial Success", {
-                        description: "Group profile created but failed to link some guests.",
+                        description: "Group profile updated successfully.",
                     });
                 }
-            } else {
-                toast("Success!", {
-                    description: "Group profile created successfully.",
-                });
-            }
 
+                navigate(`/group-profile/${id}/view`);
+            } else {
+                const response = await addGroupProfile(formData);
+                const groupId = response.data?.id;
+                setCreatedGroupId(groupId);
+
+                if (linkedGuests.length > 0 && groupId) {
+                    const guestIds = linkedGuests.map(guest => guest.id);
+                    try {
+                        await linkGuestsToGroup(guestIds, groupId);
+                        toast("Success!", {
+                            description: "Group profile created and guests linked successfully.",
+                        });
+                    } catch (linkError) {
+                        console.error("Failed to link guests:", linkError);
+                        toast("Partial Success", {
+                            description: "Group profile created but failed to link some guests.",
+                        });
+                    }
+                } else {
+                    toast("Success!", {
+                        description: "Group profile created successfully.",
+                    });
+                }
+
+                navigate('/guests-profile');
+            }
         } catch (error) {
             toast("Error!", {
-                description: "Failed to create group profile.",
+                description: isEditMode ? "Failed to update group profile." : "Failed to create group profile.",
             });
             console.error("Failed to submit form:", error);
         } finally {
@@ -129,7 +209,7 @@ const NewGroupProfile = () => {
     const handleGuestSelect = async (selectedGuests: GetGuestsResponse["data"]) => {
         setLinkedGuests(selectedGuests);
 
-        if (createdGroupId) {
+        if (createdGroupId && isEditMode) {
             try {
                 const guestIds = selectedGuests.map(guest => guest.id);
                 await linkGuestsToGroup(guestIds, createdGroupId);
@@ -146,8 +226,16 @@ const NewGroupProfile = () => {
     };
 
     const handleBack = () => {
-        navigate(-1);
+        if (isEditMode) {
+            navigate(`/group-profile/${id}/view`);
+        } else {
+            navigate(-1);
+        }
     };
+
+    if (groupLoading) {
+        return <EditingSkeleton />;
+    }
 
     return (
         <>
@@ -160,7 +248,9 @@ const NewGroupProfile = () => {
                     >
                         <ChevronLeft className="" />
                     </Button>
-                    <h1 className="text-xl font-bold">New Guest Profile</h1>
+                    <h1 className="text-xl font-bold">
+                        {isEditMode ? 'Edit Group Profile' : 'New Guest Profile'}
+                    </h1>
                 </div>
 
                 <form
@@ -340,7 +430,7 @@ const NewGroupProfile = () => {
                             />
                         </div>
                     </div>
-                    
+
                     <div className='px-5 space-y-4'>
                         <h2 className='font-bold text-lg'>Linked Guests:</h2>
 
@@ -393,8 +483,12 @@ const NewGroupProfile = () => {
                             disabled={loading}
                         >
                             {loading
-                                ? "Creating..."
-                                : "Create Profile"}
+                                ? isEditMode
+                                    ? "Updating..."
+                                    : "Creating..."
+                                : isEditMode
+                                    ? "Update Profile"
+                                    : "Create Profile"}
                         </Button>
                     </div>
                 </form>

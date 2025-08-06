@@ -39,6 +39,21 @@ export const ReservationResponseShape = z.object({
               chargeRouting: z.enum(["OWN_FOLIO", "MASTER_FOLIO", "SPLIT"]),
               createdAt: z.date(),
               updatedAt: z.date(),
+              checkInTime: z.date(),
+              createdBy: z.string(),
+              updatedBy: z.string().nullable(),
+              createdByUser: z.object({
+                id: z.string(),
+                firstName: z.string(),
+                lastName: z.string(),
+                email: z.string(),
+              }),
+              updatedByUser: z.object({
+                id: z.string(),
+                firstName: z.string(),
+                lastName: z.string(),
+                email: z.string(),
+              }).nullable()
             })
           ),
         })
@@ -166,6 +181,21 @@ const ReservationByIdShape = z.object({
       firstName: z.string(),
       lastName: z.string(),
     }),
+    checkInTime: z.date(),
+    createdBy: z.string(),
+    updatedBy: z.string().nullable(),
+    createdByUser: z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      email: z.string(),
+    }),
+    updatedByUser: z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      email: z.string(),
+    }).nullable()
   }),
 });
 
