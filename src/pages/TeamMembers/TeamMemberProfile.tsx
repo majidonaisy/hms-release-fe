@@ -184,11 +184,11 @@ const TeamMemberProfile = () => {
         }).toLowerCase();
     };
 
-    const getActivityDescription = (session: any, isLast: boolean): string => {
+    const getActivityDescription = (session: any): string => {
         if (session.isActive) {
             return 'Logged in';
         } else {
-            return isLast ? 'Logged out' : 'Session ended';
+            return 'Logged out';
         }
     };
 
@@ -421,8 +421,7 @@ const TeamMemberProfile = () => {
 
                                                     {/* Sessions for this date */}
                                                     <div className="space-y-3 pl-4">
-                                                        {sessions.map((session, sessionIndex) => {
-                                                            const isLastInGroup = sessionIndex === sessions.length - 1;
+                                                        {sessions.map((session) => {
                                                             return (
                                                                 <div key={session.id} className="ml-10">
                                                                     <div className="right-30 relative -top-5" >
@@ -436,7 +435,7 @@ const TeamMemberProfile = () => {
                                                                     <div className="flex justify-between ml-2 bg-hms-accent/15 p-2 rounded-lg">
                                                                         <div className="flex flex-col">
                                                                             <span className="text-sm font-medium">
-                                                                                {getActivityDescription(session, isLastInGroup)}
+                                                                                {getActivityDescription(session)}
                                                                             </span>
                                                                         </div>
                                                                         <span className="text-xs flex flex-col text-gray-500">
