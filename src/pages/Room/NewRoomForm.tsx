@@ -15,7 +15,7 @@ import { getAmenities, getRooms } from '@/services/Rooms';
 import { Amenity } from '@/validation/schemas/amenity';
 
 export interface RoomFormProps {
-  initialData?: Partial<AddRoomRequest>;
+  initialData?: Partial<AddRoomRequest & { id?: string }>;
   onSubmit: (data: AddRoomRequest) => Promise<void>;
   onSaveDraft?: (data: AddRoomRequest) => void;
   isLoading?: boolean;
@@ -25,7 +25,6 @@ export interface RoomFormProps {
   roomTypes?: RoomType[];
 }
 
-// Default form data
 const defaultFormData: AddRoomRequest = {
   roomNumber: '',
   roomTypeId: '',
@@ -96,15 +95,16 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }
   };
 
-  // Update form data when initialData changes (for edit mode)
   useEffect(() => {
-
     if (initialData && Object.keys(initialData).length > 0) {
       const newData = {
         ...defaultFormData,
         ...initialData
       };
       setFormData(newData);
+
+      const hasConnections = (initialData.connectedRoomIds?.length || 0) > 0;
+      setIsConnecting(hasConnections);
     }
   }, [initialData]);
 
@@ -151,6 +151,13 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
     }));
   };
 
+  const handleConnectingToggle = (checked: boolean) => {
+    setIsConnecting(checked);
+    if (!checked) {
+      handleInputChange('connectedRoomIds', []);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -159,13 +166,15 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
       const transformedData = {
         ...formData,
         floor: typeof formData.floor === 'string' && formData.floor === '' ? 0 : Number(formData.floor),
-        amenities: (formData.amenities || []).map((amenity) => amenity)
+        amenities: (formData.amenities || []).map((amenity) => amenity),
+        connectedRoomIds: isConnecting ? (formData.connectedRoomIds || []) : []
       };
 
       const validatedData = AddRoomRequestSchema.parse(transformedData);
       await onSubmit(validatedData as AddRoomRequest);
       if (submitButtonText.includes('Create')) {
         setFormData(defaultFormData);
+        setIsConnecting(false);
       }
     } catch (error: any) {
       console.error('Form submission error:', error);
@@ -189,9 +198,14 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
       setIsSubmitting(false);
     }
   };
+
   const handleSaveDraft = () => {
     if (onSaveDraft) {
-      onSaveDraft(formData);
+      const draftData = {
+        ...formData,
+        connectedRoomIds: isConnecting ? (formData.connectedRoomIds || []) : []
+      };
+      onSaveDraft(draftData);
     }
   };
 
@@ -258,7 +272,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                 <Label>Is this a connecting room?</Label>
                 <Switch
                   checked={isConnecting}
-                  onCheckedChange={setIsConnecting}
+                  onCheckedChange={handleConnectingToggle}
                   className='border border-slate-300 data-[state=checked]:bg-hms-primary'
                 />
               </div>
@@ -268,9 +282,8 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                   <Label htmlFor="connectedRoomIds">Connecting Rooms</Label>
                   <div className="relative">
                     <Select
-                      value="" // Keep empty as we're handling multiple values differently
+                      value=""
                       onValueChange={(value) => {
-                        // Add room if not already selected
                         if (!formData.connectedRoomIds?.includes(value)) {
                           handleInputChange('connectedRoomIds', [...(formData.connectedRoomIds || []), value]);
                         }
@@ -281,7 +294,10 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                       </SelectTrigger>
                       <SelectContent>
                         {rooms
-                          .filter(room => !formData.connectedRoomIds?.includes(room.id))
+                          .filter(room =>
+                            room.id !== initialData?.id &&
+                            !formData.connectedRoomIds?.includes(room.id)
+                          )
                           .map(option => (
                             <SelectItem key={option.id} value={option.id}>
                               {option.roomNumber} - {option.roomType.name}
@@ -319,7 +335,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
                     </div>
                   )}
 
-                  {errors.connectedRoomIdss && <p className="text-red-500 text-sm">{errors.connectedRoomIdss}</p>}
+                  {errors.connectedRoomIds && <p className="text-red-500 text-sm">{errors.connectedRoomIds}</p>}
                 </div>
               )}
             </div>

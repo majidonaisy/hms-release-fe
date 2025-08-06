@@ -45,7 +45,9 @@ export const UpdateRoomTypeRequestSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   baseRate: z.number().positive().optional(),
-  capacity: z.number().int().positive().optional(),
+  maxOccupancy: z.number(),
+  childOccupancy: z.number(),
+  adultOccupancy: z.number(),
 });
 
 export const UpdateRoomTypeResponseSchema = z.object({

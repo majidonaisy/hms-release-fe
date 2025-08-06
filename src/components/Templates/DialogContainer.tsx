@@ -1,11 +1,11 @@
 import React from 'react';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
-import NewRoomTypeDialog from '../dialogs/NewRoomTypeDialog';
 import NewAmenityDialog from '../dialogs/NewAmenityDialog';
 import NewRoleDialog from '../dialogs/NewRoleDialog';
 import { useDialog } from '@/context/useDialog';
 import NewRatePlanDialog from '../dialogs/NewRateplanDialog';
 import NewExchangeRateDialog from '../dialogs/NewExchangeRateDialog';
+import NewRoomTypeDialog from '../dialogs/NewRoomTypeDialog';
 
 const DialogContainer: React.FC = () => {
   const { isOpen, dialogType, dialogProps, closeDialog } = useDialog();
@@ -19,9 +19,10 @@ const DialogContainer: React.FC = () => {
       case 'roomType':
         return (
           <NewRoomTypeDialog
-            isOpen={isOpen}
-            onCancel={closeDialog}
-            onConfirm={(dialogProps as any).onConfirm}
+            open={isOpen}
+            onClose={closeDialog}
+            onSuccess={(dialogProps as any).onConfirm}
+            editData={(dialogProps as any).editData}
           />
         );
       case 'amenity':
