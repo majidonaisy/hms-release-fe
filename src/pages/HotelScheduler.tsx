@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
 import { Skeleton } from "@/components/atoms/Skeleton"
+import { getGuestById } from "@/services/Guests"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -42,6 +43,8 @@ export type UIReservation = {
   ratePlanId?: string
   roomTypeId?: string
   identification?: string
+  createdByUser?: string
+  checkInTime?: Date
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
@@ -65,6 +68,19 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
   const [viewReservationDialog, setViewReservationDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const fetchGuestName = async (guestId: string): Promise<string> => {
+    try {
+      const guestResponse = await getGuestById(guestId);
+      const guest = guestResponse.data || guestResponse;
+      const firstName = guest.firstName || '';
+      const lastName = guest.lastName || '';
+      return `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+    } catch (error) {
+      console.error(`Failed to fetch guest ${guestId}:`, error);
+      return 'Unknown Guest';
+    }
+  };
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -108,26 +124,41 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
         setAllRooms(extractedRooms);
 
-        const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
-          reservation.Room.flatMap((room) =>
-            (room.reservations ?? []).map((mappedReservation) => ({
-              id: mappedReservation.id,
-              resourceId: room.id,
-              guestName: reservation.name,
-              bookingId: reservation.id,
-              start: new Date(mappedReservation.checkIn),
-              end: new Date(mappedReservation.checkOut),
-              status: String(mappedReservation.status),
-              rate: reservation.baseRate,
-              specialRequests: reservation.description,
-              guestId: mappedReservation.guestId,
-              roomNumber: room.roomNumber,
-              roomType: reservation.name,
-            }))
-          )
-        );
+        const reservationsWithGuestNames: UIReservation[] = [];
 
-        setReservations(flattened)
+        for (const reservation of apiReservations) {
+          for (const room of reservation.Room) {
+            for (const mappedReservation of room.reservations || []) {
+              const guestName = await fetchGuestName(mappedReservation.guestId);
+
+              const createdByUserName = mappedReservation.createdByUser
+                ? `${mappedReservation.createdByUser.firstName} ${mappedReservation.createdByUser.lastName}`.trim()
+                : 'Unknown User';
+
+              reservationsWithGuestNames.push({
+                id: mappedReservation.id,
+                resourceId: room.id,
+                guestName: guestName,
+                bookingId: reservation.id,
+                start: new Date(mappedReservation.checkIn),
+                end: new Date(mappedReservation.checkOut),
+                status: String(mappedReservation.status),
+                rate: reservation.baseRate,
+                specialRequests: reservation.description,
+                guestId: mappedReservation.guestId,
+                roomNumber: room.roomNumber,
+                roomType: reservation.name,
+                ratePlanId: mappedReservation.ratePlanId,
+                roomTypeId: room.roomTypeId || room.roomTypeId,
+                // Add the new fields
+                createdByUser: createdByUserName,
+                checkInTime: mappedReservation.checkInTime || undefined,
+              });
+            }
+          }
+        }
+
+        setReservations(reservationsWithGuestNames);
       } catch (err) {
         console.error("Failed to fetch reservations:", err);
       } finally {
@@ -158,10 +189,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     const filtered: Record<string, Room[]> = {};
 
     Object.entries(roomsByType).forEach(([type, typeRooms]) => {
-      // Filter rooms that match the search term (by room number or room type)
+      // Filter rooms that match the search term (by room number, room type, or guest name)
       const matchingRooms = typeRooms.filter((room) =>
         room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // Also search by guest name in reservations
+        reservations.some(res =>
+          res.resourceId === room.id &&
+          res.guestName.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
 
       // Only include room types that have matching rooms
@@ -171,7 +207,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     });
 
     return filtered;
-  }, [roomsByType, searchTerm]);
+  }, [roomsByType, searchTerm, reservations]);
 
   const flattenedRooms = useMemo(() => {
     const flattened: (Room | { type: "header"; name: string })[] = [];
@@ -188,7 +224,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       const matchesSearch =
         !searchTerm ||
         reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase());
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Normalize status for comparison
       const normalizedStatus = reservation.status?.toLowerCase();
@@ -331,28 +368,36 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
       setAllRooms(extractedRooms);
 
-      const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
-        reservation.Room.flatMap((room) =>
-          (room.reservations ?? []).map((mappedReservation) => ({
-            id: mappedReservation.id,
-            resourceId: room.id,
-            guestName: reservation.name,
-            bookingId: reservation.id,
-            start: new Date(mappedReservation.checkIn),
-            end: new Date(mappedReservation.checkOut),
-            status: String(mappedReservation.status),
-            rate: reservation.baseRate,
-            specialRequests: reservation.description,
-            guestId: mappedReservation.guestId,
-            roomNumber: room.roomNumber,
-            roomType: reservation.name,
-            ratePlanId: mappedReservation.ratePlanId,
-            roomTypeId: room.roomTypeId || room.roomTypeId,
-          }))
-        )
-      );
+      // Create reservations with guest names
+      const reservationsWithGuestNames: UIReservation[] = [];
 
-      setReservations(flattened);
+      for (const reservation of apiReservations) {
+        for (const room of reservation.Room) {
+          for (const mappedReservation of room.reservations || []) {
+            // Fetch guest name for each reservation
+            const guestName = await fetchGuestName(mappedReservation.guestId);
+
+            reservationsWithGuestNames.push({
+              id: mappedReservation.id,
+              resourceId: room.id,
+              guestName: guestName,
+              bookingId: reservation.id,
+              start: new Date(mappedReservation.checkIn),
+              end: new Date(mappedReservation.checkOut),
+              status: String(mappedReservation.status),
+              rate: reservation.baseRate,
+              specialRequests: reservation.description,
+              guestId: mappedReservation.guestId,
+              roomNumber: room.roomNumber,
+              roomType: reservation.name,
+              ratePlanId: mappedReservation.ratePlanId,
+              roomTypeId: room.roomTypeId || room.roomTypeId,
+            });
+          }
+        }
+      }
+
+      setReservations(reservationsWithGuestNames);
     } catch (err) {
       console.error("Failed to refresh reservations:", err);
     }
@@ -409,7 +454,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
             {/* <div className="flex gap-2"> */}
             <Input
-              placeholder="Search Room or Room Type"
+              placeholder="Search Room, Room Type, or Guest"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
@@ -584,14 +629,20 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         >
                           <div className="truncate font-medium">{event.guestName}</div>
                           <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
+                          {/* Uncomment these if you want to show more info */}
+                          {/* <div className="truncate text-xs opacity-60">{event.roomType}</div> */}
+                          {/* <div className="truncate text-xs opacity-60">${event.rate}/night</div> */}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
                         <div className="space-y-1">
                           <div className="font-medium">{event.guestName}</div>
+                          <div className="text-sm">Room: {event.roomNumber}</div>
+                          <div className="text-sm">Type: {event.roomType}</div>
                           <div className="text-sm">
                             {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
                           </div>
+                          <div className="text-sm">Status: {getStatusLabel(event.status)}</div>
                           <div className="text-sm">${event.rate}/night</div>
                           {event.specialRequests && (
                             <div className="text-sm text-gray-600">{event.specialRequests}</div>
@@ -604,6 +655,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               </ScrollArea>
             </div>
           )}
+
       </div>
       <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckOutComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
@@ -636,7 +688,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         bookingId={dialogReservation?.bookingId || ''}
         onBackToChooseOptions={handleBackToChooseOptions}
       />
-      <ViewReservationDialog open={viewReservationDialog} setOpen={setViewReservationDialog} reservationId={dialogReservation?.id || ''} onBackToChooseOptions={handleBackToChooseOptions} />
+      <ViewReservationDialog
+        open={viewReservationDialog}
+        setOpen={setViewReservationDialog}
+        reservationId={dialogReservation?.id || ''}
+        onBackToChooseOptions={handleBackToChooseOptions}
+        checkedInAt={dialogReservation?.checkInTime}
+        createdByUser={dialogReservation?.createdByUser}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -658,7 +717,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         stayDuration={dialogReservation ? calculateStayDuration(dialogReservation.start, dialogReservation.end) : ''}
         cancelReservation={() => setCancelReservationDialog(true)}
         viewReservation={() => setViewReservationDialog(true)}
-      />
+        createdByUser={dialogReservation?.createdByUser || 'Unknown User'}
+        checkedInAt={dialogReservation?.checkInTime || new Date()} />
       <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" refetchReservations={refreshReservations} />
     </TooltipProvider>
   );
