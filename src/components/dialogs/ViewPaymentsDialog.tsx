@@ -14,7 +14,6 @@ import { Label } from '@/components/atoms/Label';
 import { Textarea } from '@/components/atoms/Textarea';
 import { format } from 'date-fns';
 import {
-  CreditCard,
   DollarSign,
   FileText,
   User,
