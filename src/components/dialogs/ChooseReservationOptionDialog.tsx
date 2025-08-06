@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
-import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, } from "lucide-react"
+import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
 import type { Guest } from "@/validation"
@@ -23,6 +23,8 @@ const ChooseReservationOptionDialog = ({
     stayDuration,
     cancelReservation,
     viewReservation,
+    createdByUser,
+    checkedInAt
 }: {
     open: boolean
     setOpen: (open: boolean) => void
@@ -44,6 +46,8 @@ const ChooseReservationOptionDialog = ({
     stayDuration?: string
     cancelReservation: () => void
     viewReservation: () => void
+    createdByUser: string,
+    checkedInAt: Date
 }) => {
     const [guestData, setGuestData] = useState<Guest | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -72,11 +76,21 @@ const ChooseReservationOptionDialog = ({
         }
     }
 
-    const formatDate = (dateString: string | undefined) => {
+    const formatDate = (dateString: string | undefined | Date) => {
         if (!dateString) return ""
         return new Date(dateString).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
+        })
+    }
+
+    const formatCheckedInDate = (dateString: undefined | Date) => {
+        if (!dateString) return ""
+        return new Date(dateString).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
         })
     }
 
@@ -101,6 +115,18 @@ const ChooseReservationOptionDialog = ({
                             <Calendar className="size-4" />
                             <span>
                                 Stay: {formatDate(checkInDate)} - {formatDate(checkOutDate)} ({stayDuration})
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Pencil className="size-4" />
+                            <span>
+                                Booked By: {createdByUser}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <CalendarClock className="size-4" />
+                            <span>
+                                Checked In At: {formatCheckedInDate(checkedInAt)}
                             </span>
                         </div>
                     </div>

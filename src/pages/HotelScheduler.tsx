@@ -20,6 +20,8 @@ import DeleteDialog from "@/components/molecules/DeleteDialog"
 import { toast } from "sonner"
 import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
+import { Skeleton } from "@/components/atoms/Skeleton"
+import { getGuestById } from "@/services/Guests"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -41,6 +43,8 @@ export type UIReservation = {
   ratePlanId?: string
   roomTypeId?: string
   identification?: string
+  createdByUser?: string
+  checkInTime?: Date
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
@@ -62,10 +66,25 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [cancelReservationDialog, setCancelReservationDialog] = useState(false)
   const [reservationToCancel, setReservationToCancel] = useState('')
   const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
-  const [viewReservationDialog, setViewReservationDialog] = useState(false)
+  const [viewReservationDialog, setViewReservationDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchGuestName = async (guestId: string): Promise<string> => {
+    try {
+      const guestResponse = await getGuestById(guestId);
+      const guest = guestResponse.data || guestResponse;
+      const firstName = guest.firstName || '';
+      const lastName = guest.lastName || '';
+      return `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+    } catch (error) {
+      console.error(`Failed to fetch guest ${guestId}:`, error);
+      return 'Unknown Guest';
+    }
+  };
 
   useEffect(() => {
     const fetchReservations = async () => {
+      setLoading(true)
       try {
         const response: ReservationResponse = await getReservations(weekStart, weekEnd);
         const apiReservations = response.data.reservations;
@@ -105,28 +124,45 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
         setAllRooms(extractedRooms);
 
-        const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
-          reservation.Room.flatMap((room) =>
-            (room.reservations ?? []).map((mappedReservation) => ({
-              id: mappedReservation.id,
-              resourceId: room.id,
-              guestName: reservation.name,
-              bookingId: reservation.id,
-              start: new Date(mappedReservation.checkIn),
-              end: new Date(mappedReservation.checkOut),
-              status: String(mappedReservation.status),
-              rate: reservation.baseRate,
-              specialRequests: reservation.description,
-              guestId: mappedReservation.guestId,
-              roomNumber: room.roomNumber,
-              roomType: reservation.name,
-            }))
-          )
-        );
+        const reservationsWithGuestNames: UIReservation[] = [];
 
-        setReservations(flattened)
+        for (const reservation of apiReservations) {
+          for (const room of reservation.Room) {
+            for (const mappedReservation of room.reservations || []) {
+              const guestName = await fetchGuestName(mappedReservation.guestId);
+
+              const createdByUserName = mappedReservation.createdByUser
+                ? `${mappedReservation.createdByUser.firstName} ${mappedReservation.createdByUser.lastName}`.trim()
+                : 'Unknown User';
+
+              reservationsWithGuestNames.push({
+                id: mappedReservation.id,
+                resourceId: room.id,
+                guestName: guestName,
+                bookingId: reservation.id,
+                start: new Date(mappedReservation.checkIn),
+                end: new Date(mappedReservation.checkOut),
+                status: String(mappedReservation.status),
+                rate: reservation.baseRate,
+                specialRequests: reservation.description,
+                guestId: mappedReservation.guestId,
+                roomNumber: room.roomNumber,
+                roomType: reservation.name,
+                ratePlanId: mappedReservation.ratePlanId,
+                roomTypeId: room.roomTypeId || room.roomTypeId,
+                // Add the new fields
+                createdByUser: createdByUserName,
+                checkInTime: mappedReservation.checkInTime || undefined,
+              });
+            }
+          }
+        }
+
+        setReservations(reservationsWithGuestNames);
       } catch (err) {
         console.error("Failed to fetch reservations:", err);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -153,10 +189,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     const filtered: Record<string, Room[]> = {};
 
     Object.entries(roomsByType).forEach(([type, typeRooms]) => {
-      // Filter rooms that match the search term (by room number or room type)
+      // Filter rooms that match the search term (by room number, room type, or guest name)
       const matchingRooms = typeRooms.filter((room) =>
         room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // Also search by guest name in reservations
+        reservations.some(res =>
+          res.resourceId === room.id &&
+          res.guestName.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
 
       // Only include room types that have matching rooms
@@ -166,7 +207,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     });
 
     return filtered;
-  }, [roomsByType, searchTerm]);
+  }, [roomsByType, searchTerm, reservations]);
 
   const flattenedRooms = useMemo(() => {
     const flattened: (Room | { type: "header"; name: string })[] = [];
@@ -183,7 +224,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       const matchesSearch =
         !searchTerm ||
         reservation.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase());
+        reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Normalize status for comparison
       const normalizedStatus = reservation.status?.toLowerCase();
@@ -326,28 +368,36 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
       setAllRooms(extractedRooms);
 
-      const flattened: UIReservation[] = apiReservations.flatMap((reservation) =>
-        reservation.Room.flatMap((room) =>
-          (room.reservations ?? []).map((mappedReservation) => ({
-            id: mappedReservation.id,
-            resourceId: room.id,
-            guestName: reservation.name,
-            bookingId: reservation.id,
-            start: new Date(mappedReservation.checkIn),
-            end: new Date(mappedReservation.checkOut),
-            status: String(mappedReservation.status),
-            rate: reservation.baseRate,
-            specialRequests: reservation.description,
-            guestId: mappedReservation.guestId,
-            roomNumber: room.roomNumber,
-            roomType: reservation.name,
-            ratePlanId: mappedReservation.ratePlanId,
-            roomTypeId: room.roomTypeId || room.roomTypeId,
-          }))
-        )
-      );
+      // Create reservations with guest names
+      const reservationsWithGuestNames: UIReservation[] = [];
 
-      setReservations(flattened);
+      for (const reservation of apiReservations) {
+        for (const room of reservation.Room) {
+          for (const mappedReservation of room.reservations || []) {
+            // Fetch guest name for each reservation
+            const guestName = await fetchGuestName(mappedReservation.guestId);
+
+            reservationsWithGuestNames.push({
+              id: mappedReservation.id,
+              resourceId: room.id,
+              guestName: guestName,
+              bookingId: reservation.id,
+              start: new Date(mappedReservation.checkIn),
+              end: new Date(mappedReservation.checkOut),
+              status: String(mappedReservation.status),
+              rate: reservation.baseRate,
+              specialRequests: reservation.description,
+              guestId: mappedReservation.guestId,
+              roomNumber: room.roomNumber,
+              roomType: reservation.name,
+              ratePlanId: mappedReservation.ratePlanId,
+              roomTypeId: room.roomTypeId || room.roomTypeId,
+            });
+          }
+        }
+      }
+
+      setReservations(reservationsWithGuestNames);
     } catch (err) {
       console.error("Failed to refresh reservations:", err);
     }
@@ -389,43 +439,40 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
             <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex gap-2 text-sm w-full">
-              <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
-                <span className="text-xs">Checked In</span>
-              </div>
-              <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
-                <span className="text-xs">Checked Out</span>
-              </div>
-              {/* <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/4 ">
-                <span className="text-xs">Confirmed</span>
-              </div> */}
-              <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold w-1/3 ">
-                <span className="text-xs">Held</span>
-              </div>
+          <div className="grid grid-cols-5 ww-full items-center gap-4">
+            {/* <div className="flex gap-2 text-sm w-full"> */}
+            <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+              <span className="text-xs">Checked In</span>
             </div>
-
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search Text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-fit"
-              />
-
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="CHECKED_IN">Checked In</SelectItem>
-                  <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
-                  {/* <SelectItem value="CONFIRMED">Confirmed</SelectItem> */}
-                  <SelectItem value="HELD">Held</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+              <span className="text-xs">Checked Out</span>
             </div>
+            <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+              <span className="text-xs">Held</span>
+            </div>
+            {/* </div> */}
+
+            {/* <div className="flex gap-2"> */}
+            <Input
+              placeholder="Search Room, Room Type, or Guest"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="CHECKED_IN">Checked In</SelectItem>
+                <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
+                {/* <SelectItem value="CONFIRMED">Confirmed</SelectItem> */}
+                <SelectItem value="HELD">Held</SelectItem>
+              </SelectContent>
+            </Select>
+            {/* </div> */}
           </div>
         </div>
 
@@ -491,105 +538,124 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[calc(100vh-280px)]">
-            <div
-              className="grid border-collapse"
-              style={{
-                gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
-                gridTemplateRows: flattenedRooms
-                  .map((item) => ("type" in item && item.type === "header" ? "40px" : "80px"))
-                  .join(" "),
-              }}
-            >
-              {flattenedRooms.map((item, index) => (
+        {
+          loading ? (
+            <>
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+              <Skeleton className="h-[100px] mb-2" />
+            </>
+          ) : (
+            <div className="flex-1 overflow-hidden">
+              <ScrollArea className="h-[calc(100vh-280px)]">
                 <div
-                  key={`room-${index}`}
-                  className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
-                    ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
-                    : "bg-gray-50 border-r p-1"
-                    }`}
+                  className="grid border-collapse"
                   style={{
-                    gridColumn: 1,
-                    gridRow: index + 1,
+                    gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
+                    gridTemplateRows: flattenedRooms
+                      .map((item) => ("type" in item && item.type === "header" ? "40px" : "80px"))
+                      .join(" "),
                   }}
                 >
-                  {"type" in item && item.type === "header" ? (
-                    <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
-                      <span
-                        className={`text-xs gap-1 font-medium flex items-center ${getRoomStatusColor((item as Room).status)}`}
-                        style={{ minWidth: 70, textAlign: 'center' }}
-                      >
-                        <Circle className={`${getRoomStatusColor((item as Room).status)} size-1`} />
-                        {(item as Room).status}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {flattenedRooms.map((item, roomIndex) =>
-                weekDates.map((date, dateIndex) => {
-                  return (
+                  {flattenedRooms.map((item, index) => (
                     <div
-                      key={`cell-${roomIndex}-${date.toISOString()}`}
-                      className={`border-b border-gray-200 transition-colors ${"type" in item && item.type === "header"
-                        ? "bg-hms-accent/15 cursor-default"
-                        : `border-r ${isToday(date) ? "bg-blue-50" : "bg-white"
-                        }`
+                      key={`room-${index}`}
+                      className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
+                        ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
+                        : "bg-gray-50 border-r p-1"
                         }`}
                       style={{
-                        gridColumn: dateIndex + 2,
-                        gridRow: roomIndex + 1,
-                      }}
-                    />
-                  );
-                })
-              )}
-
-              {gridEvents.map((event) => (
-                <Tooltip key={event.id}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
-                        event.status
-                      )}`}
-                      style={{
-                        gridColumnStart: event.gridColumnStart,
-                        gridColumnEnd: event.gridColumnEnd,
-                        gridRowStart: event.gridRowStart,
-                        gridRowEnd: event.gridRowEnd,
-                      }}
-                      onClick={() => {
-                        setChooseOptionDialog(true);
-                        setDialogReservation(event);
-                        setReservationToCancel(event.id)
+                        gridColumn: 1,
+                        gridRow: index + 1,
                       }}
                     >
-                      <div className="truncate font-medium">{event.guestName}</div>
-                      <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-medium">{event.guestName}</div>
-                      <div className="text-sm">
-                        {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
-                      </div>
-                      <div className="text-sm">${event.rate}/night</div>
-                      {event.specialRequests && (
-                        <div className="text-sm text-gray-600">{event.specialRequests}</div>
+                      {"type" in item && item.type === "header" ? (
+                        <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
+                          <span
+                            className={`text-xs gap-1 font-medium flex items-center ${getRoomStatusColor((item as Room).status)}`}
+                            style={{ minWidth: 70, textAlign: 'center' }}
+                          >
+                            <Circle className={`${getRoomStatusColor((item as Room).status)} size-1`} />
+                            {(item as Room).status}
+                          </span>
+                        </div>
                       )}
                     </div>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
+                  ))}
+
+                  {flattenedRooms.map((item, roomIndex) =>
+                    weekDates.map((date, dateIndex) => {
+                      return (
+                        <div
+                          key={`cell-${roomIndex}-${date.toISOString()}`}
+                          className={`border-b border-gray-200 transition-colors ${"type" in item && item.type === "header"
+                            ? "bg-hms-accent/15 cursor-default"
+                            : `border-r ${isToday(date) ? "bg-blue-50" : "bg-white"
+                            }`
+                            }`}
+                          style={{
+                            gridColumn: dateIndex + 2,
+                            gridRow: roomIndex + 1,
+                          }}
+                        />
+                      );
+                    })
+                  )}
+
+                  {gridEvents.map((event) => (
+                    <Tooltip key={event.id}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
+                            event.status
+                          )}`}
+                          style={{
+                            gridColumnStart: event.gridColumnStart,
+                            gridColumnEnd: event.gridColumnEnd,
+                            gridRowStart: event.gridRowStart,
+                            gridRowEnd: event.gridRowEnd,
+                          }}
+                          onClick={() => {
+                            setChooseOptionDialog(true);
+                            setDialogReservation(event);
+                            setReservationToCancel(event.id)
+                          }}
+                        >
+                          <div className="truncate font-medium">{event.guestName}</div>
+                          <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
+                          {/* Uncomment these if you want to show more info */}
+                          {/* <div className="truncate text-xs opacity-60">{event.roomType}</div> */}
+                          {/* <div className="truncate text-xs opacity-60">${event.rate}/night</div> */}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-medium">{event.guestName}</div>
+                          <div className="text-sm">Room: {event.roomNumber}</div>
+                          <div className="text-sm">Type: {event.roomType}</div>
+                          <div className="text-sm">
+                            {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
+                          </div>
+                          <div className="text-sm">Status: {getStatusLabel(event.status)}</div>
+                          <div className="text-sm">${event.rate}/night</div>
+                          {event.specialRequests && (
+                            <div className="text-sm text-gray-600">{event.specialRequests}</div>
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
-          </ScrollArea>
-        </div>
+          )}
+
       </div>
       <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
       <CheckOutDialog open={checkOutDialog} setOpen={setCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckOutComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />
@@ -622,7 +688,14 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         bookingId={dialogReservation?.bookingId || ''}
         onBackToChooseOptions={handleBackToChooseOptions}
       />
-      <ViewReservationDialog open={viewReservationDialog} setOpen={setViewReservationDialog} reservationId={dialogReservation?.id || ''} onBackToChooseOptions={handleBackToChooseOptions} />
+      <ViewReservationDialog
+        open={viewReservationDialog}
+        setOpen={setViewReservationDialog}
+        reservationId={dialogReservation?.id || ''}
+        onBackToChooseOptions={handleBackToChooseOptions}
+        checkedInAt={dialogReservation?.checkInTime}
+        createdByUser={dialogReservation?.createdByUser}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -644,7 +717,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         stayDuration={dialogReservation ? calculateStayDuration(dialogReservation.start, dialogReservation.end) : ''}
         cancelReservation={() => setCancelReservationDialog(true)}
         viewReservation={() => setViewReservationDialog(true)}
-      />
+        createdByUser={dialogReservation?.createdByUser || 'Unknown User'}
+        checkedInAt={dialogReservation?.checkInTime || new Date()} />
       <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" refetchReservations={refreshReservations} />
     </TooltipProvider>
   );

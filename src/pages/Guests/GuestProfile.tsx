@@ -186,6 +186,7 @@ const GuestProfile = () => {
       email: group.email,
       phoneNumber: group.phone,
       type: group.businessType,
+      isVip: group.isVip,
       isGroup: true,
       originalData: group,
     }))
@@ -257,7 +258,7 @@ const GuestProfile = () => {
   const handleEdit = (item: CombinedGuestData, e: React.MouseEvent) => {
     e.stopPropagation()
     if (item.isGroup) {
-      console.log(`Navigate to group edit: /guests-profile/group/${item.id}`)
+      navigate(`/group-profile/${item.id}`)
     } else {
       navigate(`/guests-profile/${item.id}`)
     }
@@ -271,17 +272,6 @@ const GuestProfile = () => {
     setGroupSearchTerm("")
   }
 
-  const getTotalCount = () => {
-    switch (activeTab) {
-      case "individuals":
-        return guests.length
-      case "groups":
-        return groupProfiles.length
-      default:
-        return (pagination?.totalItems || guests.length) + groupProfiles.length
-    }
-  }
-
   if (loading && combinedData.length === 0) {
     return <TableSkeleton title="Guests Profile" />
   }
@@ -293,10 +283,10 @@ const GuestProfile = () => {
         <div className="mb-6">
           {/* Title with Count */}
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold text-gray-900">Guests Profile</h1>
               <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                {getTotalCount()} {getTotalCount() === 1 ? "item" : "items"}
+                {pagination?.totalItems} {pagination?.totalItems === 1 ? "item" : "items"}
               </span>
             </div>
           </div>
@@ -448,10 +438,12 @@ const GuestProfile = () => {
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Email
                       </TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Contact Info
+                      </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
+                        VIP
                       </TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
@@ -491,14 +483,14 @@ const GuestProfile = () => {
                           </TableCell>
                           <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
                           <TableCell className="px-6 py-4">
-                            <span className="text-gray-600">N/A</span>
-                          </TableCell>
-                          <TableCell className="px-6 py-4">
                             <span className="text-gray-600">
                               {(item.originalData as GetGroupProfilesResponse["data"][0]).specialRequirements || "None"}
                             </span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4 text-gray-600">
+                            {(item.originalData as GetGroupProfilesResponse["data"][0]).isVip ? "Yes" : "No"}
+                          </TableCell>
                           <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenu modal={false}>
                               <DropdownMenuTrigger asChild>

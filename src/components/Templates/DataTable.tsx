@@ -147,6 +147,7 @@ export interface DataTableProps<T = any> {
   // New prop for back button
   showBackButton?: boolean
   onBackClick?: () => void
+  showSearch?: boolean
 }
 
 export const defaultRenderers = {
@@ -219,6 +220,7 @@ const DataTable = <T,>({
   emptyStateMessage = "No data found",
   showBackButton = false,
   onBackClick,
+  showSearch = true
 }: DataTableProps<T>) => {
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
@@ -482,7 +484,7 @@ const DataTable = <T,>({
         <div className="mb-6">
           {/* Title with Count and Back Button */}
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 ">
               {/* Back Button */}
               {showBackButton && onBackClick && (
                 <Button
@@ -496,7 +498,7 @@ const DataTable = <T,>({
               )}
               <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
               <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                {pagination?.totalItems} {pagination?.totalItems === 1 ? 'item' : 'items'}
+                {pagination?.totalItems || data.length} {pagination?.totalItems === 1 || data.length ? 'item' : 'items'}
               </span>
             </div>
           </div>
@@ -504,25 +506,27 @@ const DataTable = <T,>({
           {/* Search Bar and Actions */}
           <div className="flex items-center gap-4">
             {/* Search Bar */}
-            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
-              <Input
-                type="text"
-                placeholder={filter?.searchPlaceholder || "Search text"}
-                value={searchText}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
-              />
-              {searchText && (
-                <button
-                  onClick={clearSearch}
-                  className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
-                  aria-label="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
+            {showSearch && (
+              <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                <Input
+                  type="text"
+                  placeholder={filter?.searchPlaceholder || "Search text"}
+                  value={searchText}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-85 h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                />
+                {searchText && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+            )}
 
             {/* Dynamic Select Filters */}
             {allSelectFilters.map((selectFilter) => (

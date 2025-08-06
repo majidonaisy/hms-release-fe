@@ -88,8 +88,8 @@ const HousekeepingPage = () => {
                 setPagination(null);
             }
         } catch (error) {
-            console.error('Failed to fetch maintenance requests:', error);
-            toast.error('Failed to load maintenance requests');
+            console.error('Failed to fetch housekeeping tasks:', error);
+            toast.error('Failed to load housekeeping tasks');
         } finally {
             setLoading(false);
         }
@@ -302,7 +302,7 @@ const HousekeepingPage = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section */}
             <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold text-gray-900">Housekeeping</h1>
                     <span className="bg-hms-primary/15 text-sm font-medium px-2.5 py-0.5 rounded-full">
                         {pagination?.totalItems || housekeepingTasks.length} Task{(pagination?.totalItems || housekeepingTasks.length) !== 1 ? 's' : ''}
@@ -318,7 +318,7 @@ const HousekeepingPage = () => {
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">All Status</SelectItem>
+                            <SelectItem value="ALL">All Statuses</SelectItem>
                             <SelectItem value="PENDING">Pending</SelectItem>
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                             <SelectItem value="COMPLETED">Completed</SelectItem>

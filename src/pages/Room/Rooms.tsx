@@ -295,9 +295,9 @@ const Rooms = () => {
                 }}
             />
             <NewRoomTypeDialog
-                isOpen={isRoomTypeDialogOpen}
-                onCancel={handleRoomTypeCancel}
-                onConfirm={handleRoomTypeConfirm}
+                open={isRoomTypeDialogOpen}
+                onClose={handleRoomTypeCancel}
+                onSuccess={() => handleRoomTypeConfirm}
             />
         </>
     );
