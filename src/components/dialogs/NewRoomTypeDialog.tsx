@@ -6,6 +6,7 @@ import { Label } from '@/components/atoms/Label';
 import { Button } from '@/components/atoms/Button';
 import { addRoomType, updateRoomType } from '@/services/RoomTypes';
 import type { AddRoomTypeRequest, RoomType } from '@/validation';
+import { Textarea } from '../atoms/Textarea';
 
 interface NewRoomTypeDialogProps {
   open: boolean;
@@ -52,7 +53,7 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'name' || name === 'description' ? value : Number(value),
+      [name]: name === 'name' ? value : Number(value),
     }));
   };
 
@@ -111,11 +112,13 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
+            <Input id="name" name="name" value={formData.name} placeholder='Double Room' onChange={handleChange} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" value={formData.description} onChange={handleChange} />
+            <Textarea id="description" name="description" value={formData.description} placeholder='A room designed to accommodate two guests.'
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="baseRate">Base Rate</Label>
@@ -124,9 +127,10 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
               name="baseRate"
               type="number"
               min={0}
-              value={formData.baseRate}
+              value={formData.baseRate == 0 ? '' : formData.baseRate}
               onChange={handleChange}
               required
+              placeholder='50'
             />
           </div>
           <div className="space-y-2">
@@ -136,9 +140,10 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
               name="maxOccupancy"
               type="number"
               min={1}
-              value={formData.maxOccupancy}
+              value={formData.maxOccupancy == 0 ? '' : formData.maxOccupancy}
               onChange={handleChange}
               required
+              placeholder='5'
             />
           </div>
           <div className="space-y-2">
@@ -148,8 +153,9 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
               name="childOccupancy"
               type="number"
               min={0}
-              value={formData.childOccupancy}
+              value={formData.childOccupancy == 0 ? '' : formData.childOccupancy}
               onChange={handleChange}
+              placeholder='3'
             />
           </div>
           <div className="space-y-2">
@@ -159,8 +165,9 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
               name="adultOccupancy"
               type="number"
               min={0}
-              value={formData.adultOccupancy}
+              value={formData.adultOccupancy == 0 ? '' : formData.adultOccupancy}
               onChange={handleChange}
+              placeholder='2'
             />
           </div>
           <Button type="submit" className="w-full text-white mt-6" disabled={isLoading}>

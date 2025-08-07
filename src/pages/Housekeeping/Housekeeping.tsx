@@ -386,7 +386,7 @@ const HousekeepingPage = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4 w-1/7 text-center">
                                         <Badge className={`  ${getStatusDotColor(task.status)}`}>
-                                            {task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.slice(1).toLowerCase()}
+                                            {task.status.replace('_', ' ').charAt(0).toUpperCase() + task.status.replace('_', ' ').slice(1).toLowerCase()}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 w-1/7 text-center">

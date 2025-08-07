@@ -351,7 +351,19 @@ const NewTeamMember = () => {
                                 Back to Team Members
                             </Button>
                             {!isEditMode && (
-                                <Button onClick={() => navigate('/team-members/new')}>
+                                <Button onClick={() => {
+                                    navigate('/team-members/new');
+                                    setTeamMemberCreatedDialog(false);
+                                    setFormData({
+                                        email: '',
+                                        firstName: '',
+                                        lastName: '',
+                                        password: '',
+                                        roleId: '',
+                                        username: '',
+                                        departmentId: ''
+                                    });
+                                }}>
                                     Add Another Member
                                 </Button>
                             )}
