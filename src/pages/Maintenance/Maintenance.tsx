@@ -367,7 +367,7 @@ const MaintenancePage = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <Badge className={`  ${getStatusDotColor(request.status)}`}>
-                                            {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.slice(1).toLowerCase()}
+                                            {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.replace('_', ' ').slice(1).toLowerCase()}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 text-gray-600">
