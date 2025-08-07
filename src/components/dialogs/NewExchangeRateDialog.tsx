@@ -78,8 +78,6 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
         }
     }, [isOpen, editingExchangeRate]);
 
-
-
     const handleInputChange = (field: keyof ExchangeRateRequest, value: string | number) => {
         setFormData(prev => ({
             ...prev,
@@ -94,7 +92,6 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
         try {
             const validatedData = ExchangeRateRequestSchema.parse(formData);
             setIsLoading(true);
-
 
             if (isEditing && editingExchangeRate) {
                 await updateExchangeRate(editingExchangeRate.id, validatedData as ExchangeRateRequest);

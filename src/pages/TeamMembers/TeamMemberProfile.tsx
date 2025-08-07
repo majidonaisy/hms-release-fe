@@ -14,6 +14,8 @@ import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 import { toast } from 'sonner';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 import { Role } from '@/validation/schemas/Roles';
+import { Departments } from '@/validation/schemas/Departments';
+import { getDepartments } from '@/services/Departments';
 
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
@@ -29,21 +31,25 @@ const TeamMemberProfile = () => {
         username: '',
         firstName: '',
         lastName: '',
-        roleId: ''
+        roleId: '',
+        departmentId: ''
     });
+    const [departments, setDepartments] = useState<Departments['data']>([]);
 
     useEffect(() => {
         const fetchTeamProfile = async () => {
             if (!id) return;
             setLoading(true);
             try {
-                const [employeeResponse, rolesResponse] = await Promise.all([
+                const [employeeResponse, rolesResponse, departmentsResponse] = await Promise.all([
                     getEmployeeById(id),
-                    getRoles()
+                    getRoles(),
+                    getDepartments()
                 ]);
 
                 setTeamMember(employeeResponse.data);
                 setRoles(rolesResponse.data);
+                setDepartments(departmentsResponse.data)
 
                 // Initialize form data
                 setFormData({
@@ -51,7 +57,8 @@ const TeamMemberProfile = () => {
                     username: employeeResponse.data.username,
                     firstName: employeeResponse.data.firstName,
                     lastName: employeeResponse.data.lastName,
-                    roleId: employeeResponse.data.roleId
+                    roleId: employeeResponse.data.roleId,
+                    departmentId: employeeResponse.data.department.id
                 });
             } catch (error: any) {
                 console.error('Failed to fetch team member:', error);
@@ -117,7 +124,8 @@ const TeamMemberProfile = () => {
                 username: teamMember.username,
                 firstName: teamMember.firstName,
                 lastName: teamMember.lastName,
-                roleId: teamMember.roleId
+                roleId: teamMember.roleId,
+                departmentId: teamMember.department.id
             });
         }
         setIsEditMode(false);
@@ -392,6 +400,28 @@ const TeamMemberProfile = () => {
                                         </Select>
                                     ) : (
                                         <p className="">{getRoleName(teamMember.roleId)}</p>
+                                    )}
+                                </div>
+                                <div className='flex justify-between items-center'>
+                                    <Label className="font-semibold">Department</Label>
+                                    {isEditMode ? (
+                                        <Select
+                                            value={formData.departmentId}
+                                            onValueChange={(value) => handleInputChange('departmentId', value)}
+                                        >
+                                            <SelectTrigger className='w-40 h-8 text-sm'>
+                                                <SelectValue placeholder="Select department" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {departments.map((department) => (
+                                                    <SelectItem key={department.id} value={department.id}>
+                                                        {department.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <p className="">{teamMember.department.name}</p>
                                     )}
                                 </div>
                             </CardContent>

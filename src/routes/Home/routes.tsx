@@ -13,6 +13,7 @@ import NewGroupReservation from "@/pages/Reservations/NewGroupReservation";
 import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
 import HotelSettingsPage from "@/pages/management/HotelSettings";
 import ExchangeRates from "@/pages/dashboard/ExchangeRates/ExchangeRates";
+import Departments from "@/pages/dashboard/Departments/Departments";
 
 const RoutesList = () => {
 
@@ -325,6 +326,18 @@ const RoutesList = () => {
                     requiredPermissions: {
                         action: "manage",
                         subject: "ExchangeRates"
+                    }
+                },
+                {
+                    path: '/departments',
+                    title: "Departments",
+                    icon: <Settings className=" " />,
+                    component: Departments,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: {
+                        action: "manage",
+                        subject: "Departments"
                     }
                 },
             ]

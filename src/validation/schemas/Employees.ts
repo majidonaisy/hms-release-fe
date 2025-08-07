@@ -20,7 +20,11 @@ const EmployeeShape = z.object({
       name: z.string(),
     })
   ),
-  online: z.boolean()
+  online: z.boolean(),
+  department: z.object({
+    id: z.string(),
+    name: z.string()
+  })
 });
 
 export const PaginationSchema = z.object({
@@ -63,17 +67,22 @@ export const GetEmployeeByIdResponseSchema = z.object({
       isActive: z.boolean(),
       lastActivity: z.date(),
       createdAt: z.date()
-    }))
+    })),
+    department: z.object({
+      id: z.string(),
+      name: z.string()
+    })
   }),
 });
 
 export const AddEmployeeRequestSchema = z.object({
-  email: z.string,
+  email: z.string(),
   username: z.string(),
-  password: z.string(),
+  password: z.string().min(6, "Password must contain at least 6 characters"),
   firstName: z.string(),
   lastName: z.string(),
-  roleId: z.string()
+  roleId: z.string(),
+  departmentId: z.string(),
 })
 
 export const AddTeamMemberResponseSchema = z.object({
@@ -88,6 +97,7 @@ export const UpdateTeamMemberRequestSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   roleId: z.string(),
+  departmentId: z.string()
 })
 
 export type Employee = z.infer<typeof EmployeeShape>;
