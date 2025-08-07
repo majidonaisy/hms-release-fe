@@ -15,6 +15,7 @@ import { AddRoleRequest, RoleResponse } from '@/validation/schemas/Roles';
 import { ExchangeRateRequest, GetExchangeRateResponse } from '@/validation/schemas/ExchangeRates';
 import { addExchangeRate, getExchangeRates } from '@/services/ExchangeRates';
 import { addDepartment, getDepartments } from '@/services/Departments';
+import { Departments } from '@/validation/schemas/Departments';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -25,7 +26,11 @@ const Dashboard = () => {
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse>({ status: 0, data: [] });
     const [roles, setRoles] = useState<RoleResponse>({ status: 0, data: [] });
     const [exchangeRates, setExchangeRates] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
-    const [departments, setDepartments] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
+    const [departments, setDepartments] = useState<Departments>({
+        status: 0,
+        message: '',
+        data: [],
+    });
     const [loading, setLoading] = useState<boolean>(true);
 
     const fetchRoomTypes = async () => {
@@ -104,7 +109,7 @@ const Dashboard = () => {
             console.error("Error fetching departments:", error);
             toast.error(error.userMessage || "Failed to fetch departments");
             // Set an empty data array to prevent undefined errors
-            setDepartments({ status: 0, data: [] });
+            setDepartments({ status: 0, message: '', data: [] });
         }
     }
 
