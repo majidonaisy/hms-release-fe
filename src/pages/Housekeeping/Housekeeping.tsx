@@ -95,7 +95,6 @@ const HousekeepingPage = () => {
         }
     }, [currentPage, pageSize, statusFilter]);
 
-
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         // Data will be fetched in useEffect when currentPage changes

@@ -14,6 +14,7 @@ import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
 import { AddRoleRequest, RoleResponse } from '@/validation/schemas/Roles';
 import { ExchangeRateRequest, GetExchangeRateResponse } from '@/validation/schemas/ExchangeRates';
 import { addExchangeRate, getExchangeRates } from '@/services/ExchangeRates';
+import { addDepartment, getDepartments } from '@/services/Departments';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Dashboard = () => {
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse>({ status: 0, data: [] });
     const [roles, setRoles] = useState<RoleResponse>({ status: 0, data: [] });
     const [exchangeRates, setExchangeRates] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
+    const [departments, setDepartments] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
     const [loading, setLoading] = useState<boolean>(true);
 
     const fetchRoomTypes = async () => {
@@ -83,10 +85,26 @@ const Dashboard = () => {
                 throw new Error("Invalid response format");
             }
         } catch (error: any) {
-            console.error("Error fetching roles:", error);
-            toast.error(error.userMessage || "Failed to fetch roles");
+            console.error("Error fetching exchange rates:", error);
+            toast.error(error.userMessage || "Failed to fetch exchange rates");
             // Set an empty data array to prevent undefined errors
-            setRoles({ status: 0, data: [] });
+            setExchangeRates({ status: 0, data: [] });
+        }
+    }
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await getDepartments();
+            if (response && response.status === 200) {
+                setDepartments(response);
+            } else {
+                throw new Error("Invalid response format");
+            }
+        } catch (error: any) {
+            console.error("Error fetching departments:", error);
+            toast.error(error.userMessage || "Failed to fetch departments");
+            // Set an empty data array to prevent undefined errors
+            setDepartments({ status: 0, data: [] });
         }
     }
 
@@ -180,6 +198,21 @@ const Dashboard = () => {
         });
     };
 
+    const handleDepartmentsDialog = () => {
+        openDialog('departments', {
+            onConfirm: async (data: { name: string }) => {
+                try {
+                    await addDepartment(data);
+                    await fetchDepartments();
+                    return true;
+                } catch (error: any) {
+                    toast.error(error.userMessage || 'Error creating department');
+                    throw error;
+                }
+            }
+        });
+    };
+
     useEffect(() => {
         setLoading(true);
 
@@ -188,7 +221,8 @@ const Dashboard = () => {
             fetchAmenities().catch(err => console.error('Amenities fetch error:', err)),
             fetchRoles().catch(err => console.error('Roles fetch error:', err)),
             fetchRatePlans().catch(err => console.error('Rate plans fetch error:', err)),
-            fetchExchangeRates().catch(err => console.error('Exchange Rate fetch error:', err))
+            fetchExchangeRates().catch(err => console.error('Exchange Rate fetch error:', err)),
+            fetchDepartments().catch(err => console.error('Exchange Rate fetch error:', err)),
         ])
             .finally(() => {
                 setLoading(false);
@@ -258,14 +292,26 @@ const Dashboard = () => {
 
                 <DashboardCard
                     title="Exchange Rates"
-                    description="Define staff roles and their system permissions."
+                    description="Configure currency exchange rates used across the system for accurate financial transactions."
                     totalItems={exchangeRates.data?.length || 0}
-                    imageSrc="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070"
+                    imageSrc="https://plus.unsplash.com/premium_photo-1661611260273-4312872f53da?q=80&w=1992&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     imageAlt="Exchange Rates"
                     onCreateClick={handleExchangeRatesDialog}
                     onViewClick={() => navigate('/exchangeRates')}
                     createButtonText="New Exchange Rate"
                     viewButtonText="View Exchange Rates"
+                />
+
+                <DashboardCard
+                    title="Departments"
+                    description="Organize your staff into departments to manage responsibilities and reporting structures."
+                    totalItems={departments.data?.length || 0}
+                    imageSrc="https://images.unsplash.com/photo-1560264280-88b68371db39?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    imageAlt="Departments"
+                    onCreateClick={handleDepartmentsDialog}
+                    onViewClick={() => navigate('/departments')}
+                    createButtonText="New Department"
+                    viewButtonText="View Departments"
                 />
 
                 <HotelSettingsCard

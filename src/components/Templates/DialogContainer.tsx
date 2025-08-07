@@ -6,6 +6,7 @@ import { useDialog } from '@/context/useDialog';
 import NewRatePlanDialog from '../dialogs/NewRateplanDialog';
 import NewExchangeRateDialog from '../dialogs/NewExchangeRateDialog';
 import NewRoomTypeDialog from '../dialogs/NewRoomTypeDialog';
+import DepartmentDialog from '../dialogs/NewDepartmentDialog';
 
 const DialogContainer: React.FC = () => {
   const { isOpen, dialogType, dialogProps, closeDialog } = useDialog();
@@ -59,6 +60,15 @@ const DialogContainer: React.FC = () => {
             onConfirm={(dialogProps as any).onConfirm}
             onCancel={closeDialog}
             editingExchangeRate={(dialogProps as any).editingExchangeRate}
+          />
+        );
+      case 'departments':
+        return (
+          <DepartmentDialog
+            isOpen={isOpen}
+            onConfirm={(dialogProps as any).onConfirm}
+            onOpenChange={closeDialog}
+            editData={(dialogProps as any).editData}
           />
         );
 

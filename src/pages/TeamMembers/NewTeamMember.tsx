@@ -10,6 +10,9 @@ import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, D
 import { getRoles } from '@/services/Role';
 import { addTeamMember, getEmployeeById, updateEmployee } from '@/services/Employees';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
+import { AddEmployeeRequest } from '@/validation/schemas/Employees';
+import { getDepartments } from '@/services/Departments';
+import { Departments } from '@/validation/schemas/Departments';
 
 interface Role {
     id: string;
@@ -22,29 +25,22 @@ interface Role {
     }>;
 }
 
-interface CreateTeamMemberRequest {
-    email: string;
-    username: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    roleId: string;
-}
-
 const NewTeamMember = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [loading, setLoading] = useState(false);
     const [employeeLoading, setEmployeeLoading] = useState(false);
     const [roles, setRoles] = useState<Role[]>([]);
+    const [departments, setDepartments] = useState<Departments['data']>([]);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [formData, setFormData] = useState<CreateTeamMemberRequest>({
+    const [formData, setFormData] = useState<AddEmployeeRequest>({
+        departmentId: '',
         email: '',
-        username: '',
-        password: '',
         firstName: '',
         lastName: '',
-        roleId: ''
+        password: '',
+        roleId: '',
+        username: ''
     });
     const [teamMemberCreatedDialog, setTeamMemberCreatedDialog] = useState(false);
 
@@ -62,7 +58,8 @@ const NewTeamMember = () => {
                         password: '', // Don't populate password for security
                         firstName: employee.data.firstName,
                         lastName: employee.data.lastName,
-                        roleId: employee.data.roleId
+                        roleId: employee.data.roleId,
+                        departmentId: employee.data.department.id
                     });
                 } catch (error) {
                     console.error("Failed to fetch employee:", error);
@@ -89,10 +86,25 @@ const NewTeamMember = () => {
                 });
             }
         };
+
+        const handleGetDepartments = async () => {
+            try {
+                const response = await getDepartments();
+                setDepartments(response.data);
+                console.log(response)
+            } catch (error) {
+                console.error('Failed to fetch departments:', error);
+                toast("Error!", {
+                    description: "Failed to load departments.",
+                });
+            }
+        };
+
         handleGetRoles();
+        handleGetDepartments();
     }, []);
 
-    const handleInputChange = (field: keyof CreateTeamMemberRequest, value: string) => {
+    const handleInputChange = (field: keyof AddEmployeeRequest, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -102,12 +114,11 @@ const NewTeamMember = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // For edit mode, password is optional
         const requiredFields = isEditMode
             ? ['email', 'username', 'firstName', 'lastName', 'roleId']
             : ['email', 'username', 'password', 'firstName', 'lastName', 'roleId'];
 
-        const missingFields = requiredFields.filter(field => !formData[field as keyof CreateTeamMemberRequest]);
+        const missingFields = requiredFields.filter(field => !formData[field as keyof AddEmployeeRequest]);
 
         if (missingFields.length > 0) {
             toast("Error!", {
@@ -120,9 +131,8 @@ const NewTeamMember = () => {
         try {
             if (isEditMode) {
                 if (id) {
-                    // For updates, only send password if it's been changed
                     const updateData = { ...formData };
-                  
+
                     await updateEmployee(id, updateData);
                     toast("Success!", {
                         description: "Team member was updated successfully.",
@@ -180,71 +190,76 @@ const NewTeamMember = () => {
                     </h1>
                 </div>
                 <form onSubmit={handleSubmit} className='px-7 grid grid-cols-2 gap-8'>
-                    <div className='space-y-5'>
-                        <h2 className='text-lg font-bold'>Personal Information</h2>
+                    <div className='space-y-8'>
+                        <div className='space-y-5'>
+                            <h2 className='text-lg font-bold'>Personal Information</h2>
 
-                        <div className='space-y-1'>
-                            <Label>First Name *</Label>
-                            <Input
-                                value={formData.firstName}
-                                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='John'
-                                required
-                            />
+                            <div className='space-y-1'>
+                                <Label>First Name *</Label>
+                                <Input
+                                    value={formData.firstName}
+                                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                    className='border border-slate-300'
+                                    placeholder='John'
+                                    required
+                                />
+                            </div>
+
+                            <div className='space-y-1'>
+                                <Label>Last Name *</Label>
+                                <Input
+                                    value={formData.lastName}
+                                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                    className='border border-slate-300'
+                                    placeholder='Doe'
+                                    required
+                                />
+                            </div>
+
+                            <div className='space-y-1'>
+                                <Label>Email *</Label>
+                                <Input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => handleInputChange('email', e.target.value)}
+                                    className='border border-slate-300'
+                                    placeholder='john.doe@example.com'
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <div className='space-y-1'>
-                            <Label>Last Name *</Label>
-                            <Input
-                                value={formData.lastName}
-                                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='Doe'
-                                required
-                            />
-                        </div>
+                        <div className='space-y-5'>
+                            <h2 className='text-lg font-bold'>Account Details</h2>
 
-                        <div className='space-y-1'>
-                            <Label>Email *</Label>
-                            <Input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='john.doe@example.com'
-                                required
-                            />
+                            <div className='space-y-1'>
+                                <Label>Username *</Label>
+                                <Input
+                                    value={formData.username}
+                                    onChange={(e) => handleInputChange('username', e.target.value)}
+                                    className='border border-slate-300'
+                                    placeholder='johndoe'
+                                    required
+                                />
+                            </div>
+
+                            <div className='space-y-1'>
+                                <Label>
+                                    Password {isEditMode ? '(leave blank to keep current)' : '*'}
+                                </Label>
+                                <Input
+                                    type='password'
+                                    value={formData.password}
+                                    onChange={(e) => handleInputChange('password', e.target.value)}
+                                    className='border border-slate-300'
+                                    placeholder='••••••••'
+                                    required={!isEditMode}
+                                />
+                            </div>
                         </div>
                     </div>
-
                     <div className='space-y-5'>
-                        <h2 className='text-lg font-bold'>Account Details</h2>
-
-                        <div className='space-y-1'>
-                            <Label>Username *</Label>
-                            <Input
-                                value={formData.username}
-                                onChange={(e) => handleInputChange('username', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='johndoe'
-                                required
-                            />
-                        </div>
-
-                        <div className='space-y-1'>
-                            <Label>
-                                Password {isEditMode ? '(leave blank to keep current)' : '*'}
-                            </Label>
-                            <Input
-                                type='password'
-                                value={formData.password}
-                                onChange={(e) => handleInputChange('password', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='••••••••'
-                                required={!isEditMode}
-                            />
-                        </div>
+                        <h2 className='text-lg font-bold'>Job Details</h2>
 
                         <div className='space-y-1'>
                             <Label>Role *</Label>
@@ -259,6 +274,25 @@ const NewTeamMember = () => {
                                     {roles.map((role) => (
                                         <SelectItem key={role.id} value={role.id}>
                                             {role.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className='space-y-1'>
+                            <Label>Department *</Label>
+                            <Select
+                                value={formData.departmentId}
+                                onValueChange={(value) => handleInputChange('departmentId', value)}
+                            >
+                                <SelectTrigger className='w-full border border-slate-300'>
+                                    <SelectValue placeholder="Select department" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Array.isArray(departments) && departments.map((department) => (
+                                        <SelectItem key={department.id} value={department.id}>
+                                            {department.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

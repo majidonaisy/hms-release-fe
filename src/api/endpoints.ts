@@ -130,5 +130,8 @@ export const ENDPOINTS = {
     GetById: "exchange/get",
     Add: "exchange/add",
     Update: "exchange/update"
+  },
+  Departments: {
+    Manage: "hotel/department"
   }
 };
