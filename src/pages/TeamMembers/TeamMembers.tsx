@@ -4,25 +4,12 @@ import { Employee, GetEmployeesResponse, Pagination } from '@/validation/schemas
 import { deleteEMployee, getEmployees } from '@/services/Employees';
 import { Badge } from '@/components/atoms/Badge';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
-import { getRoles } from '@/services/Role';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
-
-interface Role {
-    id: string;
-    name: string;
-    hotelId: string;
-    permissions: Array<{
-        id: string;
-        subject: string;
-        action: string;
-    }>;
-}
 
 const TeamMembers = () => {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState<GetEmployeesResponse['data']>([]);
-    const [roles, setRoles] = useState<Role[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(8);
     const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -30,7 +17,6 @@ const TeamMembers = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
     const [searchLoading, setSearchLoading] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -91,22 +77,6 @@ const TeamMembers = () => {
         fetchTeamMembers();
     }, [debouncedSearchTerm, currentPage, pageSize, selectedStatus]);
 
-    useEffect(() => {
-        const handleGetRoles = async () => {
-            setSearchLoading(true)
-            try {
-                const rolesResponse = await getRoles();
-                setRoles(rolesResponse.data);
-            } catch (error) {
-                console.error('Failed to fetch roles:', error);
-            } finally {
-                setLoading(false)
-            }
-        };
-
-        handleGetRoles();
-    }, []);
-
     const handleDeleteEmployee = async (employee: Employee) => {
         try {
             await deleteEMployee(employee.id);
@@ -141,14 +111,6 @@ const TeamMembers = () => {
         }
     };
 
-    const roleMap = roles.reduce(
-        (map, role) => {
-            map[role.id] = role.name;
-            return map;
-        },
-        {} as Record<string, string>
-    );
-
     const teamColumns: TableColumn[] = [
         {
             key: 'name',
@@ -159,6 +121,15 @@ const TeamMembers = () => {
             key: 'email',
             label: 'Email',
             className: 'font-medium text-gray-900'
+        },
+        {
+            key: 'department',
+            label: 'Department',
+            render: (item) => (
+                <span className="text-gray-600">
+                    {item.department.name || 'No Department'}
+                </span>
+            )
         },
         {
             key: 'username',
@@ -179,7 +150,7 @@ const TeamMembers = () => {
             label: 'Role',
             render: (item) => (
                 <span className="text-gray-600">
-                    {item.role?.name || roleMap[item.roleId] || 'Unknown Role'}
+                    {item.role?.name || 'Unknown Role'}
                 </span>
             )
         }
@@ -201,7 +172,6 @@ const TeamMembers = () => {
     return (
         <DataTable
             data={employees}
-            loading={loading}
             columns={teamColumns}
             title="Team Members"
             actions={teamActions}
