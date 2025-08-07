@@ -26,7 +26,6 @@ interface PaymentChargeItem {
     unitPrice: string;
     status: string;
     selected: boolean;
-    onBackToChooseOptions: () => void;
 }
 
 const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }: {
@@ -75,7 +74,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
             const response = await getUnsetledCharges(reservationId);
             // Handle the actual response structure from your API
             const folioItems = response.data?.folioItems || [];
-            const mappedChargeItems: PaymentChargeItem[] = folioItems.map(item => ({
+            const mappedChargeItems: PaymentChargeItem[] = folioItems.map((item: any) => ({
                 id: item.id,
                 itemType: item.itemType,
                 amount: item.amount,
@@ -101,9 +100,43 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
         try {
             setLoadingReservation(true);
             const response = await getReservationById(reservationId);
+            
             // Handle both direct data response and wrapped response
-            const reservationData = 'data' in response && response.data ? response.data : response;
-            setReservationDetails(reservationData as SingleReservation);
+            let reservationData: any;
+            if (response && typeof response === 'object' && 'data' in response && response.data) {
+                reservationData = response.data;
+            } else {
+                reservationData = response;
+            }
+            
+            // Transform the data to match SingleReservation interface
+            const transformedReservation: SingleReservation = {
+                id: reservationData.id || '',
+                checkIn: reservationData.checkIn instanceof Date 
+                    ? reservationData.checkIn.toISOString()
+                    : reservationData.checkIn || '',
+                checkOut: reservationData.checkOut instanceof Date 
+                    ? reservationData.checkOut.toISOString()
+                    : reservationData.checkOut || '',
+                status: reservationData.status || 'DRAFT',
+                guestId: reservationData.guestId || '',
+                hotelId: reservationData.hotelId || '',
+                ratePlanId: reservationData.ratePlanId || '',
+                price: reservationData.price || '0',
+                groupBookingId: reservationData.groupBookingId || null,
+                chargeRouting: reservationData.chargeRouting || 'OWN_FOLIO',
+                createdAt: reservationData.createdAt instanceof Date 
+                    ? reservationData.createdAt.toISOString()
+                    : reservationData.createdAt || new Date().toISOString(),
+                updatedAt: reservationData.updatedAt instanceof Date 
+                    ? reservationData.updatedAt.toISOString()
+                    : reservationData.updatedAt || new Date().toISOString(),
+                rooms: reservationData.rooms || [],
+                receiptId: reservationData.receiptId || '',
+                guest: reservationData.guest || { id: '', firstName: '', lastName: '' },
+            };
+            
+            setReservationDetails(transformedReservation);
         } catch (error: any) {
             console.error('Failed to fetch reservation details:', error);
             toast.error(error.userMessage || 'Failed to fetch reservation details');

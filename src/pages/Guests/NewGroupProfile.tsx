@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChevronLeft, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { AddGroupProfileRequest, GetGuestsResponse, UpdateGroupProfileRequest } from '@/validation';
+import { AddGroupProfileRequest, GetGuestsResponse, UpdateGroupProfileRequest } from '@/validation/schemas/Guests';
 import { addGroupProfile, getGuests, linkGuestsToGroup, getGroupProfileById, updateGroupProfile } from '@/services/Guests';
 import { toast } from 'sonner';
 import { Switch } from '@/components/atoms/Switch';
@@ -13,6 +13,7 @@ import { Card, CardContent, CardFooter } from '@/components/Organisms/Card';
 import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
 import { GuestSelectionDialog } from '@/components/dialogs/AddGuestDialog';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
+import { Guest } from '@/validation/schemas/Guests';
 
 const NewGroupProfile = () => {
     const navigate = useNavigate();
@@ -112,7 +113,7 @@ const NewGroupProfile = () => {
     }, [])
 
     const handleInputChange = (field: keyof AddGroupProfileRequest, value: string | boolean) => {
-        setFormData(prev => ({
+        setFormData((prev: AddGroupProfileRequest) => ({
             ...prev,
             [field]: value
         }));
@@ -123,7 +124,7 @@ const NewGroupProfile = () => {
         childField: keyof AddGroupProfileRequest[T],
         value: string
     ) => {
-        setFormData(prev => ({
+        setFormData((prev: AddGroupProfileRequest) => ({
             ...prev,
             [parentField]: {
                 ...(prev[parentField] as object),
@@ -151,7 +152,7 @@ const NewGroupProfile = () => {
                 await updateGroupProfile(id, updateData);
 
                 if (linkedGuests.length > 0) {
-                    const guestIds = linkedGuests.map(guest => guest.id);
+                    const guestIds = linkedGuests.map((guest: Guest) => guest.id);
                     try {
                         await linkGuestsToGroup(guestIds, id);
                         toast("Success!", {
@@ -176,7 +177,7 @@ const NewGroupProfile = () => {
                 setCreatedGroupId(groupId);
 
                 if (linkedGuests.length > 0 && groupId) {
-                    const guestIds = linkedGuests.map(guest => guest.id);
+                    const guestIds = linkedGuests.map((guest: Guest) => guest.id);
                     try {
                         await linkGuestsToGroup(guestIds, groupId);
                         toast("Success!", {
@@ -211,7 +212,7 @@ const NewGroupProfile = () => {
 
         if (createdGroupId && isEditMode) {
             try {
-                const guestIds = selectedGuests.map(guest => guest.id);
+                const guestIds = selectedGuests.map((guest: Guest) => guest.id);
                 await linkGuestsToGroup(guestIds, createdGroupId);
                 toast("Success!", {
                     description: "Guests linked to group successfully.",
@@ -437,7 +438,7 @@ const NewGroupProfile = () => {
                         <Card className='bg-hms-accent/15 border-none'>
                             <CardContent className='space-y-4'>
                                 {linkedGuests.length > 0 ? (
-                                    linkedGuests.map((guest) => (
+                                    linkedGuests.map((guest: Guest) => (
                                         <div key={guest.id} className="flex items-center justify-between p-2 bg-white rounded-lg">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-8 w-8">

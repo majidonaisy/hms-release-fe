@@ -4,7 +4,7 @@ import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
-import { Loader2, Save, ArrowLeft, ChevronLeft } from 'lucide-react';
+import { Loader2, Save, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { getHotelSettings, updateHotelSettings } from '@/services/Hotel';

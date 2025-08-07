@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/O
 import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
-import type { Guest } from "@/validation"
+import { Guest } from "@/validation/schemas/Guests"
 
 const ChooseReservationOptionDialog = ({
     open,

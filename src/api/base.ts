@@ -23,6 +23,6 @@ export const apiClient = async ({ method, endpoint, data, params, baseURL }: Api
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    throw error;
+    throw axiosError;
   }
 };

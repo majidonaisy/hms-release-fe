@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
-import type { Guest, RoomType, GetGroupProfilesResponse, GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation"
+import type { RoomType } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
@@ -21,6 +21,7 @@ import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
 import { useDebounce } from "@/hooks/useDebounce"
 import { getCurrentGroupProfiles, getCurrentGuests } from "@/services/Reservation"
+import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse, GetGroupProfilesResponse, GroupProfile, Guest } from "@/validation/schemas/Guests"
 
 type CombinedGuestData = {
   id: string
@@ -141,7 +142,7 @@ const CurrentGuestList = () => {
   }, [])
 
   const getCombinedData = (): CombinedGuestData[] => {
-    const transformedGuests: CombinedGuestData[] = guests.map((guest) => ({
+    const transformedGuests: CombinedGuestData[] = guests.map((guest: Guest) => ({
       id: guest.id,
       name: `${guest.firstName} ${guest.lastName}`,
       firstName: guest.firstName,
@@ -154,7 +155,7 @@ const CurrentGuestList = () => {
       originalData: guest,
     }))
 
-    const transformedGroups: CombinedGuestData[] = groupProfiles.map((group) => ({
+    const transformedGroups: CombinedGuestData[] = groupProfiles.map((group: GroupProfile) => ({
       id: group.id,
       name: group.name,
       email: group.email,

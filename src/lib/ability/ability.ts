@@ -14,7 +14,7 @@ const resolveAction = createAliasResolver({
 });
 
 export const createAbility = (permissions: Permission[]) => {
-  const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
+  const { can, build } = new AbilityBuilder(createMongoAbility);
 
   // If no permissions, user is guest with no permissions
   if (!permissions || permissions.length === 0) {

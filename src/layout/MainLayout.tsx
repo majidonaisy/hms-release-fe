@@ -23,8 +23,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     // Get current active route
-    const activeRouteSeg = location.pathname.split('/').pop() || '';
-    const activeRoute = decodeURIComponent(activeRouteSeg);
     const [loading, setLoading] = useState(false);
 
     // Handle toggle for subroutes
@@ -54,7 +52,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
     };
 
     // Render menu items with subroute support
-    const renderMenuItems = (routes: any[], parentPath = "") => {
+    const renderMenuItems = (routes: any[]) => {
         return routes
             .filter((route: any) => route.isAuthenticated !== false && route.isShown !== false)
             .map((route: any) => {

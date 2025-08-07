@@ -7,7 +7,7 @@ import { Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
-import { GetGuestsResponse, GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
+import { GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
 import { getRoomById, getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGuests } from "@/services/Guests"
@@ -19,6 +19,7 @@ import { Separator } from "@/components/atoms/Separator"
 import { Input } from "@/components/atoms/Input"
 import { getRoomTypes } from "@/services/RoomTypes"
 import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
+import { GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
@@ -291,7 +292,7 @@ export default function NewIndividualReservation() {
                                                 Loading guests...
                                             </SelectItem>
                                         ) : guests.length > 0 ? (
-                                            guests.map((guest) => (
+                                            guests.map((guest: Guest) => (
                                                 <SelectItem key={guest.id} value={guest.id}>
                                                     {guest.firstName} {guest.lastName}
                                                 </SelectItem>

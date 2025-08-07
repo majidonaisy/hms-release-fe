@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
 import { searchGuests, searchGroupProfiles } from "@/services/Guests"
-import type { GetGuestsResponse, Guest, RoomType, GetGroupProfilesResponse } from "@/validation"
 import { getRoomTypes } from "@/services/RoomTypes"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
@@ -22,6 +21,8 @@ import DeleteDialog from "@/components/molecules/DeleteDialog"
 import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
 import { useDebounce } from "@/hooks/useDebounce"
+import { GetGroupProfilesResponse, GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
+import { RoomType } from "@/validation"
 
 type CombinedGuestData = {
   id: string

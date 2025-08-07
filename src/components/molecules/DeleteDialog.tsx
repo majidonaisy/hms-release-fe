@@ -24,7 +24,6 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
     onConfirm,
     onCancel,
     loading = false,
-    destructive = true,
     refetchReservations
 }) => {
     const handleConfirm = () => {

@@ -8,7 +8,7 @@ import { GuestSelectionDialog } from "@/components/dialogs/AddGuestDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import EditingSkeleton from "@/components/Templates/EditingSkeleton";
 import { getGroupProfileById, getGuests, linkGuestsToGroup, updateGroupProfile, deleteGroupProfile } from "@/services/Guests";
-import { GetGuestsResponse, GroupProfileResponse, UpdateGroupProfileRequest } from "@/validation";
+import { GetGuestsResponse, GroupProfileResponse, UpdateGroupProfileRequest, Guest } from "@/validation/schemas/Guests";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { ChevronLeft, Mail, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -457,7 +457,7 @@ const GroupProfileExpanded = () => {
                         ) : linkedGuestsToGroup.length == 0 ? (
                             <p className="text-center text-muted-foreground h-[25rem] flex items-center justify-center">No guests are linked to this group</p>
                         ) : (
-                            linkedGuestsToGroup.map((guest) => (
+                            linkedGuestsToGroup.map((guest: Guest) => (
                                 <div
                                     key={guest.id}
                                     className="grid-cols-5 grid items-center gap-3 p-3 bg-hms-accent/10 mb-2 rounded-lg hover:bg-hms-accent/30 transition-colors cursor-pointer"

@@ -170,34 +170,18 @@ export const defaultRenderers = {
     const colorClass = badgeConfig.getColor(value)
     return <Badge className={`${colorClass} border-0`}>• {value}</Badge>
   },
-  boolean: (item: any, value: boolean) => (
+  boolean: (_item: any, value: boolean) => (
     <Badge className={`${value ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"} hover:bg-current`}>
       • {value ? "Active" : "Inactive"}
     </Badge>
   ),
-  smoking: (item: any, value: boolean) => <span className="text-gray-600">{value ? "Smoking" : "No Smoking"}</span>,
+  smoking: (_item: any, value: boolean) => <span className="text-gray-600">{value ? "Smoking" : "No Smoking"}</span>,
   occupancy: (item: any) => (
     <span className="text-gray-600">
       {item.roomType?.adultOccupancy || item.adultOccupancy || 0} Adult,{" "}
       {item.roomType?.childOccupancy || item.childOccupancy || 0} Child
     </span>
   ),
-}
-
-export const getStatusColor = (status: string | boolean): string => {
-  if (typeof status === "boolean") {
-    return status ? "bg-green-100 text-green-700 hover:bg-green-100" : "bg-red-100 text-red-700 hover:bg-red-100"
-  }
-  switch (status?.toLowerCase()) {
-    case "active":
-      return "bg-green-100 text-green-700 hover:bg-green-100"
-    case "inactive":
-      return "bg-red-100 text-red-700 hover:bg-red-100"
-    case "pending":
-      return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"
-    default:
-      return "bg-gray-100 text-gray-700 hover:bg-gray-100"
-  }
 }
 
 const DataTable = <T,>({
@@ -388,13 +372,6 @@ const DataTable = <T,>({
       return <>{children}</>
     }
 
-    const NoPermissionChecker = () => {
-      React.useEffect(() => {
-        // This effect runs if no permissions are granted
-      }, [])
-      return null
-    }
-
     return (
       <>
         {/* Check permissions for regular actions */}
@@ -459,7 +436,6 @@ const DataTable = <T,>({
   const otherActions = actions?.filter((action) => action.label.toLowerCase() !== "delete")
 
   // Determine if we should show the filter button (only for custom filters now)
-  const shouldShowFilterButton = filter?.showFilter !== false && filter?.customFilters
 
   // Combine all select filters (including backward compatibility)
   const allSelectFilters = [...(filter?.selectFilters || [])]
