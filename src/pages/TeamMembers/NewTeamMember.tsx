@@ -59,7 +59,7 @@ const NewTeamMember = () => {
                         firstName: employee.data.firstName,
                         lastName: employee.data.lastName,
                         roleId: employee.data.roleId,
-                        departmentId: employee.data.department.id
+                        departmentId: employee.data.department.id || ''
                     });
                 } catch (error) {
                     console.error("Failed to fetch employee:", error);
@@ -281,7 +281,7 @@ const NewTeamMember = () => {
                         </div>
 
                         <div className='space-y-1'>
-                            <Label>Department *</Label>
+                            <Label>Department</Label>
                             <Select
                                 value={formData.departmentId}
                                 onValueChange={(value) => handleInputChange('departmentId', value)}

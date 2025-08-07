@@ -4,10 +4,10 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
 import { Search, Plus, Check } from 'lucide-react';
-import { GetGuestsResponse, Guest } from '@/validation';
 import { ScrollArea } from '../atoms/ScrollArea';
 import { useDebounce } from '@/hooks/useDebounce';
 import { searchGuests } from '@/services/Guests';
+import { GetGuestsResponse, Guest } from '@/validation/schemas/Guests';
 
 interface GuestSelectionDialogProps {
     open: boolean;
@@ -100,7 +100,7 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
                                         No guests found.
                                     </div>
                                 ) : (
-                                    guests.map((guest) => {
+                                    guests.map((guest: Guest) => {
                                         const isSelected = selectedGuests.some(g => g.id === guest.id);
                                         return (
                                             <div key={guest.id} className="flex items-center justify-between p-3 bg-white rounded-lg">

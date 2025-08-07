@@ -25,9 +25,7 @@ import {
 import { getPayments, voidPayments } from '@/services/Charges';
 import {
   Payment,
-  PaymentSummary,
   transformFolioItemToPayment,
-  calculatePaymentSummary,
   PaymentType,
   PaymentStatus
 } from '@/validation/schemas/payments';
@@ -54,7 +52,6 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary | null>(null);
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   const [voidingPayments, setVoidingPayments] = useState(false);
   const [voidReason, setVoidReason] = useState('');
@@ -73,7 +70,6 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
       const transformedPayments: Payment[] = response.data.map(transformFolioItemToPayment);
 
       setPayments(transformedPayments);
-      setPaymentSummary(calculatePaymentSummary(transformedPayments));
     } catch (err: any) {
       setError('Failed to fetch payments. Please try again.');
       console.error('Error fetching payments:', err);

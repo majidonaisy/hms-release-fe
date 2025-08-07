@@ -82,7 +82,7 @@ export const AddEmployeeRequestSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   roleId: z.string(),
-  departmentId: z.string(),
+  departmentId: z.string().optional(),
 })
 
 export const AddTeamMemberResponseSchema = z.object({
@@ -97,7 +97,7 @@ export const UpdateTeamMemberRequestSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   roleId: z.string(),
-  departmentId: z.string()
+  departmentId: z.string().optional()
 })
 
 export type Employee = z.infer<typeof EmployeeShape>;

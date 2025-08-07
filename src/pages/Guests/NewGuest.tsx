@@ -8,13 +8,14 @@ import { useEffect, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/molecules/Popover';
 import { Calendar } from '@/components/molecules/Calendar';
 import { format } from 'date-fns';
-import { AddGuestRequest, GetRoomTypesResponse } from '@/validation';
+import { GetRoomTypesResponse } from '@/validation';
 import { addGuest, getGuestById, updateGuest } from '@/services/Guests';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { Switch } from '@/components/atoms/Switch';
 import { toast } from 'sonner';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
+import { AddGuestRequest } from '@/validation/schemas/Guests';
 
 const NewGuest = () => {
     const navigate = useNavigate();
@@ -61,7 +62,7 @@ const NewGuest = () => {
 
     const handleInputChange = (field: keyof AddGuestRequest | 'preferences.roomType', value: string) => {
         if (field === 'preferences.roomType') {
-            setFormData(prev => {
+            setFormData((prev: AddGuestRequest) => {
                 const updatedFormData = {
                     ...prev,
                     preferences: {
@@ -72,7 +73,7 @@ const NewGuest = () => {
                 return updatedFormData;
             });
         } else {
-            setFormData(prev => {
+            setFormData((prev: AddGuestRequest) => {
                 const updatedFormData = {
                     ...prev,
                     [field]: value
@@ -84,7 +85,7 @@ const NewGuest = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setFormData(prev => ({
+        setFormData((prev: AddGuestRequest) => ({
             ...prev,
             photo: file
         }));
@@ -295,7 +296,7 @@ const NewGuest = () => {
                                     <Switch
                                         checked={formData.preferences.smoking}
                                         onCheckedChange={(checked) =>
-                                            setFormData((prev) => ({
+                                            setFormData((prev: AddGuestRequest) => ({
                                                 ...prev,
                                                 preferences: {
                                                     ...prev.preferences,

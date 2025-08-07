@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
-import { GetGroupProfilesResponse, GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
+import { GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
 import { getRooms } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGroupProfiles } from "@/services/Guests"
@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/atoms/Checkbox"
 import { Input } from "@/components/atoms/Input"
 import { getRoomTypes } from "@/services/RoomTypes"
 import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
+import { GetGroupProfilesResponse } from "@/validation/schemas/Guests"
 
 interface GroupReservationRequest {
     groupProfileId: string;

@@ -11,11 +11,12 @@ import { Calendar } from '@/components/molecules/Calendar';
 import { Switch } from '@/components/atoms/Switch';
 import { format } from 'date-fns';
 import { deleteGuest, getGuestById, updateGuest } from '@/services/Guests';
-import { GetGuestByIdResponse, RoomType, AddGuestRequest, GetReservationByGuestId } from '@/validation';
+import { RoomType, GetReservationByGuestId } from '@/validation';
 import { getRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import DeleteDialog from "../../components/molecules/DeleteDialog";
 import { getReservationByGuestId } from '@/services/Reservation';
+import { AddGuestRequest, GetGuestByIdResponse } from '@/validation/schemas/Guests';
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
@@ -100,7 +101,7 @@ const GuestProfileView = () => {
 
     const handleInputChange = (field: keyof AddGuestRequest | 'preferences.roomType', value: string) => {
         if (field === 'preferences.roomType') {
-            setFormData(prev => ({
+            setFormData((prev: AddGuestRequest) => ({
                 ...prev,
                 preferences: {
                     ...prev.preferences,
@@ -108,7 +109,7 @@ const GuestProfileView = () => {
                 }
             }));
         } else {
-            setFormData(prev => ({
+            setFormData((prev: AddGuestRequest) => ({
                 ...prev,
                 [field]: value
             }));
@@ -117,7 +118,7 @@ const GuestProfileView = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setFormData(prev => ({
+        setFormData((prev: AddGuestRequest) => ({
             ...prev,
             photo: file
         }));
@@ -511,7 +512,7 @@ const GuestProfileView = () => {
                                     <Switch
                                         checked={formData.preferences.smoking}
                                         onCheckedChange={(checked) =>
-                                            setFormData((prev) => ({
+                                            setFormData((prev: AddGuestRequest) => ({
                                                 ...prev,
                                                 preferences: {
                                                     ...prev.preferences,
@@ -580,7 +581,7 @@ const GuestProfileView = () => {
                                         Stay Dates:
                                     </p>
                                     <p>
-                                       {reservation.status}
+                                        {reservation.status}
                                     </p>
                                 </span>
                             </Card>

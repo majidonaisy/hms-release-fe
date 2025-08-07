@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation";
+import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation/schemas/Guests";
 import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
