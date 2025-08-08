@@ -6,8 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
-import { GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
-import { getRooms } from "@/services/Rooms"
+import { GetRatePlansResponse, GetRoomTypesResponse } from "@/validation"
+import { getRoomsByRoomTypes } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGroupProfiles } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
@@ -71,7 +71,7 @@ export default function NewGroupReservation() {
         guestsAndRooms: {},
     });
 
-    const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
+    const [roomsByType, setRoomsByType] = useState<any[]>([]);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [groupProfiles, setGroupProfiles] = useState<GroupProfile[]>([]);
     const [groupProfileSearch, setGroupProfileSearch] = useState("");
@@ -80,6 +80,33 @@ export default function NewGroupReservation() {
     const [openGuestDialog, setOpenGuestDialog] = useState(false);
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
     const [searchLoading, setSearchLoading] = useState(false);
+    const [roomsLoading, setRoomsLoading] = useState(false);
+
+    // Fetch rooms by room type when room type is selected
+    useEffect(() => {
+        const fetchRoomsByType = async () => {
+            if (!selectedRoomType) {
+                setRoomsByType([]);
+                return;
+            }
+
+            setRoomsLoading(true);
+            try {
+                const response = await getRoomsByRoomTypes(selectedRoomType, {
+                    // Add any additional params if needed for availability check
+                });
+                setRoomsByType(response.data);
+            } catch (error) {
+                console.error('Error fetching rooms by type:', error);
+                toast("Error!", { description: "Failed to fetch rooms for selected type" });
+                setRoomsByType([]);
+            } finally {
+                setRoomsLoading(false);
+            }
+        };
+
+        fetchRoomsByType();
+    }, [selectedRoomType]);
 
     const handleInputChange = (field: keyof GroupReservationRequest, value: any) => {
         setFormData(prev => ({
@@ -116,6 +143,12 @@ export default function NewGroupReservation() {
 
     const getAssignedGuests = () => {
         return Object.keys(formData.guestsAndRooms);
+    };
+
+    const handleRoomTypeChange = (value: string) => {
+        setSelectedRoomType(value);
+        // Clear guest room assignments when room type changes
+        setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
     };
 
     const handleSubmit = async () => {
@@ -155,15 +188,6 @@ export default function NewGroupReservation() {
     };
 
     useEffect(() => {
-        const handleGetRooms = async () => {
-            try {
-                const rooms = await getRooms();
-                setRooms(rooms.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
         const handleGetRatePlans = async () => {
             try {
                 const ratePlans = await getRatePlans();
@@ -173,7 +197,6 @@ export default function NewGroupReservation() {
             }
         };
 
-        handleGetRooms();
         handleGetRatePlans();
     }, []);
 
@@ -227,29 +250,6 @@ export default function NewGroupReservation() {
     }, [formData.ratePlanId, selectedRoomType]);
 
     useEffect(() => {
-        const handleGetRooms = async () => {
-            try {
-                const rooms = await getRooms();
-                setRooms(rooms.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        const handleGetRatePlans = async () => {
-            try {
-                const ratePlans = await getRatePlans();
-                setRatePlans(ratePlans.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        handleGetRooms();
-        handleGetRatePlans();
-    }, []);
-
-    useEffect(() => {
         const fetchRoomTypes = async () => {
             try {
                 const response = await getRoomTypes();
@@ -260,10 +260,6 @@ export default function NewGroupReservation() {
         };
         fetchRoomTypes();
     }, []);
-
-    const roomsToShow = selectedRoomType
-        ? rooms.filter(room => room.roomType?.id === selectedRoomType)
-        : rooms;
 
     const renderStepContent = (stepNumber: number) => {
         if (currentStep !== stepNumber) return null
@@ -421,22 +417,17 @@ export default function NewGroupReservation() {
                             <Label className="mb-2 block">Select Room Type</Label>
                             <Select
                                 value={selectedRoomType}
-                                onValueChange={(value) => {
-                                    setSelectedRoomType(value);
-                                    setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
-                                }}
+                                onValueChange={handleRoomTypeChange}
                             >
-                                <SelectTrigger className=" bg-white w-full">
+                                <SelectTrigger className="bg-white w-full">
                                     <SelectValue placeholder="Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {
-                                        roomTypes.map((roomType) => (
-                                            <SelectItem key={roomType.id} value={roomType.id}>
-                                                {roomType.name}
-                                            </SelectItem>
-                                        ))
-                                    }
+                                    {roomTypes.map((roomType) => (
+                                        <SelectItem key={roomType.id} value={roomType.id}>
+                                            {roomType.name}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -448,7 +439,7 @@ export default function NewGroupReservation() {
                                     {getAssignedGuests().map((guestId) => {
                                         const guest = linkedGuests.find((g) => g.id === guestId);
                                         const roomIds = formData.guestsAndRooms[guestId];
-                                        const roomNumbers = roomsToShow
+                                        const roomNumbers = roomsByType
                                             .filter((room) => roomIds.includes(room.id))
                                             .map((room) => room.roomNumber)
                                             .join(", ");
@@ -466,7 +457,41 @@ export default function NewGroupReservation() {
                             </div>
                         )}
 
-                        {selectedRoomType && (
+                        {!selectedRoomType && (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <div className="text-muted-foreground">
+                                    <p className="text-lg font-medium">Please select a room type first</p>
+                                    <p className="text-sm mt-2">
+                                        Choose a room type from the dropdown above to see available rooms
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedRoomType && roomsLoading && (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <div className="text-muted-foreground">
+                                    <p className="text-lg font-medium">Loading rooms...</p>
+                                    <p className="text-sm mt-2">Please wait while we fetch available rooms</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedRoomType && !roomsLoading && roomsByType.length === 0 && (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <div className="text-muted-foreground">
+                                    <p className="text-lg font-medium">No rooms available</p>
+                                    <p className="text-sm mt-2">
+                                        There are no available rooms for the selected dates ({format(formData.checkIn, "PPP")} - {format(formData.checkOut, "PPP")})
+                                    </p>
+                                    <p className="text-xs mt-1">
+                                        Please try different dates or check room availability
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedRoomType && !roomsLoading && roomsByType.length > 0 && (
                             <div className="rounded-lg border">
                                 <div className="grid grid-cols-9 gap-4 p-4 border-b font-medium text-sm">
                                     <div className="col-span-1"></div>
@@ -488,35 +513,29 @@ export default function NewGroupReservation() {
                                                     </div>
                                                 </div>
                                                 <div className="col-span-3 space-y-1 max-h-[150px] overflow-y-auto border rounded bg-white p-2">
-                                                    {roomsToShow.length === 0 ? (
-                                                        <div className="text-center text-muted-foreground">
-                                                            <p className="">No rooms available</p>
-                                                        </div>
-                                                    ) : (
-                                                        roomsToShow.map((room) => {
-                                                            const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
-                                                            return (
-                                                                <div key={room.id} className="flex items-center space-x-2">
-                                                                    <Checkbox
-                                                                        checked={isChecked}
-                                                                        onCheckedChange={(checked) => {
-                                                                            const currentRooms = formData.guestsAndRooms[guest.id] || [];
-                                                                            if (checked) {
-                                                                                handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
-                                                                            } else {
-                                                                                handleGuestRoomAssignment(
-                                                                                    guest.id,
-                                                                                    currentRooms.filter((r) => r !== room.id)
-                                                                                );
-                                                                            }
-                                                                        }} />
-                                                                    <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
-                                                                        {room.roomNumber}
-                                                                    </Label>
-                                                                </div>
-                                                            );
-                                                        })
-                                                    )}
+                                                    {roomsByType.map((room) => {
+                                                        const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
+                                                        return (
+                                                            <div key={room.id} className="flex items-center space-x-2">
+                                                                <Checkbox
+                                                                    checked={isChecked}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const currentRooms = formData.guestsAndRooms[guest.id] || [];
+                                                                        if (checked) {
+                                                                            handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
+                                                                        } else {
+                                                                            handleGuestRoomAssignment(
+                                                                                guest.id,
+                                                                                currentRooms.filter((r) => r !== room.id)
+                                                                            );
+                                                                        }
+                                                                    }} />
+                                                                <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
+                                                                    {room.roomNumber}
+                                                                </Label>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                                 <div className="col-span-2 flex items-center justify-end">
                                                     {formData.guestsAndRooms[guest.id] && (
@@ -533,20 +552,6 @@ export default function NewGroupReservation() {
                                             </div>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {selectedRoomType && roomsToShow.length === 0 && (
-                            <div className="text-center py-8 bg-white rounded-lg border">
-                                <div className="text-muted-foreground">
-                                    <p className="text-lg font-medium">No rooms available</p>
-                                    <p className="text-sm mt-2">
-                                        There are no available rooms for the selected dates ({format(formData.checkIn, "PPP")} - {format(formData.checkOut, "PPP")})
-                                    </p>
-                                    <p className="text-xs mt-1">
-                                        Please try different dates or check room availability
-                                    </p>
                                 </div>
                             </div>
                         )}

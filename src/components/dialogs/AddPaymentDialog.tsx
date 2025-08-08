@@ -18,7 +18,7 @@ import { Currency } from '@/validation/schemas/Currency';
 import { format } from 'date-fns';
 import { store } from '@/redux/store';
 
-interface PaymentChargeItem {
+export interface PaymentChargeItem {
     id: string;
     itemType: string;
     amount: string;
@@ -55,7 +55,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
     const paymentMethods = [
         { value: 'CASH', label: 'Cash' },
         { value: 'CREDIT_CARD', label: 'Credit Card' },
-        { value: 'DEBIT_CARD', label: 'Debit Card' },
         { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
         { value: "PAYPAL", label: "PayPal" },
         { value: 'CHECK', label: 'Check' },
@@ -518,7 +517,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                         />
 
                                         <Select value={selectedCurrency} onValueChange={(selectedCurrencyCode) => {
-                                            console.log('selectedCurrencyCode', selectedCurrencyCode)
                                             setSelectedCurrency(selectedCurrencyCode)
 
                                             if (selectedCurrencyCode === baseCurrency) {

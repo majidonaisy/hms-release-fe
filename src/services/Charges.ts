@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddChargeRequest, AddChargeResponse, GetChargesResponse, AddPaymentRequest } from "@/validation/schemas/charges";
+import { AddChargeRequest, AddChargeResponse, GetChargesResponse, AddPaymentRequest, TransferChargesRequest, TransferItemsResponse } from "@/validation/schemas/charges";
 import { VoidPaymentsRequest, VoidPaymentsResponse } from "@/validation/schemas/payments";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
@@ -170,6 +170,42 @@ export const getLateCheckoutFee = async (reservationId: string): Promise<GetLate
     return response as GetLateCheckoutFeeResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get late checkout fee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const transferCharges = async (data: TransferChargesRequest): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "POST",
+      endpoint: ENDPOINTS.Folio.TransferCharge,
+      baseURL,
+      data
+    });
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to transfer charge";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const getTransferItems = async (reservationId: string): Promise<TransferItemsResponse['data']> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Folio.GetTransferItems}/${reservationId}`,
+      baseURL,
+    });
+
+    return (response as TransferItemsResponse).data;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get items";
     throw {
       userMessage: errorMessage,
       originalError: error,

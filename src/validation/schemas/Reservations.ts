@@ -199,6 +199,47 @@ const ReservationByIdShape = z.object({
   }),
 });
 
+export const CheckedInReservationsSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      checkIn: z.string(),
+      checkOut: z.string(),
+      status: z.string(),
+      guestId: z.string(),
+      hotelId: z.string(),
+      ratePlanId: z.string(),
+      price: z.string(),
+      groupBookingId: z.string().nullable(),
+      chargeRouting: z.string(),
+      identification: z.object({
+        relativePath: z.string(),
+      }),
+      checkInTime: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      createdBy: z.string(),
+      updatedBy: z.string().nullable(),
+      rooms: z.array(
+        z.object({
+          id: z.string(),
+          roomNumber: z.string(),
+          status: z.string(),
+          floor: z.number(),
+          description: z.string(),
+          roomTypeId: z.string(),
+          photos: z.array(z.any()),
+          hotelId: z.string(),
+          createdBy: z.string().nullable(),
+          updatedBy: z.string().nullable(),
+        })
+      ),
+    })
+  ),
+});
+
 export type Reservation = z.infer<typeof ReservationResponseShape>;
 export type AddReservationRequest = z.infer<typeof AddReservationRequestSchema>;
 export type AddGroupReservationRequest = z.infer<typeof AddGroupReservationRequestSchema>;
@@ -209,3 +250,4 @@ export type CheckOutResponse = z.infer<typeof CheckOutResponseSchema>;
 export type GetNightPriceResponse = z.infer<typeof GetNightPriceResponseSchema>;
 export type GetReservationByGuestId = z.infer<typeof GetReservationByGuestIdSchema>;
 export type GetReservationById = z.infer<typeof ReservationByIdShape>;
+export type CheckInReservations = z.infer<typeof CheckedInReservationsSchema>

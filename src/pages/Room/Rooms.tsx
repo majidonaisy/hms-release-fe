@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge';
 import { useNavigate } from 'react-router-dom';
 import { deleteRoom, getRooms } from '@/services/Rooms';
-import { getRoomTypes } from '@/services/RoomTypes';
+import { getAlRoomTypes, getRoomTypes } from '@/services/RoomTypes';
 import { AddRoomTypeRequest, Room, RoomType } from '@/validation';
 import DataTable, { ActionMenuItem, defaultRenderers, TableColumn } from '@/components/Templates/DataTable';
 import NewRoomTypeDialog from '../../components/dialogs/NewRoomTypeDialog';
@@ -45,7 +45,7 @@ const Rooms = () => {
         const fetchRoomTypes = async () => {
             setLoading(true)
             try {
-                const response = await getRoomTypes();
+                const response = await getAlRoomTypes();
                 setRoomTypes(response.data || response);
             } catch (error) {
                 console.error("Error fetching room types:", error);

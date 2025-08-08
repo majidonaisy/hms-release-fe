@@ -88,6 +88,34 @@ export const AddPaymentRequestSchema = z.object({
   description: z.string().optional(),
 });
 
+export const TransferChargesRequestSchema = z.object({
+  fromReservation: z.string(),
+  toReservation: z.string(),
+  items: z.array(z.string())
+})
+
+export const TransferItemsSchema = z.object({
+  id: z.string(),
+  folioId: z.string(),
+  itemType: z.string(),
+  amount: z.string(),
+  quantity: z.number(),
+  unitPrice: z.string(),
+  status: z.string(),
+  voidReason: z.string().nullable(),
+  voidedAt: z.string().nullable(),
+  voidedBy: z.string().nullable(),
+  receiptId: z.string().nullable(),
+  createdBy: z.string(),
+  updatedBy: z.string().nullable(),
+})
+
+export const TransferItemsResponseSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(TransferItemsSchema)
+})
+
 // Type exports
 export type ChargeItem = z.infer<typeof ChargeItemShape>;
 export type AddChargeRequest = z.infer<typeof AddChargeRequestSchema>;
@@ -96,3 +124,5 @@ export type GetChargesResponse = z.infer<typeof GetChargesResponseSchema>;
 export type GetAvailableChargeItemsResponse = z.infer<typeof GetAvailableChargeItemsResponseSchema>;
 export type PaymentConfirmationRequest = z.infer<typeof PaymentConfirmationRequestSchema>;
 export type AddPaymentRequest = z.infer<typeof AddPaymentRequestSchema>;
+export type TransferChargesRequest = z.infer<typeof TransferChargesRequestSchema>
+export type TransferItemsResponse = z.infer<typeof TransferItemsResponseSchema>
