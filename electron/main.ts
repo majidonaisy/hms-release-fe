@@ -3,7 +3,6 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isDev = process.env.NODE_ENV === "development";
 
 process.env.APP_ROOT = path.join(__dirname, "..");
 
@@ -31,7 +30,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
       nodeIntegration: false,
       contextIsolation: true,
-      devTools: isDev,
+      devTools: true,
     },
   });
 

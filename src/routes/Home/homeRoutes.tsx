@@ -1,14 +1,16 @@
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { NotFound } from "@/pages";
 import MainLayout from "@/layout/MainLayout";
 import AuthLayout from "@/layout/AuthLayout";
 import ProtectedRoute from "@/routes/protectedRoute";
 import Login from "@/pages/Auth/Login";
 import RoutesList from "./routes";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const HomeRoutes: React.FC = () => {
     const HomeRoutesList = RoutesList();
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
     // Flatten all routes including subroutes for proper routing
     const getAllRoutes = (routes: any[]): any[] => {
@@ -38,7 +40,21 @@ const HomeRoutes: React.FC = () => {
 
     return (
         <Routes>
-            {/* Auth Routes - Only accessible when not authenticated */}
+            {/* Redirect root "/" to /auth/login if not authenticated */}
+            <Route
+                path="/"
+                element={
+                    isAuthenticated
+                        ? <ProtectedRoute requireAuth={true}><MainLayout routes={HomeRoutesList} /></ProtectedRoute>
+                        : <Navigate to="/auth/login" replace />
+                }
+            >
+                {/* Only show this if authenticated */}
+                {isAuthenticated && <Route index element={<Navigate to="/rooms" replace />} />}
+                {isAuthenticated && renderProtectedRoutes(allRoutes)}
+            </Route>
+
+            {/* Auth Routes */}
             <Route path="/auth" element={
                 <ProtectedRoute requireAuth={false}>
                     <AuthLayout />
@@ -48,19 +64,8 @@ const HomeRoutes: React.FC = () => {
                 <Route index element={<Navigate to="login" replace />} />
             </Route>
 
-            {/* Protected Routes - Only accessible when authenticated */}
-            <Route path="/" element={
-                <ProtectedRoute requireAuth={true}>
-                    <MainLayout routes={HomeRoutesList} />
-                </ProtectedRoute>
-            }>
-                {/* Default redirect to home */}
-                <Route index element={<Navigate to="/rooms" replace />} />
-                {renderProtectedRoutes(allRoutes)}
-            </Route>
-
             {/* Catch all route */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/auth/login" replace />} />
         </Routes>
     );
 };
