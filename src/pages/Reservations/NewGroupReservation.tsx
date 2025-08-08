@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms
 import { Separator } from "@/components/atoms/Separator"
 import { Checkbox } from "@/components/atoms/Checkbox"
 import { Input } from "@/components/atoms/Input"
-import { getRoomTypes } from "@/services/RoomTypes"
+import { getAlRoomTypes } from "@/services/RoomTypes"
 import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 import { GetGroupProfilesResponse } from "@/validation/schemas/Guests"
 
@@ -252,7 +252,7 @@ export default function NewGroupReservation() {
     useEffect(() => {
         const fetchRoomTypes = async () => {
             try {
-                const response = await getRoomTypes();
+                const response = await getAlRoomTypes();
                 setRoomTypes(response.data);
             } catch (error) {
                 console.error(error);
