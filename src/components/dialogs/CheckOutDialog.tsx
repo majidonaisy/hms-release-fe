@@ -45,7 +45,6 @@ const CheckOutDialog = ({
     // States for manual fee entry
     const [selectedCurrency, setSelectedCurrency] = useState<string>('');
     const [paymentMethod, setPaymentMethod] = useState<string>('');
-    const [paymentType, setPaymentType] = useState<string>('');
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [settlingFee, setSettlingFee] = useState(false);
 
@@ -63,10 +62,6 @@ const CheckOutDialog = ({
         { value: 'DEBIT_CARD', label: 'Debit Card' },
         { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
         { value: 'CHECK', label: 'Check' },
-    ];
-    const paymentTypes = [
-        { value: 'FIXED', label: 'Fixed' },
-        { value: 'PERCENT', label: 'Percent' },
     ];
 
     const isCheckoutDisabled = isLoading || (hasLateCheckoutFee && !isLateCheckoutFeeSettled);
@@ -170,7 +165,6 @@ const CheckOutDialog = ({
                 fee?: number;
                 currencyId?: string;
                 paymentMethod?: string;
-                paymentType?: string;
             } = {};
 
             if (feeMode === 'manual') {
@@ -187,17 +181,12 @@ const CheckOutDialog = ({
                     setError('Please select a payment method');
                     return;
                 }
-                if (!paymentType) {
-                    setError('Please select a payment type');
-                    return;
-                }
-
+            
                 // Prepare manual fee body
                 body = {
                     fee: parseFloat(lateCheckoutFee),
                     currencyId: selectedCurrency,
                     paymentMethod: paymentMethod,
-                    paymentType
                 };
 
                 toast.success(`Late checkout fee of ${parseFloat(lateCheckoutFee).toFixed(2)} ${selectedCurrency} has been settled`);
@@ -391,7 +380,7 @@ const CheckOutDialog = ({
                             {/* Manual Fee Inputs */}
                             {feeMode === 'manual' && (
                                 <div className="space-y-3">
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         {/* Fee Amount */}
                                         <div>
                                             <Label htmlFor="feeAmount" className="text-sm">
@@ -453,25 +442,6 @@ const CheckOutDialog = ({
                                             </Select>
                                         </div>
 
-                                        <div>
-                                            <Label className="text-sm">Payment  Type *</Label>
-                                            <Select
-                                                value={paymentType}
-                                                onValueChange={setPaymentType}
-                                                disabled={isLateCheckoutFeeSettled}
-                                            >
-                                                <SelectTrigger className="mt-1 w-full">
-                                                    <SelectValue placeholder="Select type" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {paymentTypes.map((method) => (
-                                                        <SelectItem key={method.value} value={method.value}>
-                                                            {method.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
                                     </div>
                                 </div>
                             )}

@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
-import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, } from "lucide-react"
+import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, ArrowRightLeft, } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
 import { Guest } from "@/validation/schemas/Guests"
@@ -24,7 +24,8 @@ const ChooseReservationOptionDialog = ({
     cancelReservation,
     viewReservation,
     createdByUser,
-    checkedInAt
+    checkedInAt,
+    transferCharge
 }: {
     open: boolean
     setOpen: (open: boolean) => void
@@ -47,7 +48,8 @@ const ChooseReservationOptionDialog = ({
     cancelReservation: () => void
     viewReservation: () => void
     createdByUser: string,
-    checkedInAt: Date
+    checkedInAt: Date,
+    transferCharge: () => void
 }) => {
     const [guestData, setGuestData] = useState<Guest | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -165,7 +167,7 @@ const ChooseReservationOptionDialog = ({
                         className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
                             }`}
                         onClick={() => {
-                            if (isCheckedIn || isCheckedOut) { viewPayments }
+                            if (isCheckedIn || isCheckedOut) { viewPayments() }
                         }}
                     >
                         <div className="flex items-center gap-3">
@@ -208,6 +210,25 @@ const ChooseReservationOptionDialog = ({
                         <div className="flex items-center gap-3">
                             <CircleDollarSign className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
                             <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Add Charges</span>
+                        </div>
+                        <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
+                            <ChevronRight size={15} />
+                        </span>
+                    </div>
+
+                    {/*Transfer Charge*/}
+                    <div
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                            }`}
+                        onClick={() => {
+                            if (isCheckedIn) {
+                                transferCharge()
+                            }
+                        }}
+                    >
+                        <div className="flex items-center gap-3">
+                            <ArrowRightLeft className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
+                            <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Transfer Charges</span>
                         </div>
                         <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
                             <ChevronRight size={15} />

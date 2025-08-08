@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation/schemas/Guests";
-import { AddGroupReservationRequest, AddReservationRequest, GetNightPriceResponse, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
+import { AddGroupReservationRequest, AddReservationRequest, CheckInReservations, GetNightPriceResponse, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
@@ -235,6 +235,23 @@ export const getCurrentGroupProfiles = async (params: { q: string }): Promise<Ge
     return response as GetCurrentGroupProfilesResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get group profiles";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+}
+
+export const getCheckedInReservations = async (): Promise<CheckInReservations> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Reservations.CheckedInReservations,
+      baseURL,
+    });
+    return response as CheckInReservations;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservations";
     throw {
       userMessage: errorMessage,
       originalError: error,

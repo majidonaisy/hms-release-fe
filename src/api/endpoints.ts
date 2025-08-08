@@ -11,6 +11,7 @@ export const ENDPOINTS = {
     GetById: "roomtype/get",
     Update: "roomtype/update",
     Delete: "roomtype/delete",
+    GetAllWithoutPagination: "roomtype/all"
   },
   Room: {
     Add: "room/add",
@@ -59,6 +60,7 @@ export const ENDPOINTS = {
     GetNightPrice: "reservation/get-night-price",
     Cancel: "reservation/cancel",
     GetByGuestId: "reservation/get-reservation-by-guestId",
+    CheckedInReservations: "/reservation/get-checked-in-reservations"
   },
   Maintenance: {
     Add: "maintenance/add",
@@ -124,6 +126,8 @@ export const ENDPOINTS = {
     VoidPayments: "folio-item/void",
     SettleLateCheckoutFee: "folio-item/settle-late-checkout",
     GetLateCheckoutFee: "folio-item/late-checkout-fee",
+    TransferCharge: "folio-item/transfer",
+    GetTransferItems: "folio-item/all-items"
   },
   ExchangeRate: {
     Get: "exchange/get",

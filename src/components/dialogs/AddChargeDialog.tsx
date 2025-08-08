@@ -13,6 +13,7 @@ import { SingleReservation } from '@/validation';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { ScrollArea } from '../atoms/ScrollArea';
+import { store } from '@/redux/store';
 
 interface AddChargeDialogProps {
     open: boolean;
@@ -30,6 +31,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
     const [reservationDetails, setReservationDetails] = useState<SingleReservation | null>(null);
     const [receiptId, setReceiptId] = useState('');
     const [isLoadingReservation, setIsLoadingReservation] = useState(false);
+    const baseCurrency = store.getState().currency.currency || 'USD';
 
     const itemTypes = [
         { value: 'ROOM_CHARGE', label: 'Room Charge' },
@@ -283,7 +285,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                         {/* Unit Price */}
                         <div className=" rounded-lg ">
                             <Label htmlFor="unitPrice" className="text-base font-semibold">Unit Price</Label>
-                            <div className="flex mt-2 gap-2">
+                            <div className="flex mt-2 gap-2 items-center">
                                 <Input
                                     id="unitPrice"
                                     type="number"
@@ -294,6 +296,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                                     onChange={(e) => setUnitPrice(e.target.value)}
                                     className="flex-1"
                                 />
+                                <p>{baseCurrency}</p>
                             </div>
                         </div>
 
