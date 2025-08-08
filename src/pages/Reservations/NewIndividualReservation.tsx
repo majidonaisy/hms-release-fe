@@ -17,7 +17,7 @@ import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
 import { Input } from "@/components/atoms/Input"
-import { getRoomTypes } from "@/services/RoomTypes"
+import { getAlRoomTypes } from "@/services/RoomTypes"
 import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 import { GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
 
@@ -66,7 +66,7 @@ export default function NewIndividualReservation() {
     useEffect(() => {
         const fetchRoomTypes = async () => {
             try {
-                const response = await getRoomTypes();
+                const response = await getAlRoomTypes();
                 setRoomTypes(response.data);
             } catch (error) {
                 console.error(error);
