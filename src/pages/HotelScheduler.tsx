@@ -22,6 +22,7 @@ import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
 import { Skeleton } from "@/components/atoms/Skeleton"
 import { getGuestById } from "@/services/Guests"
+import TransferChargesDialog from "@/components/dialogs/TransferChargesDialog"
 
 interface HotelReservationCalendarProps {
   pageTitle?: string;
@@ -67,6 +68,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [reservationToCancel, setReservationToCancel] = useState('')
   const [viewPaymentsDialog, setViewPaymentsDialog] = useState(false);
   const [viewReservationDialog, setViewReservationDialog] = useState(false);
+  const [transferChargesDialog, setTransferChargesDialog] = useState(false)
   const [loading, setLoading] = useState(false);
 
   const fetchGuestName = async (guestId: string): Promise<string> => {
@@ -150,7 +152,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 roomType: reservation.name,
                 ratePlanId: mappedReservation.ratePlanId,
                 roomTypeId: room.roomTypeId || room.roomTypeId,
-                // Add the new fields
                 createdByUser: createdByUserName,
                 checkInTime: mappedReservation.checkInTime || undefined,
               });
@@ -427,6 +428,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     setViewPaymentsDialog(false)
     setViewReservationDialog(false)
     setCancelReservationDialog(false)
+    setTransferChargesDialog(false)
     setChooseOptionDialog(true)
   }
 
@@ -454,7 +456,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
             {/* <div className="flex gap-2"> */}
             <Input
-              placeholder="Search Room, Room Type, or Guest"
+              placeholder="Search Room or Room Type"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
@@ -696,6 +698,12 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         checkedInAt={dialogReservation?.checkInTime}
         createdByUser={dialogReservation?.createdByUser}
       />
+      <TransferChargesDialog
+        open={transferChargesDialog}
+        onOpenChange={setTransferChargesDialog}
+        reservationId={dialogReservation?.id || ''}
+        onBackToChooseOptions={handleBackToChooseOptions}
+      />
       <ChooseReservationOptionDialog
         open={chooseOptionDialog}
         setOpen={setChooseOptionDialog}
@@ -718,7 +726,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         cancelReservation={() => setCancelReservationDialog(true)}
         viewReservation={() => setViewReservationDialog(true)}
         createdByUser={dialogReservation?.createdByUser || 'Unknown User'}
-        checkedInAt={dialogReservation?.checkInTime || new Date()} />
+        checkedInAt={dialogReservation?.checkInTime || new Date()}
+        transferCharge={() => setTransferChargesDialog(true)} />
       <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" refetchReservations={refreshReservations} />
     </TooltipProvider>
   );

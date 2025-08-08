@@ -45,6 +45,23 @@ export const getRoomTypes = async (params?: GetRoomTypesParams): Promise<GetRoom
   }
 };
 
+export const getAlRoomTypes = async (): Promise<GetRoomTypesResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.RoomType.GetAllWithoutPagination,
+      baseURL,
+    });
+    return response as GetRoomTypesResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get room types";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
 export const updateRoomType = async (id: string, data: UpdateRoomTypeRequest): Promise<UpdateRoomTypeResponse> => {
   try {
     const response = await apiClient({

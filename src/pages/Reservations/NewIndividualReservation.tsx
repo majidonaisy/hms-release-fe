@@ -7,8 +7,8 @@ import { Check, ChevronLeft, X, Search } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
-import { GetRatePlansResponse, GetRoomsResponse, GetRoomTypesResponse } from "@/validation"
-import { getRoomById, getRooms } from "@/services/Rooms"
+import { GetRatePlansResponse, GetRoomTypesResponse } from "@/validation"
+import { getRoomById, getRoomsByRoomTypes } from "@/services/Rooms"
 import { toast } from "sonner"
 import { searchGuests } from "@/services/Guests"
 import { getRatePlans } from "@/services/RatePlans"
@@ -57,23 +57,11 @@ export default function NewIndividualReservation() {
     const debouncedGuestSearch = useDebounce(guestSearch, 400);
     const [ratePlans, setRatePlans] = useState<GetRatePlansResponse['data']>([]);
     const [connectableRooms, setConnectableRooms] = useState<Array<{ id: string; roomNumber: string }>>([]);
-    const [selectedRoomType, setSelectedRoomType] = useState<string>("");
-    const [rooms, setRooms] = useState<GetRoomsResponse['data']>([]);
+    const [selectedRoomType, setSelectedRoomType] = useState<{ id: string; name: string } | null>(null);
+    const [roomsByType, setRoomsByType] = useState<any[]>([]);
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
     const [searchLoading, setSearchLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchRooms = async () => {
-            try {
-                const allRooms = await getRooms();
-                setRooms(allRooms.data);
-            } catch (error) {
-                console.error('Error fetching rooms:', error);
-                toast("Error!", { description: "Failed to fetch rooms" });
-            }
-        };
-        fetchRooms();
-    }, []);
+    const [roomsLoading, setRoomsLoading] = useState(false);
 
     useEffect(() => {
         const fetchRoomTypes = async () => {
@@ -86,6 +74,29 @@ export default function NewIndividualReservation() {
         };
         fetchRoomTypes();
     }, []);
+
+    useEffect(() => {
+        const fetchRoomsByType = async () => {
+            if (!selectedRoomType) {
+                setRoomsByType([]);
+                return;
+            }
+
+            setRoomsLoading(true);
+            try {
+                const response = await getRoomsByRoomTypes(selectedRoomType.id, {});
+                setRoomsByType(response.data);
+            } catch (error) {
+                console.error('Error fetching rooms by type:', error);
+                toast("Error!", { description: "Failed to fetch rooms for selected type" });
+                setRoomsByType([]);
+            } finally {
+                setRoomsLoading(false);
+            }
+        };
+
+        fetchRoomsByType();
+    }, [selectedRoomType]);
 
     const handleInputChange = (field: keyof AddReservationRequest, value: string | string[]) => {
         setFormData(prev => {
@@ -127,11 +138,21 @@ export default function NewIndividualReservation() {
             }
         }
     };
+
     const handleRoomRemoval = (roomIdToRemove: string) => {
         const updatedRoomIds = formData.roomIds?.filter(id => id !== roomIdToRemove) || [];
         handleInputChange('roomIds', updatedRoomIds);
 
         if (updatedRoomIds.length === 0) {
+            setConnectableRooms([]);
+        }
+    };
+
+    const handleRoomTypeChange = (roomTypeId: string) => {
+        const selected = roomTypes.find(rt => rt.id === roomTypeId);
+        if (selected) {
+            setSelectedRoomType({ id: selected.id, name: selected.name });
+            handleInputChange('roomIds', []);
             setConnectableRooms([]);
         }
     };
@@ -173,15 +194,6 @@ export default function NewIndividualReservation() {
     };
 
     useEffect(() => {
-        const handleGetRooms = async () => {
-            try {
-                const rooms = await getRooms();
-                setRooms(rooms.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
         const handleGetRatePlans = async () => {
             try {
                 const ratePlans = await getRatePlans();
@@ -191,7 +203,6 @@ export default function NewIndividualReservation() {
             }
         };
 
-        handleGetRooms();
         handleGetRatePlans();
     }, []);
 
@@ -225,7 +236,7 @@ export default function NewIndividualReservation() {
             if (!formData.ratePlanId || !selectedRoomType) return;
 
             try {
-                const response = await getNightPrice(formData.ratePlanId, selectedRoomType);
+                const response = await getNightPrice(formData.ratePlanId, selectedRoomType.id);
                 const price = parseFloat(response.data) || 0;
                 setNightPrice(price);
             } catch (error) {
@@ -240,10 +251,6 @@ export default function NewIndividualReservation() {
             fetchNightPrice();
         }
     }, [formData.ratePlanId, selectedRoomType]);
-
-    const roomsToShow = selectedRoomType
-        ? rooms.filter(room => room.roomType?.id === selectedRoomType)
-        : rooms;
 
     const renderStepContent = (stepNumber: number) => {
         if (currentStep !== stepNumber) return null
@@ -403,15 +410,15 @@ export default function NewIndividualReservation() {
                                 Showing available rooms for {format(formData.checkIn, "MMM dd")} - {format(formData.checkOut, "MMM dd, yyyy")}
                             </p>
                             <p className="text-xs text-hms-primary mt-1">
-                                {rooms.length} room(s) available
+                                {selectedRoomType ? `${roomsByType.length} room(s) available` : 'Select a room type to see available rooms'}
                             </p>
                         </div>
 
                         <div className='space-y-1'>
                             <Label>Room Type</Label>
                             <Select
-                                value={selectedRoomType}
-                                onValueChange={(value) => setSelectedRoomType(value)}
+                                value={selectedRoomType?.id}
+                                onValueChange={handleRoomTypeChange}
                             >
                                 <SelectTrigger className='w-full border border-slate-300 bg-white'>
                                     <SelectValue placeholder="Select Room Type" />
@@ -432,41 +439,47 @@ export default function NewIndividualReservation() {
                                 <Select
                                     value=""
                                     onValueChange={handleRoomSelection}
+                                    disabled={!selectedRoomType}
                                 >
-                                    <SelectTrigger className={`border border-slate-300 w-full bg-white`}>
+                                    <SelectTrigger className={`border border-slate-300 w-full bg-white ${!selectedRoomType ? 'opacity-50' : ''}`}>
                                         <SelectValue placeholder={
-                                            formData.roomIds?.length === 0
-                                                ? "Select a room..."
-                                                : "Select connecting rooms..."
+                                            !selectedRoomType
+                                                ? "Please select a room type first"
+                                                : formData.roomIds?.length === 0
+                                                    ? "Select a room..."
+                                                    : "Select connecting rooms..."
                                         } />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {rooms.length === 0 ? (
-                                            <SelectItem value="no-rooms" disabled>
-                                                No rooms available for selected dates
+                                        {!selectedRoomType ? (
+                                            <SelectItem value="select-type" disabled>
+                                                Please select a room type first
                                             </SelectItem>
-                                        ) : roomsToShow.length > 0 ? (
-                                            roomsToShow.map(room => (
+                                        ) : roomsLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading rooms...
+                                            </SelectItem>
+                                        ) : roomsByType.length === 0 ? (
+                                            <SelectItem value="no-rooms" disabled>
+                                                No rooms available for selected type and dates
+                                            </SelectItem>
+                                        ) : (
+                                            roomsByType.map(room => (
                                                 <SelectItem key={room.id} value={room.id}>
-                                                    {room.roomNumber} - {room.roomType?.name || 'Unknown Type'}
+                                                    {room.roomNumber} - {selectedRoomType.name}
                                                 </SelectItem>
                                             ))
-                                        ) : (
-                                            <SelectItem value="no-rooms" disabled>
-                                                There are no rooms for the selected room type
-                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            {/* Display selected rooms */}
                             {formData.roomIds && formData.roomIds.length > 0 && (
                                 <div className="space-y-2">
                                     <Label className="text-sm text-slate-600">Selected Rooms:</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {formData.roomIds.map(roomId => {
-                                            const room = rooms.find(r => r.id === roomId);
+                                            const room = roomsByType.find(r => r.id === roomId);
                                             const connectableRoom = connectableRooms.find(r => r.id === roomId);
                                             const displayRoom = room || connectableRoom;
 
@@ -474,8 +487,7 @@ export default function NewIndividualReservation() {
                                                 <div key={roomId} className="flex items-center bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm">
                                                     <span>
                                                         {displayRoom.roomNumber} - {
-                                                            // Use room type name if available, otherwise show Unknown Type
-                                                            room?.roomType?.name || 'Unknown Type'
+                                                            selectedRoomType?.name
                                                         }
                                                     </span>
                                                     <button
