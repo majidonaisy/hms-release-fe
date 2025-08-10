@@ -46,6 +46,19 @@ export const FolioItemShape = z.object({
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   description: z.string().optional(),
+  createdByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }),
+  updatedByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }).nullable(),
+
 });
 
 // Payment interface for UI display
@@ -62,6 +75,18 @@ export const PaymentShape = z.object({
   quantity: z.number().optional(),
   unitPrice: z.number().optional(),
   folioId: z.string().optional(),
+  createdByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }),
+  updatedByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }).nullable(),
 });
 
 // API Response schemas
@@ -158,6 +183,8 @@ export const transformFolioItemToPayment = (item: FolioItem): Payment => {
     quantity: item.quantity,
     unitPrice: parseFloat(item.unitPrice),
     folioId: item.folioId,
+    createdByUser: item.createdByUser,
+    updatedByUser: item.updatedByUser
   };
 };
 

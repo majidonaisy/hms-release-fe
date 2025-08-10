@@ -27,7 +27,8 @@ import {
   Payment,
   transformFolioItemToPayment,
   PaymentType,
-  PaymentStatus
+  PaymentStatus,
+  GetPaymentsResponse
 } from '@/validation/schemas/payments';
 
 interface ViewPaymentsDialogProps {
@@ -64,10 +65,10 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
     setError(null);
 
     try {
-      const response = await getPayments(reservationId);
 
       // Transform the API response to match Payment interface using validation helper
-      const transformedPayments: Payment[] = response.data.map(transformFolioItemToPayment);
+      const { data } = await getPayments(reservationId) as GetPaymentsResponse;
+      const transformedPayments: Payment[] = data.map(transformFolioItemToPayment);
 
       setPayments(transformedPayments);
     } catch (err: any) {
@@ -264,7 +265,6 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
                     {payments.map((payment) => {
                       const isSelected = selectedPayments.includes(payment.id);
                       const isVoidable = isPaymentVoidable(payment);
-
                       return (
                         <div
                           key={payment.id}
@@ -302,7 +302,7 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
                                 )}
                               </div>
                               <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                                <span>Method: {payment.paymentMethod}</span>
+                                <span>Added By: {payment.createdByUser.firstName} {payment.createdByUser.lastName}</span>
                                 <span>Date: {format(new Date(payment.paymentDate), 'MMM d, yyyy h:mm a')}</span>
                               </div>
                             </div>
