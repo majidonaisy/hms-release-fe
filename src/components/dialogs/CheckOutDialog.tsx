@@ -288,6 +288,10 @@ const CheckOutDialog = ({
                                     <Label className="text-gray-600 text-xs">Booking Source</Label>
                                     <p className="font-medium">Direct Booking</p>
                                 </div>
+                                <div>
+                                    <Label className="text-gray-600 text-xs">Booked By</Label>
+                                    <p className="font-medium">{reservationData?.createdByUser}</p>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
