@@ -176,6 +176,11 @@ const CheckInDialog = ({
                                     <Label className="text-gray-600 text-xs">Room Type</Label>
                                     <p className="font-medium">{reservationData?.roomType || "N/A"}</p>
                                 </div>
+
+                                <div>
+                                    <Label className="text-gray-600 text-xs">Booked By</Label>
+                                    <p className="font-medium">{reservationData?.createdByUser}</p>
+                                </div>
                             </div>
                             <div className="space-y-3">
                                 <div>

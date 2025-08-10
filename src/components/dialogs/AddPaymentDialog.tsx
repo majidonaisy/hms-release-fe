@@ -26,6 +26,18 @@ export interface PaymentChargeItem {
     unitPrice: string;
     status: string;
     selected: boolean;
+    createdByUser: {
+        id: string,
+        firstName: string,
+        lastName: string,
+        email: string,
+    },
+    updatedByUser: {
+        id: string,
+        firstName: string,
+        lastName: string,
+        email: string,
+    } | null
 }
 
 const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }: {
@@ -71,18 +83,32 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
         try {
             setLoadingCharges(true);
             const response = await getUnsetledCharges(reservationId);
-            // Handle the actual response structure from your API
-            const folioItems = response.data?.folioItems || [];
-            const mappedChargeItems: PaymentChargeItem[] = folioItems.map((item: any) => ({
+
+            // Handle different response structures
+            let folioItems: any[] = [];
+
+            if (Array.isArray(response.data)) {
+                // If response.data is directly an array of folio items
+                folioItems = response.data;
+            } else if (response.data && response.data.folioItems && Array.isArray(response.data.folioItems)) {
+                // If response.data has a folioItems property that contains the array
+                folioItems = response.data.folioItems;
+            }
+
+            // Transform the API response to match PaymentChargeItem interface
+            const transformedCharges: PaymentChargeItem[] = folioItems.map(item => ({
                 id: item.id,
                 itemType: item.itemType,
                 amount: item.amount,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 status: item.status,
-                selected: false,
+                selected: false, // Add the missing selected property
+                createdByUser: item.createdByUser,
+                updatedByUser: item.updatedByUser
             }));
-            setChargeItems(mappedChargeItems);
+
+            setChargeItems(transformedCharges);
         } catch (error: any) {
             console.error('Failed to fetch charges:', error);
             toast.error(error.userMessage || 'Failed to load charges');
@@ -99,7 +125,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
         try {
             setLoadingReservation(true);
             const response = await getReservationById(reservationId);
-            
+
             // Handle both direct data response and wrapped response
             let reservationData: any;
             if (response && typeof response === 'object' && 'data' in response && response.data) {
@@ -107,14 +133,14 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
             } else {
                 reservationData = response;
             }
-            
+
             // Transform the data to match SingleReservation interface
             const transformedReservation: SingleReservation = {
                 id: reservationData.id || '',
-                checkIn: reservationData.checkIn instanceof Date 
+                checkIn: reservationData.checkIn instanceof Date
                     ? reservationData.checkIn.toISOString()
                     : reservationData.checkIn || '',
-                checkOut: reservationData.checkOut instanceof Date 
+                checkOut: reservationData.checkOut instanceof Date
                     ? reservationData.checkOut.toISOString()
                     : reservationData.checkOut || '',
                 status: reservationData.status || 'DRAFT',
@@ -124,17 +150,19 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                 price: reservationData.price || '0',
                 groupBookingId: reservationData.groupBookingId || null,
                 chargeRouting: reservationData.chargeRouting || 'OWN_FOLIO',
-                createdAt: reservationData.createdAt instanceof Date 
+                createdAt: reservationData.createdAt instanceof Date
                     ? reservationData.createdAt.toISOString()
                     : reservationData.createdAt || new Date().toISOString(),
-                updatedAt: reservationData.updatedAt instanceof Date 
+                updatedAt: reservationData.updatedAt instanceof Date
                     ? reservationData.updatedAt.toISOString()
                     : reservationData.updatedAt || new Date().toISOString(),
                 rooms: reservationData.rooms || [],
                 receiptId: reservationData.receiptId || '',
                 guest: reservationData.guest || { id: '', firstName: '', lastName: '' },
+                createdByUser: reservationData.createdByUser,
+                updatedByUser: reservationData.updatedByUser
             };
-            
+
             setReservationDetails(transformedReservation);
         } catch (error: any) {
             console.error('Failed to fetch reservation details:', error);
@@ -374,6 +402,10 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                         <span className="text-gray-600">Guest ID</span>
                                         <p className="font-medium">{reservationDetails?.guest.id || 'N/A'}</p>
                                     </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Booked By</span>
+                                        <p className="font-medium">{reservationDetails?.createdByUser.firstName || 'N/A'} {reservationDetails?.createdByUser.lastName || 'N/A'}</p>
+                                    </div>
                                 </div>
                                 <div>
                                     <div className="mb-2">
@@ -470,7 +502,8 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                             </div>
                                                             <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
                                                                 }`}>
-                                                                Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}
+                                                                <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
+                                                                <p>Added By: {item.createdByUser.firstName} {item.createdByUser.lastName}</p>
                                                             </span>
                                                         </div>
                                                     </div>

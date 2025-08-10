@@ -144,6 +144,8 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                     updatedAt: reservationObj.updatedAt instanceof Date ? reservationObj.updatedAt.toISOString() : typeof reservationObj.updatedAt === 'string' ? reservationObj.updatedAt : '',
                     receiptId: typeof reservationObj.receiptId === 'string' ? reservationObj.receiptId : '',
                     status: typeof reservationObj.status === 'string' && ["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"].includes(reservationObj.status) ? reservationObj.status as SingleReservation["status"] : "DRAFT",
+                    createdByUser: reservationObj.createdByUser,
+                    updatedByUser: reservationObj.updatedByUser
                 };
                 setReservationDetails(reservationData);
             } else {
@@ -219,6 +221,12 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                                         <span className="text-gray-600">Guest ID:</span>
                                         <div className="font-medium">
                                             {reservationDetails?.guest.id || 'N/A'}
+                                        </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-gray-600">Booked By:</span>
+                                        <div className="font-medium">
+                                            {reservationDetails?.createdByUser.firstName || 'N/A'} {reservationDetails?.createdByUser.lastName || 'N/A'}
                                         </div>
                                     </div>
                                 </div>

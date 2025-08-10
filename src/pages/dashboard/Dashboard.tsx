@@ -14,7 +14,7 @@ import { GetRatePlansResponse } from '@/validation/schemas/RatePlan';
 import { AddRoleRequest, RoleResponse } from '@/validation/schemas/Roles';
 import { ExchangeRateRequest, GetExchangeRateResponse } from '@/validation/schemas/ExchangeRates';
 import { addExchangeRate, getExchangeRates } from '@/services/ExchangeRates';
-import { addDepartment, getDepartments } from '@/services/Departments';
+import { getDepartments } from '@/services/Departments';
 import { Departments } from '@/validation/schemas/Departments';
 
 const Dashboard = () => {
@@ -205,13 +205,12 @@ const Dashboard = () => {
 
     const handleDepartmentsDialog = () => {
         openDialog('departments', {
-            onConfirm: async (data: { name: string }) => {
+            onConfirm: async () => {
                 try {
-                    await addDepartment(data);
                     await fetchDepartments();
                     return true;
                 } catch (error: any) {
-                    toast.error(error.userMessage || 'Error creating department');
+                    console.error('Error refreshing departments:', error);
                     throw error;
                 }
             }

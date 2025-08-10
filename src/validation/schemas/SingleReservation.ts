@@ -29,6 +29,18 @@ export const SingleReservationShape = z.object({
   rooms: z.array(SingleReservationRoomShape),
   receiptId: z.string(),
   guest: SingleReservationGuestShape,
+  createdByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }),
+  updatedByUser: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.string(),
+  }).nullable(),
 });
 
 // Get Single Reservation Response (API can return data directly or wrapped)
