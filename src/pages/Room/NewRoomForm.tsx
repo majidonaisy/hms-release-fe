@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/atoms/Checkbox';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/atoms/Switch';
 import { AddRoomRequest, AddRoomRequestSchema, Room, RoomType } from '@/validation';
-import { getRoomTypes } from '@/services/RoomTypes';
+import { getAlRoomTypes } from '@/services/RoomTypes';
 import { toast } from 'sonner';
 import { getAmenities, getRooms } from '@/services/Rooms';
 import { Amenity } from '@/validation/schemas/amenity';
@@ -72,7 +72,7 @@ const NewRoomForm: React.FC<RoomFormProps> = ({
 
   const fetchRoomTypes = async () => {
     try {
-      const response = await getRoomTypes();
+      const response = await getAlRoomTypes();
       if (response.status && Array.isArray(response.data)) {
         setRoomTypes(response.data);
       } else {

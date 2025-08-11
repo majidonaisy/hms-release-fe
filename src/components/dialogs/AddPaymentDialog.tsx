@@ -404,7 +404,9 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                     </div>
                                     <div className="mb-2">
                                         <span className="text-gray-600">Booked By</span>
-                                        <p className="font-medium">{reservationDetails?.createdByUser.firstName || 'N/A'} {reservationDetails?.createdByUser.lastName || 'N/A'}</p>
+                                        <p className="font-medium">
+                                            {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
+                                        </p>
                                     </div>
                                 </div>
                                 <div>

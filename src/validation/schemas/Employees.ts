@@ -60,6 +60,7 @@ export const GetEmployeeByIdResponseSchema = z.object({
     updatedAt: z.date(),
     createdBy: z.string().nullable(),
     updatedBy: z.string().nullable(),
+    password: z.string(),
     Session: z.array(z.object({
       id: z.string(),
       hotelId: z.string(),

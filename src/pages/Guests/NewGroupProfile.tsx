@@ -147,6 +147,7 @@ const NewGroupProfile = () => {
                     businessType: formData.businessType,
                     isVip: formData.isVip,
                     notes: formData.notes,
+                    specialRequirements: formData.specialRequirements
                 };
 
                 await updateGroupProfile(id, updateData);

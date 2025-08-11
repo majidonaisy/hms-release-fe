@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Badge } from '@/components/atoms/Badge';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/Organisms/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { deleteEMployee, getEmployeeById, updateEmployee } from '@/services/Employees';
@@ -361,76 +361,60 @@ const TeamMemberProfile = () => {
                                             <p className="">{teamMember.username}</p>
                                         )}
                                     </div>
-                                </CardContent>
 
-                                {!isEditMode && (
-                                    <CardFooter className='p-0 flex justify-end'>
-                                        <Button size="sm" className='h-6 rounded-full'>
-                                            Reset Password
-                                        </Button>
-                                    </CardFooter>
-                                )}
+                                    <div className='flex justify-between items-center'>
+                                        <Label className="font-semibold">Assigned Role</Label>
+                                        {isEditMode ? (
+                                            <Select
+                                                value={formData.roleId}
+                                                onValueChange={(value) => handleInputChange('roleId', value)}
+                                            >
+                                                <SelectTrigger className='w-40 h-8 text-sm'>
+                                                    <SelectValue placeholder="Select role" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {roles.map((role) => (
+                                                        <SelectItem key={role.id} value={role.id}>
+                                                            {role.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <p className="">{getRoleName(teamMember.roleId)}</p>
+                                        )}
+                                    </div>
+                                    <div className='flex justify-between items-center'>
+                                        <Label className="font-semibold">Department</Label>
+                                        {isEditMode ? (
+                                            <Select
+                                                value={formData.departmentId}
+                                                onValueChange={(value) => handleInputChange('departmentId', value)}
+                                            >
+                                                <SelectTrigger className='w-40 h-8 text-sm'>
+                                                    <SelectValue placeholder="Select department" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {departments.map((department) => (
+                                                        <SelectItem key={department.id} value={department.id}>
+                                                            {department.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <p className="">{teamMember.department.name}</p>
+                                        )}
+                                    </div>
+                                </CardContent>
                             </Card>
                         </div>
 
                         <Card className="p-3">
                             <CardHeader className='p-0'>
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
-                                    Job Details
+                                    Sessions
                                 </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 space-y-3">
-                                <div className='flex justify-between items-center'>
-                                    <Label className="font-semibold">Assigned Role</Label>
-                                    {isEditMode ? (
-                                        <Select
-                                            value={formData.roleId}
-                                            onValueChange={(value) => handleInputChange('roleId', value)}
-                                        >
-                                            <SelectTrigger className='w-40 h-8 text-sm'>
-                                                <SelectValue placeholder="Select role" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {roles.map((role) => (
-                                                    <SelectItem key={role.id} value={role.id}>
-                                                        {role.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <p className="">{getRoleName(teamMember.roleId)}</p>
-                                    )}
-                                </div>
-                                <div className='flex justify-between items-center'>
-                                    <Label className="font-semibold">Department</Label>
-                                    {isEditMode ? (
-                                        <Select
-                                            value={formData.departmentId}
-                                            onValueChange={(value) => handleInputChange('departmentId', value)}
-                                        >
-                                            <SelectTrigger className='w-40 h-8 text-sm'>
-                                                <SelectValue placeholder="Select department" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {departments.map((department) => (
-                                                    <SelectItem key={department.id} value={department.id}>
-                                                        {department.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <p className="">{teamMember.department.name}</p>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="p-3">
-                            <CardHeader className='p-0'>
-                                <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>Activity Logs</CardTitle>
-
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="space-y-4">
@@ -484,6 +468,16 @@ const TeamMemberProfile = () => {
                                         })()
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="p-3">
+                            <CardHeader className='p-0'>
+                                <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>Activity Logs</CardTitle>
+
+                            </CardHeader>
+                            <CardContent className='text-muted-foreground text-center text-sm'>
+                                No Activity Logged
                             </CardContent>
                         </Card>
                     </div>
