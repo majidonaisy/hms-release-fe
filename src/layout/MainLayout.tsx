@@ -105,7 +105,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                     asChild
                                     isActive={isActive}
                                 >
-                                    <Link to={fullPath} className="flex items-center justify-start">
+                                    <Link to={fullPath} className="flex items-center justify-start group-data-[collapsible=icon]:justify-center">
                                         {typeof route.icon === 'function' ?
                                             <route.icon className="shrink-0" /> :
                                             <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>

@@ -8,12 +8,12 @@ import { ScrollArea } from '../atoms/ScrollArea';
 import { useDebounce } from '@/hooks/useDebounce';
 import { searchGuests } from '@/services/Guests';
 import { GetGuestsResponse, Guest } from '@/validation/schemas/Guests';
+import { useNavigate } from 'react-router-dom';
 
 interface GuestSelectionDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onGuestSelect?: (guests: Guest[]) => void;
-    onNewGuestProfile?: () => void;
     guestsData: Guest[]
 }
 
@@ -21,13 +21,13 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
     open,
     onOpenChange,
     onGuestSelect,
-    onNewGuestProfile,
 }) => {
     const [selectedGuests, setSelectedGuests] = useState<Guest[]>([]);
     const [guestSearch, setGuestSearch] = useState("");
     const [guestSearchLoading, setGuestSearchLoading] = useState(false);
     const debouncedGuestSearch = useDebounce(guestSearch, 400);
     const [guests, setGuests] = useState<GetGuestsResponse['data']>([]);
+    const navigate = useNavigate()
 
     useEffect(() => {
         const handleGetGuests = async () => {
@@ -136,7 +136,7 @@ export const GuestSelectionDialog: React.FC<GuestSelectionDialogProps> = ({
 
                         <DialogFooter className='grid justify-center sm:justify-center'>
                             <Button
-                                onClick={onNewGuestProfile}
+                                onClick={() => navigate('/guests-profile/new-individual')}
                                 className=""
                             >
                                 <Plus className="h-4 w-4 mr-2" />

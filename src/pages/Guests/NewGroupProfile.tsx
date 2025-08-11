@@ -498,7 +498,6 @@ const NewGroupProfile = () => {
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
                     onGuestSelect={handleGuestSelect}
-                    onNewGuestProfile={() => navigate('/guests-profile/new-individual')}
                     guestsData={guests}
                 />
             </div >
