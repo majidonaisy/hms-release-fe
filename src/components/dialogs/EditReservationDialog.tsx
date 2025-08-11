@@ -195,12 +195,13 @@ const EditReservationDialog = ({
                                 )}
 
                                 {/* Display read-only reservation info */}
-                                <div className="bg-gray-50 p-3 rounded">
+                                <div className="bg-hms-accent/15 p-3 rounded">
                                     <h4 className="font-medium text-gray-900 mb-2">Reservation Details</h4>
                                     <div className="text-sm text-gray-600 space-y-1">
                                         <p><span className="font-medium">Guest:</span> {reservationData?.guestName}</p>
                                         <p><span className="font-medium">Current Room:</span> {reservationData?.roomNumber}</p>
                                         <p><span className="font-medium">Status:</span> {reservationData?.status}</p>
+                                        <p><span className="font-medium">Booked By:</span> {reservationData?.createdByUser}</p>
                                     </div>
                                 </div>
 

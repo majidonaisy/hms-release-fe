@@ -226,7 +226,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                                     <div className="mb-2">
                                         <span className="text-gray-600">Booked By:</span>
                                         <div className="font-medium">
-                                            {reservationDetails?.createdByUser.firstName || 'N/A'} {reservationDetails?.createdByUser.lastName || 'N/A'}
+                                            {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
                                         </div>
                                     </div>
                                 </div>
@@ -257,7 +257,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                             </div>
                         )}
                     </div>
-                    <ScrollArea className='h-[20rem]'>
+                    <ScrollArea className='h-[20rem] px-3'>
                         {/* Charge Type */}
                         <div className=" rounded-lg ">
                             <Label htmlFor="itemType" className="text-base font-semibold">Charge Type</Label>
