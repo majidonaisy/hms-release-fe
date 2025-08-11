@@ -245,7 +245,7 @@ const Dashboard = () => {
         <div className="p-6 space-y-6">
             <h1 className="text-2xl font-bold mb-6">Hotel Setup</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <DashboardCard
                     title="Room Types"
                     description="Manage the types of rooms offered to guests, like standard, deluxe, or suite."
@@ -254,8 +254,8 @@ const Dashboard = () => {
                     imageAlt="Hotel Room Types"
                     onCreateClick={handleRoomTypeDialog}
                     onViewClick={() => navigate('/roomTypes')}
-                    createButtonText="New room type"
-                    viewButtonText="View room types"
+                    createButtonText="New Room Type"
+                    viewButtonText="View Room Types"
                 />
 
                 <DashboardCard
@@ -266,8 +266,8 @@ const Dashboard = () => {
                     imageAlt="Hotel Amenities"
                     onCreateClick={handleAmenityDialog}
                     onViewClick={() => navigate('/amenities')}
-                    createButtonText="New amenity"
-                    viewButtonText="View amenities"
+                    createButtonText="New Amenity"
+                    viewButtonText="View Amenities"
                 />
 
                 <DashboardCard
@@ -278,8 +278,8 @@ const Dashboard = () => {
                     imageAlt="Hotel Rate Plans"
                     onCreateClick={handleRatePlanDialog}
                     onViewClick={() => navigate('/rate-plans')}
-                    createButtonText="New rate plan"
-                    viewButtonText="View rate plans"
+                    createButtonText="New Rate Plan"
+                    viewButtonText="View Rate Plans"
                 />
 
                 <DashboardCard
@@ -290,8 +290,8 @@ const Dashboard = () => {
                     imageAlt="Hotel Staff Roles"
                     onCreateClick={handleRoleDialog}
                     onViewClick={() => navigate('/roles-permissions')}
-                    createButtonText="New role"
-                    viewButtonText="View roles"
+                    createButtonText="New Role"
+                    viewButtonText="View Roles"
                 />
 
                 <DashboardCard

@@ -294,7 +294,7 @@ export default function NewGroupReservation() {
                                                 {groupProfileSearch && (
                                                     <button
                                                         onClick={clearGroupProfileSearch}
-                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium"
+                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium cursor-pointer"
                                                         aria-label="Clear search"
                                                     >
                                                         ✕

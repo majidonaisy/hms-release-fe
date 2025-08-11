@@ -225,7 +225,7 @@ const CurrentGuestList = () => {
   const handleEdit = (item: CombinedGuestData, e: React.MouseEvent) => {
     e.stopPropagation()
     if (item.isGroup) {
-      console.log(`Navigate to group edit: /guests-profile/group/${item.id}`)
+      navigate(`/group-profile/${item.id}`)
     } else {
       navigate(`/guests-profile/${item.id}`)
     }

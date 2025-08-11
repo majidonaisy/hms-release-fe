@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus, DoorOpen, Calendar1 } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus, DoorOpen, Calendar1, Pin } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
@@ -557,10 +557,10 @@ const GuestProfileView = () => {
                             <Card key={reservation.id} className='bg-hms-accent/15 px-2 gap-2'>
                                 <span className='flex justify-between'>
                                     <p className='flex gap-1 items-center font-semibold'>
-                                        <DoorOpen className='size-5' />
-                                        Rooms:
+                                        <DoorOpen className='size-4' />
+                                        Room(s):
                                     </p>
-                                    <span>
+                                    <span className='text-sm'>
                                         {reservation.rooms.map((room) => (
                                             <p key={room.id}>{room.roomNumber}</p>
                                         ))}
@@ -568,20 +568,20 @@ const GuestProfileView = () => {
                                 </span>
                                 <span className='flex justify-between'>
                                     <p className='flex gap-1 items-center font-semibold'>
-                                        <Calendar1 className='size-5' />
+                                        <Calendar1 className='size-4' />
                                         Stay Dates:
                                     </p>
-                                    <p>
+                                    <p className='text-sm'>
                                         {formatHistoryDate(reservation.checkIn)} - {formatHistoryDate(reservation.checkOut)}
                                     </p>
                                 </span>
                                 <span className='flex justify-between'>
                                     <p className='flex gap-1 items-center font-semibold'>
-                                        <Calendar1 className='size-5' />
-                                        Stay Dates:
+                                        <Pin className='size-4' />
+                                        Status:
                                     </p>
-                                    <p>
-                                        {reservation.status}
+                                    <p className='text-sm'>
+                                        {reservation.status.replace('_', ' ').charAt(0) + reservation.status.slice(1).replace('_', " ").toLowerCase()}
                                     </p>
                                 </span>
                             </Card>
