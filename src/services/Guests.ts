@@ -136,7 +136,7 @@ export const getGroupProfileById = async (id: string): Promise<GroupProfileRespo
     })
     return response as GroupProfileResponse
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to link guests to group";
+    const errorMessage = error.response?.data?.message || "Failed to get group profile";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -223,6 +223,23 @@ export const linkGuestsToGroup = async (guestIds: string[], groupId: string): Pr
     return response as LinkGuestsToGroupResponse;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to link guests to group";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const unlinkGuests = async (guestId: string, groupId: string): Promise<any> => {
+  try {
+    const response = await apiClient({
+      method: "PUT",
+      endpoint: `${ENDPOINTS.GroupProfile.UnlinkGuests}/${groupId}/${guestId}`,
+      baseURL,
+    });
+    return response;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to unlink guests";
     throw {
       userMessage: errorMessage,
       originalError: error,

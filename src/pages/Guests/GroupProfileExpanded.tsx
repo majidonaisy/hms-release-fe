@@ -7,10 +7,10 @@ import { Switch } from "@/components/atoms/Switch";
 import { GuestSelectionDialog } from "@/components/dialogs/AddGuestDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import EditingSkeleton from "@/components/Templates/EditingSkeleton";
-import { getGroupProfileById, getGuests, linkGuestsToGroup, updateGroupProfile, deleteGroupProfile } from "@/services/Guests";
+import { getGroupProfileById, getGuests, linkGuestsToGroup, updateGroupProfile, deleteGroupProfile, unlinkGuests } from "@/services/Guests";
 import { GetGuestsResponse, GroupProfileResponse, UpdateGroupProfileRequest, Guest } from "@/validation/schemas/Guests";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { ChevronLeft, Mail, Phone } from "lucide-react";
+import { ChevronLeft, Mail, Phone, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,7 +28,8 @@ const GroupProfileExpanded = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState<GroupProfileResponse['data'] | null>(null);
-
+    const [removeGuestDialog, setRemoveGuestsDialog] = useState(false);
+    const [guestToRemove, setGuestToRemove] = useState<Guest | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
 
     const [formData, setFormData] = useState<UpdateGroupProfileRequest>({
@@ -158,6 +159,25 @@ const GroupProfileExpanded = () => {
             console.error("Failed to delete group profile:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRemoveGuest = async () => {
+        if (!guestToRemove || !id) return;
+
+        setLoading(true);
+        try {
+            await unlinkGuests(guestToRemove.id, id);
+            fetchData();
+        } catch (error) {
+            toast("Error!", {
+                description: "Failed to unlink guest.",
+            });
+            console.error("Failed to unlink guest:", error);
+        } finally {
+            setLoading(false);
+            setRemoveGuestsDialog(false);
+            setGuestToRemove(null);
         }
     };
 
@@ -498,7 +518,16 @@ const GroupProfileExpanded = () => {
                                         </p>
 
                                     </div>
-
+                                    <Button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setGuestToRemove(guest);
+                                            setRemoveGuestsDialog(true);
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        <X />
+                                    </Button>
                                 </div>
                             )))}
                     </ScrollArea>
@@ -531,6 +560,19 @@ const GroupProfileExpanded = () => {
                 loading={loading}
                 title="Delete Group Profile"
                 description={`Are you sure you want to delete group profile ${groupToDelete?.name}? This action cannot be undone.`}
+            />
+
+            <DeleteDialog
+                isOpen={removeGuestDialog}
+                onCancel={() => {
+                    setRemoveGuestsDialog(false);
+                    setGuestToRemove(null);
+                }}
+                onConfirm={handleRemoveGuest}
+                loading={loading}
+                title="Remove Guest"
+                description={`Are you sure you want to unlink ${guestToRemove?.firstName} ${guestToRemove?.lastName}?`}
+                confirmText="Remove Guest"
             />
         </div >
     );

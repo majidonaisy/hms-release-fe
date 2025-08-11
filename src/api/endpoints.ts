@@ -41,6 +41,7 @@ export const ENDPOINTS = {
     UpdateGroupProfile: "group-profile/update",
     Search: "group-profile/search",
     GetCurrentGroupProfiles: "reservation/get-current-group-profiles",
+    UnlinkGuests: "group-profile/unlink"
   },
   RatePlan: {
     Add: "ratePlan/add",
