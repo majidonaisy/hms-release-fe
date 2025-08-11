@@ -37,7 +37,8 @@ const GroupProfileExpanded = () => {
         phone: '',
         businessType: 'CORPORATE',
         isVip: false,
-        notes: ''
+        notes: '',
+        specialRequirements: ''
     });
 
     const businessTypeOptions = [
@@ -86,7 +87,8 @@ const GroupProfileExpanded = () => {
                 phone: groupRes.data.phone,
                 businessType: groupRes.data.businessType,
                 isVip: groupRes.data.isVip || false,
-                notes: groupRes.data.notes || ''
+                notes: groupRes.data.notes || '',
+                specialRequirements: groupRes.data.specialRequirements || ''
             });
         } catch (err: any) {
             console.error(err);
@@ -130,7 +132,8 @@ const GroupProfileExpanded = () => {
                 phone: group.phone,
                 businessType: group.businessType,
                 isVip: group.isVip || false,
-                notes: group.notes || ''
+                notes: group.notes || '',
+                specialRequirements: group.specialRequirements || ''
             });
         }
         setIsEditMode(false);
@@ -426,7 +429,14 @@ const GroupProfileExpanded = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 space-y-2">
-                            {group.specialRequirements ? (
+                            {isEditMode ? (
+                                <Input
+                                    value={formData.specialRequirements}
+                                    onChange={(e) => handleInputChange('specialRequirements', e.target.value)}
+                                    className='w-full text-sm'
+                                    placeholder='Special Requirements'
+                                />
+                            ) : group.specialRequirements ? (
                                 group.specialRequirements
                             ) : (
                                 <div className="text-center text-muted-foreground">

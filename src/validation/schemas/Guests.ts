@@ -218,6 +218,7 @@ export const UpdateGroupProfileRequestSchema = z.object({
   businessType: z.enum(["CORPORATE", "TRAVEL_AGENCY", "EVENT_PLANNER", "GOVERNMENT", "OTHER"]),
   isVip: z.boolean(),
   notes: z.string(),
+  specialRequirements: z.string()
 })
 
 export type Guest = z.infer<typeof GuestShape>;

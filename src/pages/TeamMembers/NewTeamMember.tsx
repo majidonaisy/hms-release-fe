@@ -55,7 +55,7 @@ const NewTeamMember = () => {
                     setFormData({
                         email: employee.data.email,
                         username: employee.data.username,
-                        password: '', // Don't populate password for security
+                        password: employee.data.password,
                         firstName: employee.data.firstName,
                         lastName: employee.data.lastName,
                         roleId: employee.data.roleId,
@@ -253,7 +253,7 @@ const NewTeamMember = () => {
                                     onChange={(e) => handleInputChange('password', e.target.value)}
                                     className='border border-slate-300'
                                     placeholder='••••••••'
-                                    required={!isEditMode}
+                                    required
                                 />
                             </div>
                         </div>
