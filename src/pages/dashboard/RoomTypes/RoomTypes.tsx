@@ -61,7 +61,7 @@ const RoomTypes = () => {
       editData: roomType,
       onConfirm: async (data: AddRoomTypeRequest) => {
         try {
-          await updateRoomType(roomType.id, data);
+          await updateRoomType(roomType.id, data); 
           toast.success('Room type updated successfully');
           await fetchRoomTypes();
           return Promise.resolve();

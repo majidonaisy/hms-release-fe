@@ -32,11 +32,36 @@ const HotelSettingsPage: React.FC = () => {
         const times = [];
         for (let hour = 0; hour < 24; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                const period = hour < 12 ? "AM" : "PM";
+                const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+                const timeString = `${displayHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${period}`;
                 times.push(timeString);
             }
         }
         return times;
+    };
+
+    // Convert "HH:mm" (24-hour) → "hh:mm AM/PM"
+    const toAmPm = (time24: string) => {
+        if (!time24) return '';
+        const [hourStr, minute] = time24.split(':');
+        let hour = parseInt(hourStr, 10);
+        const period = hour < 12 ? "AM" : "PM";
+        hour = hour % 12 || 12;
+        return `${hour.toString().padStart(2, '0')}:${minute} ${period}`;
+    };
+
+    // Convert "hh:mm AM/PM" → "HH:mm" (24-hour)
+    const to24Hour = (time12: string) => {
+        if (!time12) return '';
+        const [time, modifier] = time12.split(' ');
+        let hour = Number(time.split(':')[0]);
+        const minute = Number(time.split(':')[1]);
+
+        if (modifier === 'PM' && hour !== 12) hour += 12;
+        if (modifier === 'AM' && hour === 12) hour = 0;
+
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     };
 
     const timeOptions = generateTimeOptions();
@@ -57,8 +82,8 @@ const HotelSettingsPage: React.FC = () => {
                 // Initialize form with current settings, handling null values with defaults
                 setFormData({
                     baseCurrency: settingsResponse.data.baseCurrency || 'USD',
-                    checkInTime: settingsResponse.data.checkInTime || '15:00',
-                    checkOutTime: settingsResponse.data.checkOutTime || '11:00',
+                    checkInTime: toAmPm(settingsResponse.data.checkInTime ?? '') || '03:00 PM',
+                    checkOutTime: toAmPm(settingsResponse.data.checkOutTime ?? '') || '11:00 AM',
                     lateFeeType: settingsResponse.data.lateFeeType || LateFeeType.FIXED,
                     lateFeeAmount: settingsResponse.data.lateFeeAmount || 0,
                 });
@@ -90,7 +115,13 @@ const HotelSettingsPage: React.FC = () => {
 
         try {
             setIsSaving(true);
-            await updateHotelSettings(formData);
+            const payload = {
+                ...formData,
+                checkInTime: to24Hour(formData.checkInTime),
+                checkOutTime: to24Hour(formData.checkOutTime),
+            };
+
+            await updateHotelSettings(payload);
             toast.success('Hotel settings updated successfully');
 
             // Refresh settings data
