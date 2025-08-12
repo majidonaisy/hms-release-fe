@@ -6,15 +6,19 @@ import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
 import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { addRatePlan } from '@/services/RatePlans';
+import { addRatePlan, updateRatePlan } from '@/services/RatePlans';
 import { AddRatePlanSchema, AddRatePlanRequest } from '@/validation/schemas/RatePlan';
 import { store } from '@/redux/store';
+
+interface EditRatePlanData extends AddRatePlanRequest {
+  id: string;
+}
 
 interface RatePlanDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onRatePlanAdded?: () => Promise<void>;
-  editData?: AddRatePlanRequest;
+  editData?: EditRatePlanData;
 }
 
 const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: RatePlanDialogProps) => {
@@ -23,32 +27,29 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
   const [formData, setFormData] = useState<AddRatePlanRequest>({
     name: '',
     code: '',
-    // basePrice: 0,
     baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
     baseAdjVal: 0,
     currencyId: '',
   });
+
   const baseCurrency = store.getState().currency.currency || 'USD';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | number>>({});
 
   useEffect(() => {
     if (isOpen) {
-
       if (editData) {
         setFormData({
           name: editData.name || '',
           code: editData.code || '',
-          // basePrice: editData.basePrice || 0,
           baseAdjType: editData.baseAdjType || 'PERCENT',
           baseAdjVal: editData.baseAdjVal || 0,
-          currencyId: baseCurrency
+          currencyId: editData.currencyId || baseCurrency
         });
       } else {
         setFormData({
           name: '',
           code: '',
-          // basePrice: 0,
           baseAdjType: 'PERCENT',
           baseAdjVal: 0,
           currencyId: baseCurrency,
@@ -57,11 +58,16 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
       setErrors({});
     }
-  }, [isOpen, editData]);
+  }, [isOpen, editData, baseCurrency]);
 
   const validate = () => {
     try {
-      AddRatePlanSchema.parse(formData);
+      const dataToValidate = {
+        ...formData,
+        baseAdjVal: Number(formData.baseAdjVal)
+      };
+
+      AddRatePlanSchema.parse(dataToValidate);
       setErrors({});
       return true;
     } catch (error: any) {
@@ -92,31 +98,36 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
       const apiData: AddRatePlanRequest = {
         name: formData.name,
         code: formData.code,
-        // basePrice: Number(formData.basePrice),
         baseAdjType: formData.baseAdjType,
         baseAdjVal: Number(formData.baseAdjVal),
-        currencyId: baseCurrency
+        currencyId: formData.currencyId || baseCurrency
       };
 
-      await addRatePlan(apiData);
-      toast.success('Rate plan added successfully');
+      if (isEditMode && editData?.id) {
+        await updateRatePlan(editData.id, apiData);
+        toast.success('Rate plan updated successfully');
+      } else {
+        await addRatePlan(apiData);
+        toast.success('Rate plan added successfully');
+      }
 
       if (onRatePlanAdded) {
         await onRatePlanAdded();
       }
 
-      // Reset form
-      setFormData({
-        name: '',
-        code: '',
-        baseAdjType: 'PERCENT',
-        baseAdjVal: 0,
-        currencyId: baseCurrency,
-      });
+      if (!isEditMode) {
+        setFormData({
+          name: '',
+          code: '',
+          baseAdjType: 'PERCENT',
+          baseAdjVal: 0,
+          currencyId: baseCurrency,
+        });
+      }
 
       onOpenChange(false);
     } catch (error: any) {
-      const errorMessage = error.userMessage || 'An error occurred';
+      const errorMessage = error.userMessage || `An error occurred while ${isEditMode ? 'updating' : 'adding'} the rate plan`;
       setErrors({ form: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -160,35 +171,13 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
           </div>
 
-          {/* <div className="space-y-2">
-            <Label htmlFor="basePrice">Base Price</Label>
-            <Input
-              id="basePrice"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.basePrice === 0 ? '' : formData.basePrice}
-              onChange={(e) => {
-                const value = e.target.value;
-                const numValue = value === '' ? 0 : parseFloat(value);
-                setFormData({
-                  ...formData,
-                  basePrice: isNaN(numValue) ? 0 : numValue
-                });
-              }}
-              placeholder="Enter base price"
-              className={errors.basePrice ? "border-red-500" : ""}
-            />
-            {errors.basePrice && <p className="text-red-500 text-sm">{errors.basePrice}</p>}
-          </div> */}
-
           <div className="space-y-2">
             <Label htmlFor="baseAdjType">Adjustment Type</Label>
             <Select
               value={formData.baseAdjType}
               onValueChange={(value: 'PERCENT' | 'FIXED') => setFormData({ ...formData, baseAdjType: value })}
             >
-              <SelectTrigger className={`w-full ${errors.baseAdjType ? "border-red-500" : ""}`} >
+              <SelectTrigger className={`w-full ${errors.baseAdjType ? "border-red-500" : ""}`}>
                 <SelectValue placeholder="Select adjustment type" />
               </SelectTrigger>
               <SelectContent>
@@ -200,7 +189,9 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
           </div>
 
           <div className={`${formData.baseAdjType === 'FIXED' ? "grid grid-cols-10 gap-2 items-center" : ""} space-y-2`}>
-            <Label htmlFor="baseAdjVal" className={`${formData.baseAdjType === "FIXED" ? "col-span-10" : ""}`}>Adjustment Value</Label>
+            <Label htmlFor="baseAdjVal" className={`${formData.baseAdjType === "FIXED" ? "col-span-10" : ""}`}>
+              Adjustment Value
+            </Label>
             <Input
               id="baseAdjVal"
               type="number"
@@ -209,7 +200,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               value={formData.baseAdjVal === 0 ? '' : formData.baseAdjVal}
               onChange={(e) => {
                 const value = e.target.value;
-                const numValue = value === '' ? 0 : parseFloat(value);
+                const numValue = value === '' ? 0 : Number(value);
                 setFormData({
                   ...formData,
                   baseAdjVal: isNaN(numValue) ? 0 : numValue
@@ -219,44 +210,10 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               className={`${formData.baseAdjType === "FIXED" ? "col-span-9" : ""} ${errors.baseAdjVal ? "border-red-500" : ""}`}
             />
             {formData.baseAdjType === 'FIXED' && (
-              baseCurrency
+              <span className="text-sm text-gray-500">{baseCurrency}</span>
             )}
-            {errors.baseAdjVal && <p className="text-red-500 text-sm">{errors.baseAdjVal}</p>}
+            {errors.baseAdjVal && <p className="text-red-500 text-sm col-span-10">{errors.baseAdjVal}</p>}
           </div>
-
-          {/* <div className="space-y-2">
-            <Label htmlFor="currencyId">Currency</Label>
-            <Select
-              value={formData.currencyId}
-              onValueChange={(value) => setFormData({ ...formData, currencyId: value })}
-            >
-              <SelectTrigger className={errors.currencyId ? "border-red-500" : ""}>
-                <SelectValue placeholder={loadingCurrencies ? "Loading currencies..." : "Select currency"} />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingCurrencies ? (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>Loading currencies...</span>
-                  </div>
-                ) : currencies.length > 0 ? (
-                  currencies.map((currency) => (
-                    <SelectItem key={currency.id} value={currency.code}>
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-medium">{currency.code}</span>
-                        <span className="text-gray-500 ml-2">{currency.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="flex items-center justify-center p-4 text-gray-500">
-                    No currencies available
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-            {errors.currencyId && <p className="text-red-500 text-sm">{errors.currencyId}</p>}
-          </div> */}
 
           {errors.form && (
             <div className="bg-red-50 p-3 rounded-md text-red-600 flex items-center text-sm">
