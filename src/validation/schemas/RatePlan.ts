@@ -25,7 +25,7 @@ export const AddRatePlanSchema = z.object({
     message: "Adjustment type must be either PERCENT or FIXED",
   }),
   baseAdjVal: z.number().min(0.01, "Adjustment value must be greater than 0").max(999,"Adjustment value must be less than 999"),
-  // currencyId: z.string().min(1, "Currency is required"),
+  currencyId: z.string(),
 });
 
 // No need for separate API schema since we're keeping everything as numbers

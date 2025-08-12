@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/atoms/Checkbox';
 import { getPermissions, getRoleBId, updateRole } from '@/services/Role';
 import { ZodError } from 'zod/v4';
 import { Skeleton } from '@/components/atoms/Skeleton';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface NewRoleDialogProps {
     isOpen: boolean;
@@ -194,35 +195,35 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         if (!pagination || pagination.totalPages <= 1) return null;
 
         return (
-            <div className="flex justify-center space-x-4 mt-2">
+            <div className="flex justify-between mt-2">
                 <Button
-                    variant="outline"
+                    variant="defaultLint"
                     disabled={currentPage === 1 || isLoading}
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     type='button'
                 >
-                    Prev
+                    <ArrowLeft/>
                 </Button>
 
-                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
+                {/* {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
                     <Button
                         key={pageNum}
-                        variant={pageNum === currentPage ? 'foreground' : 'outline'}
+                        variant={pageNum === currentPage ? 'defaultLint' : 'defaultLint'}
                         onClick={() => setCurrentPage(pageNum)}
                         disabled={isLoading}
                         type='button'
                     >
                         {pageNum}
                     </Button>
-                ))}
+                ))} */}
 
                 <Button
-                    variant="outline"
+                    variant="defaultLint"
                     disabled={currentPage === pagination.totalPages || isLoading}
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
                     type='button'
                 >
-                    Next
+                    <ArrowRight/>
                 </Button>
             </div>
         );
