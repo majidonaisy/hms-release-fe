@@ -178,16 +178,28 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
         try {
             setLoadingCurrencies(true);
             const response = await getAddChargeCurrencies();
-            const currenciesData = response.data || [];
+            const currenciesData: Currency[] = response.data || [];
+
+            // Find the base currency in the API response
+            const baseFromAPI = currenciesData.find(c => c.code === baseCurrency);
+
+            // Keep all currencies as returned from API (no filtering out)
             setCurrencies(currenciesData);
+
+            // Pre-select base currency from API if found, otherwise first available
+            if (baseFromAPI) {
+                setSelectedCurrency(baseFromAPI.code);
+            } else if (currenciesData.length > 0) {
+                setSelectedCurrency(currenciesData[0].code);
+            }
         } catch (error: any) {
-            console.error('Failed to fetch currencies:', error);
-            toast.error(error.userMessage || 'Failed to fetch currencies');
+            console.error("Failed to fetch currencies:", error);
+            toast.error(error.userMessage || "Failed to fetch currencies");
             setCurrencies([]);
         } finally {
             setLoadingCurrencies(false);
         }
-    }, []);
+    }, [baseCurrency]);
 
     // Fetch all data using Promise.all
     useEffect(() => {
@@ -505,7 +517,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                             <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
                                                                 }`}>
                                                                 <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
-                                                                <p>Added By: {item.createdByUser?.firstName || 'Unknown'} {item.createdByUser?.lastName || 'Unknown'}</p>
+                                                                <p>Added By: {item.createdByUser.firstName} {item.createdByUser.lastName}</p>
                                                             </span>
                                                         </div>
                                                     </div>
@@ -551,20 +563,19 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                             className="text-right font-mono"
                                         />
 
-                                        <Select value={selectedCurrency} onValueChange={(selectedCurrencyCode) => {
-                                            setSelectedCurrency(selectedCurrencyCode)
+                                        <Select value={selectedCurrency} onValueChange={(code) => {
+                                            setSelectedCurrency(code);
 
-                                            if (selectedCurrencyCode === baseCurrency) {
-                                                setExchangeRate(totalAmount); // Show total amount for base currency
+                                            if (code === baseCurrency) {
+                                                setExchangeRate(totalAmount);
                                             } else if (totalAmount > 0) {
-                                                convert(baseCurrency, selectedCurrencyCode, totalAmount)
+                                                convert(baseCurrency, code, totalAmount);
                                             }
                                         }}>
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select currency" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value={baseCurrency}>{baseCurrency}</SelectItem>
                                                 {currencies.map((currency) => (
                                                     <SelectItem key={currency.code} value={currency.code}>
                                                         {currency.code} - {currency.name}
@@ -572,6 +583,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                 ))}
                                             </SelectContent>
                                         </Select>
+
                                     </div>
                                 </div>
 
