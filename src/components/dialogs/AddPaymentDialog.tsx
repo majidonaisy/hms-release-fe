@@ -505,7 +505,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                             <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
                                                                 }`}>
                                                                 <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
-                                                                <p>Added By: {item.createdByUser.firstName} {item.createdByUser.lastName}</p>
+                                                                <p>Added By: {item.createdByUser?.firstName || 'Unknown'} {item.createdByUser?.lastName || 'Unknown'}</p>
                                                             </span>
                                                         </div>
                                                     </div>
@@ -566,7 +566,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                             <SelectContent>
                                                 <SelectItem value={baseCurrency}>{baseCurrency}</SelectItem>
                                                 {currencies.map((currency) => (
-                                                    <SelectItem key={currency.id} value={currency.code}>
+                                                    <SelectItem key={currency.code} value={currency.code}>
                                                         {currency.code} - {currency.name}
                                                     </SelectItem>
                                                 ))}

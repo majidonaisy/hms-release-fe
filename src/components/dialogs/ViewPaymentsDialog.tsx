@@ -303,6 +303,13 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
                               </div>
                               <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
                                 <span>Added By: {payment?.createdByUser?.firstName || 'Unknown'} {payment?.createdByUser?.lastName || 'Unknown'}</span>
+                                {
+                                  payment.status === 'VOIDED' && (
+                                    <span className="px-2 py-0.5 text-xs rounded-full">
+                                      Voided By: {payment.voidedByUser?.firstName || 'Unknown'} {payment.voidedByUser?.lastName || 'Unknown'}
+                                    </span>
+                                  )
+                                }
                                 <span>Date: {format(new Date(payment.paymentDate), 'MMM d, yyyy h:mm a')}</span>
                               </div>
                             </div>
