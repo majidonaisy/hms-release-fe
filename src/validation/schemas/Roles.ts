@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { PaginationSchema } from "./common";
 
 export const RoleShape = z.object({
     id: z.string(),
@@ -23,7 +24,6 @@ export const RoleByIdResponseShape = z.object({
 
 export const AddRoleRequestSchema = z.object({
     name: z.string({ error: "Role name is required" }).min(1, "Role name cannot be empty"),
-    hotelId: z.string({ error: "Hotel ID is required" }).min(1, "Hotel ID cannot be empty"),
     permissionIds: z.array(z.string()),
 });
 
@@ -54,7 +54,8 @@ export const PermissionShape = z.object({
 export const PermissionsResponseShape = z.object({
     status: z.number(),
     message: z.string,
-    data: z.array(PermissionShape)
+    data: z.array(PermissionShape),
+    pagination: PaginationSchema
 });
 
 export const DeleteResponseSchema = z.object({
