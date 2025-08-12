@@ -27,12 +27,18 @@ export const getRoles = async (params?: GetRolesParams): Promise<RoleResponse> =
     }
 };
 
-export const getPermissions = async (): Promise<PermissionsResponse> => {
+interface GetPermissionsParams {
+    page?: number;
+    limit?: number;
+}
+
+export const getPermissions = async (params?: GetPermissionsParams): Promise<PermissionsResponse> => {
     try {
         const response = await apiClient({
             method: "GET",
             endpoint: ENDPOINTS.Role.GetPermissions,
             baseURL,
+            params,
         });
         return response as PermissionsResponse;
     } catch (error: any) {
@@ -43,6 +49,7 @@ export const getPermissions = async (): Promise<PermissionsResponse> => {
         };
     }
 };
+
 
 export const addRole = async (data: AddRoleRequest): Promise<AddUpdateRoleResponse> => {
     try {
