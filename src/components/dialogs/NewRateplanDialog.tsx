@@ -8,6 +8,7 @@ import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addRatePlan } from '@/services/RatePlans';
 import { AddRatePlanSchema, AddRatePlanRequest } from '@/validation/schemas/RatePlan';
+import { store } from '@/redux/store';
 
 interface RatePlanDialogProps {
   isOpen: boolean;
@@ -25,9 +26,9 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
     // basePrice: 0,
     baseAdjType: 'PERCENT' as 'PERCENT' | 'FIXED',
     baseAdjVal: 0,
-    // currencyId: 'cmcx9kq150041k6zcean3uses',
+    currencyId: '',
   });
-
+  const baseCurrency = store.getState().currency.currency || 'USD';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | number>>({});
 
@@ -41,7 +42,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
           // basePrice: editData.basePrice || 0,
           baseAdjType: editData.baseAdjType || 'PERCENT',
           baseAdjVal: editData.baseAdjVal || 0,
-          // currencyId: editData.currencyId || 'cmcx9kq150041k6zcean3uses',
+          currencyId: baseCurrency
         });
       } else {
         setFormData({
@@ -50,7 +51,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
           // basePrice: 0,
           baseAdjType: 'PERCENT',
           baseAdjVal: 0,
-          // currencyId: 'cmcx9kq150041k6zcean3uses',
+          currencyId: baseCurrency,
         });
       }
 
@@ -60,8 +61,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
 
   const validate = () => {
     try {
-      const validationData = AddRatePlanSchema.parse(formData);
-      setErrors(validationData || {});
+      AddRatePlanSchema.parse(formData);
+      setErrors({});
       return true;
     } catch (error: any) {
       const newErrors: Record<string, string> = {};
@@ -94,7 +95,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
         // basePrice: Number(formData.basePrice),
         baseAdjType: formData.baseAdjType,
         baseAdjVal: Number(formData.baseAdjVal),
-        // currencyId: formData.currencyId,
+        currencyId: baseCurrency
       };
 
       await addRatePlan(apiData);
@@ -110,7 +111,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
         code: '',
         baseAdjType: 'PERCENT',
         baseAdjVal: 0,
-        // currencyId: 'cmcx9kq150041k6zcean3uses',
+        currencyId: baseCurrency,
       });
 
       onOpenChange(false);
@@ -187,7 +188,7 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
               value={formData.baseAdjType}
               onValueChange={(value: 'PERCENT' | 'FIXED') => setFormData({ ...formData, baseAdjType: value })}
             >
-              <SelectTrigger className={errors.baseAdjType ? "border-red-500" : ""}>
+              <SelectTrigger className={`w-full ${errors.baseAdjType ? "border-red-500" : ""}`} >
                 <SelectValue placeholder="Select adjustment type" />
               </SelectTrigger>
               <SelectContent>
@@ -198,8 +199,8 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
             {errors.baseAdjType && <p className="text-red-500 text-sm">{errors.baseAdjType}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="baseAdjVal">Adjustment Value</Label>
+          <div className={`${formData.baseAdjType === 'FIXED' ? "grid grid-cols-10 gap-2 items-center" : ""} space-y-2`}>
+            <Label htmlFor="baseAdjVal" className={`${formData.baseAdjType === "FIXED" ? "col-span-10" : ""}`}>Adjustment Value</Label>
             <Input
               id="baseAdjVal"
               type="number"
@@ -215,8 +216,11 @@ const NewRatePlanDialog = ({ isOpen, onOpenChange, onRatePlanAdded, editData }: 
                 });
               }}
               placeholder="e.g. 10 or 50"
-              className={errors.baseAdjVal ? "border-red-500" : ""}
+              className={`${formData.baseAdjType === "FIXED" ? "col-span-9" : ""} ${errors.baseAdjVal ? "border-red-500" : ""}`}
             />
+            {formData.baseAdjType === 'FIXED' && (
+              baseCurrency
+            )}
             {errors.baseAdjVal && <p className="text-red-500 text-sm">{errors.baseAdjVal}</p>}
           </div>
 
