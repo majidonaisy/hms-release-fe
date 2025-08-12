@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { ExchangeRate, ExchangeRateRequest, ExchangeRateRequestSchema } from '@/validation/schemas/ExchangeRates';
 import { Currency } from '@/validation/schemas/Currency';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select } from '../molecules/Select';
-import { getExchangeRateCurrencies, updateExchangeRate } from '@/services/ExchangeRates';
+import { getExchangeRateCurrencies } from '@/services/ExchangeRates';
 import { Skeleton } from '../atoms/Skeleton';
 
 interface NewExchangeRateDialogProps {
@@ -85,6 +85,19 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
         }));
     };
 
+    const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value === '') {
+            handleInputChange('rate', 0);
+            return;
+        }
+
+        const numericValue = parseFloat(value);
+        if (!isNaN(numericValue)) {
+            handleInputChange('rate', numericValue);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({});
@@ -93,14 +106,8 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
             const validatedData = ExchangeRateRequestSchema.parse(formData);
             setIsLoading(true);
 
-            if (isEditing && editingExchangeRate) {
-                await updateExchangeRate(editingExchangeRate.id, validatedData as ExchangeRateRequest);
-                toast("Success!", {
-                    description: "Exchange rate was updated successfully.",
-                });
-            } else {
-                await onConfirm(validatedData);
-            }
+            await onConfirm(validatedData);
+
             setFormData({
                 baseCurrency: '',
                 rate: 0,
@@ -120,7 +127,7 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
                 setErrors(fieldErrors);
                 toast.error('Please fix the validation errors');
             } else {
-                toast.error('Failed to create exchange rate');
+                toast.error(isEditing ? 'Failed to update exchange rate' : 'Failed to create exchange rate');
             }
         } finally {
             setIsLoading(false);
@@ -208,9 +215,10 @@ const NewExchangeRateDialog: React.FC<NewExchangeRateDialogProps> = ({
                             id="rate"
                             type="number"
                             min="0"
-                            placeholder="1000"
-                            value={formData.rate || ''}
-                            onChange={(e) => handleInputChange('rate', parseFloat(e.target.value) || 0)}
+                            step="0.01"
+                            placeholder="1.25"
+                            value={formData.rate === 0 ? '' : formData.rate}
+                            onChange={handleRateChange}
                             className={errors.rate ? 'border-red-500' : ''}
                             disabled={isLoading}
                         />

@@ -61,21 +61,7 @@ export const deleteRatePlan = async (id: string): Promise<void> => {
   }
 };
 
-export const updateRatePlan = async (
-  id: string,
-  data: {
-    name: string;
-    code: string;
-    basePrice: number;
-    baseAdjType: "PERCENT" | "FIXED";
-    baseAdjVal: string;
-    currencyId: string;
-    description?: string;
-    isActive?: boolean;
-    roomTypeId?: string;
-    isFeatured?: boolean;
-  }
-): Promise<RatePlan> => {
+export const updateRatePlan = async (id: string, data: AddRatePlanRequest): Promise<RatePlan> => {
   try {
     const response = await apiClient({
       method: "PUT",
