@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/Organisms/Dialog';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Button } from '@/components/atoms/Button';
-import { addRoomType, updateRoomType } from '@/services/RoomTypes';
 import type { AddRoomTypeRequest, RoomType } from '@/validation';
 import { Textarea } from '../atoms/Textarea';
 
 interface NewRoomTypeDialogProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (data: AddRoomTypeRequest) => void;
   editData?: RoomType | null;
 }
 
@@ -24,8 +22,7 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
     childOccupancy: 0,
     adultOccupancy: 0,
   });
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (editData) {
@@ -59,31 +56,14 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     try {
-      if (editData) {
-        await updateRoomType(editData.id, formData);
-        toast.success('Room type updated successfully');
-      } else {
-        await addRoomType(formData);
-        toast.success('Room type added successfully');
-      }
-      onSuccess();
-      onClose();
-      if (!editData) {
-        setFormData({
-          name: '',
-          description: '',
-          baseRate: 0,
-          maxOccupancy: 1,
-          childOccupancy: 0,
-          adultOccupancy: 0,
-        });
-      }
-    } catch (error: any) {
-      toast.error(error?.message || 'An error occurred');
+      await onSuccess(formData);
+      onClose();                 
+    } catch (error) {
+      console.error('Failed to save room type:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -170,8 +150,8 @@ export default function NewRoomTypeDialog({ open, onClose, onSuccess, editData }
               placeholder='2'
             />
           </div>
-          <Button type="submit" className="w-full text-white mt-6" disabled={isLoading}>
-            {isLoading
+          <Button type="submit" className="w-full text-white mt-6" disabled={loading}>
+            {loading
               ? editData
                 ? 'Updating...'
                 : 'Creating...'

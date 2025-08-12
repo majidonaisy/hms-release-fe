@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import NewMaintenanceDialog from '../../components/dialogs/NewMaintenanceDialog';
 import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
-import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance } from '@/services/Maintenance';
+import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance, updateMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 import TableSkeleton from '@/components/Templates/TableSkeleton';
 
@@ -192,17 +192,8 @@ const MaintenancePage = () => {
         try {
             if (isEditMode && editingMaintenance) {
                 // Handle edit mode
-                const updateData = {
-                    ...data,
-                    id: editingMaintenance.id
-                };
-                setMaintenanceRequests(prev =>
-                    prev.map(request =>
-                        request.id === editingMaintenance.id
-                            ? { ...request, ...updateData, updatedAt: new Date().toISOString() }
-                            : request
-                    )
-                );
+                await updateMaintenance(editingMaintenance.id, data);
+                fetchMaintenanceRequests();
                 toast.success('Maintenance request updated successfully');
             } else {
                 // Handle add mode
