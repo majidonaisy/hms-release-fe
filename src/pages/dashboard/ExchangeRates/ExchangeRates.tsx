@@ -97,7 +97,9 @@ const ExchangeRates = () => {
             actions={actions}
             primaryAction={{
                 label: 'Add Exchange Rate',
-                onClick: handleAddExchangeRate
+                onClick: handleAddExchangeRate,
+                action: "create",
+                subject: "ExchangeRate"
             }}
             getRowKey={(item: ExchangeRate) => item.id}
             showBackButton

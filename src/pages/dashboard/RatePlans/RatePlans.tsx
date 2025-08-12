@@ -178,7 +178,9 @@ const RatePlans = () => {
       actions={actions}
       primaryAction={{
         label: 'Add Rate Plan',
-        onClick: handleAddRatePlan
+        onClick: handleAddRatePlan,
+        action: "create",
+        subject: "RatePlan"
       }}
       getRowKey={(item: RatePlan) => item.id}
       deleteConfig={{

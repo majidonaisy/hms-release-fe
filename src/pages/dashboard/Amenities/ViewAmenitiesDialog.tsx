@@ -139,7 +139,9 @@ const Amenities = () => {
       actions={actions}
       primaryAction={{
         label: 'Add Amenity',
-        onClick: handleAddAmenity
+        onClick: handleAddAmenity,
+        action: "create",
+        subject: "Amenity"
       }}
       deleteConfig={{
         onDelete: handleDeleteAmenity,
