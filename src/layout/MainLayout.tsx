@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
-import { useRole } from '@/context/CASLContext';
+import { Can, CanAll, useRole } from '@/context/CASLContext';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 import { logoutService } from '@/services/Auth';
@@ -199,14 +199,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                 >
                                     <RefreshCw size={16} />
                                 </Button>
-                                <Button
-                                    variant='primaryOutline'
-                                    onClick={() => setOpenReservationDialog(true)}
-                                    className='h-7'
+                                <CanAll
+                                    permissions={[
+                                        { action: "read", subject: "RatePlan" },
+                                        { action: "create", subject: "Reservation" },
+                                        { action: "read", subject: "Guest" },
+                                        { action: "read", subject: "GroupProfile" },
+                                        { action: "read", subject: "RoomType" },
+                                        { action: "read", subject: "Room" },
+                                    ]}
                                 >
-                                    <Plus size={18} className="mr-2" />
-                                    New Reservation
-                                </Button>
+                                    <Button
+                                        variant='primaryOutline'
+                                        onClick={() => setOpenReservationDialog(true)}
+                                        className='h-7'
+                                    >
+                                        <Plus size={18} className="mr-2" />
+                                        New Reservation
+                                    </Button>
+                                </CanAll>
                             </div>
                             <p className='text-sm font-bold'>{format(new Date(), 'MMMM dd, yyyy')}</p>
                         </div>

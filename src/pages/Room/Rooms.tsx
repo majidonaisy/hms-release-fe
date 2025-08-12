@@ -248,14 +248,18 @@ const Rooms = () => {
                 searchLoading={searchLoading}
                 primaryAction={canCreate('Room') ? {
                     label: 'New Room',
-                    onClick: () => navigate('/rooms/new')
+                    onClick: () => navigate('/rooms/new'),
+                    action: "create",
+                    subject: "Room"
                 } : undefined}
                 secondaryActions={canCreate('RoomType') ? [
                     {
                         label: 'New Room Type',
                         icon: <Plus />,
                         onClick: () => setIsRoomTypeDialogOpen(true),
-                        variant: 'foreground'
+                        variant: 'foreground',
+                        action: "create",
+                        subject: "RoomType"
                     },
                 ] : []}
                 getRowKey={(room) => room.id}

@@ -54,22 +54,21 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
       }
 
       // If route doesn't require permissions, show it
-      if (!route.requiredPermissions) {
+      if (!route.requiredPermissions || route.requiredPermissions.length === 0) {
         return true;
       }
 
-      // Check if user has required permissions
-      const hasPermission = can(
-        route.requiredPermissions.action,
-        route.requiredPermissions.subject
+      // Check if user has ALL required permissions (AND logic)
+      const hasAllPermissions = route.requiredPermissions.every((permission: any) =>
+        can(permission.action, permission.subject)
       );
 
       // If route has subroutes, filter them too
-      if (route.subRoutes && hasPermission) {
+      if (route.subRoutes && hasAllPermissions) {
         route.subRoutes = filterRoutesByPermissions(route.subRoutes);
       }
 
-      return hasPermission;
+      return hasAllPermissions;
     });
   };
 
@@ -134,6 +133,27 @@ export const Can: React.FC<CanProps> = ({
   const hasPermission = can(action, subject);
 
   return hasPermission ? <>{children}</> : <>{fallback}</>;
+};
+
+interface MultiPermissionProps {
+  permissions: Array<{ action: string; subject: string }>;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+// User needs ALL permissions (AND logic)
+export const CanAll: React.FC<MultiPermissionProps> = ({
+  permissions,
+  children,
+  fallback = null
+}) => {
+  const { can } = useRole();
+
+  const hasAllPermissions = permissions.every(perm =>
+    can(perm.action, perm.subject)
+  );
+
+  return hasAllPermissions ? <>{children}</> : <>{fallback}</>;
 };
 
 // Cannot component for inverse conditional rendering

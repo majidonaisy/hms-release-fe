@@ -13,6 +13,7 @@ import ActivityLogDialog, { type ActivityLogEntry } from '@/components/dialogs/A
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';
 import { type Housekeeping } from '@/validation';
 import TableSkeleton from '@/components/Templates/TableSkeleton';
+import { Can } from '@/context/CASLContext';
 
 interface HousekeepingFormData {
     id?: string;
@@ -325,17 +326,21 @@ const HousekeepingPage = () => {
                         </SelectContent>
                     </Select>
 
-                    {/* Action Button */}
-                    <div className="">
-                        <Button onClick={() => {
-                            setIsEditMode(false);
-                            setEditingTask(null);
-                            setIsNewTaskDialogOpen(true);
-                        }}>
-                            <Plus className="h-4 w-4" />
-                            Assign Cleaning Tasks
-                        </Button>
-                    </div>
+                    <Can
+                        action="create"
+                        subject="HouseKeeping"
+                    >
+                        <div className="">
+                            <Button onClick={() => {
+                                setIsEditMode(false);
+                                setEditingTask(null);
+                                setIsNewTaskDialogOpen(true);
+                            }}>
+                                <Plus className="h-4 w-4" />
+                                Assign Cleaning Tasks
+                            </Button>
+                        </div>
+                    </Can>
                 </div>
             </div>
 

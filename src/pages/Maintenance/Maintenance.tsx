@@ -13,6 +13,7 @@ import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/Activi
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance, updateMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 import TableSkeleton from '@/components/Templates/TableSkeleton';
+import { Can } from '@/context/CASLContext';
 
 const MaintenancePage = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
@@ -298,17 +299,21 @@ const MaintenancePage = () => {
                         </SelectContent>
                     </Select>
 
-                    {/* Action Button */}
-                    <div className="">
-                        <Button onClick={() => {
-                            setIsEditMode(false);
-                            setEditingMaintenance(null);
-                            setIsNewMaintenanceDialogOpen(true);
-                        }}>
-                            <Plus className="h-4 w-4" />
-                            Add Maintenance
-                        </Button>
-                    </div>
+                    <Can
+                        action="create"
+                        subject="Maintenance"
+                    >
+                        <div className="">
+                            <Button onClick={() => {
+                                setIsEditMode(false);
+                                setEditingMaintenance(null);
+                                setIsNewMaintenanceDialogOpen(true);
+                            }}>
+                                <Plus className="h-4 w-4" />
+                                Add Maintenance
+                            </Button>
+                        </div>
+                    </Can>
                 </div>
             </div>
 

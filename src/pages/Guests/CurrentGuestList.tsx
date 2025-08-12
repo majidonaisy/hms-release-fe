@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules
 import { useDebounce } from "@/hooks/useDebounce"
 import { getCurrentGroupProfiles, getCurrentGuests } from "@/services/Reservation"
 import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse, GetGroupProfilesResponse, GroupProfile, Guest } from "@/validation/schemas/Guests"
+import { Can } from "@/context/CASLContext"
 
 type CombinedGuestData = {
   id: string
@@ -294,13 +295,17 @@ const CurrentGuestList = () => {
               <Search className="h-4 w-4 text-gray-400" />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 ml-auto">
-              <Button onClick={() => setOpenGuestDialog(true)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                New Guest Profile
-              </Button>
-            </div>
+            <Can
+              action="create"
+              subject="guest"
+            >
+              <div className="flex gap-2 ml-auto">
+                <Button onClick={() => setOpenGuestDialog(true)} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Guest Profile
+                </Button>
+              </div>
+            </Can>
           </div>
 
           {/* Tabs */}
