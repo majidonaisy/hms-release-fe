@@ -18,6 +18,8 @@ interface NewRoleDialogProps {
     editingRole?: Role | null; // Add editing role prop
 }
 
+const PAGE_SIZE = 20;
+
 const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     isOpen,
     onConfirm,
@@ -27,11 +29,18 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     const [formData, setFormData] = useState<AddRoleRequest>({
         name: '',
         permissionIds: [],
-        hotelId: 'cmcx9kq150041k6zcean3uses' 
+
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isRoleLoading, setIsRoleLoading] = useState(false);
     const [permissions, setPermissions] = useState<PermissionsResponse['data'] | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<{
+        totalItems: number;
+        totalPages: number;
+        currentPage: number;
+        pageSize: number;
+    } | null>(null);
 
     const isEditing = editingRole !== null;
 
@@ -63,7 +72,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
             setFormData({
                 name: '',
                 permissionIds: [],
-                hotelId: 'cmcx9kq150041k6zcean3uses'
+
             });
             onCancel();
         } catch (error: any) {
@@ -88,7 +97,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         setFormData({
             name: '',
             permissionIds: [],
-            hotelId: 'cmcx9kq150041k6zcean3uses'
+
         });
         onCancel();
     };
@@ -103,11 +112,23 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     };
 
     useEffect(() => {
-        const handleGetPermissions = async () => {
+        if (!isOpen) return;
+
+        const fetchPermissions = async () => {
+            setIsLoading(true);
             try {
-                setIsLoading(true);
-                const response = await getPermissions();
+                const response = await getPermissions({ page: currentPage, limit: PAGE_SIZE });
                 setPermissions(response.data);
+                if (response.pagination) {
+                    setPagination(response.pagination);
+                } else {
+                    setPagination({
+                        totalItems: response.data.length,
+                        totalPages: 1,
+                        currentPage,
+                        pageSize: PAGE_SIZE,
+                    });
+                }
             } catch (error) {
                 console.error('Failed to fetch permissions:', error);
                 toast.error('Failed to load permissions');
@@ -115,8 +136,15 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                 setIsLoading(false);
             }
         };
-        handleGetPermissions();
-    }, []);
+
+        fetchPermissions();
+    }, [currentPage, isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setCurrentPage(1);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         const loadRoleData = async () => {
@@ -128,7 +156,6 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                     setFormData({
                         name: roleData.name,
                         permissionIds: roleData.permissions.map(p => p.id),
-                        hotelId: roleData.hotelId || 'cmcx9kq150041k6zcean3uses'
                     });
                 } catch (error) {
                     console.error('Failed to fetch role data:', error);
@@ -140,7 +167,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                 setFormData({
                     name: '',
                     permissionIds: [],
-                    hotelId: 'cmcx9kq150041k6zcean3uses'
+
                 });
             }
         };
@@ -148,7 +175,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         loadRoleData();
     }, [isEditing, editingRole, isOpen]);
 
-    if(isLoading){
+    if (isLoading) {
         return (
             <Dialog open={isOpen} onOpenChange={handleCancel}>
                 <DialogContent className="max-w-md">
@@ -160,8 +187,46 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                     <Skeleton className='h-10 w-full' />
                 </DialogContent>
             </Dialog>
-        );  
+        );
     }
+
+    const renderPaginationControls = () => {
+        if (!pagination || pagination.totalPages <= 1) return null;
+
+        return (
+            <div className="flex justify-center space-x-4 mt-2">
+                <Button
+                    variant="outline"
+                    disabled={currentPage === 1 || isLoading}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    type='button'
+                >
+                    Prev
+                </Button>
+
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <Button
+                        key={pageNum}
+                        variant={pageNum === currentPage ? 'foreground' : 'outline'}
+                        onClick={() => setCurrentPage(pageNum)}
+                        disabled={isLoading}
+                        type='button'
+                    >
+                        {pageNum}
+                    </Button>
+                ))}
+
+                <Button
+                    variant="outline"
+                    disabled={currentPage === pagination.totalPages || isLoading}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                    type='button'
+                >
+                    Next
+                </Button>
+            </div>
+        );
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>
@@ -190,27 +255,30 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 
                     <div className="space-y-2">
                         <Label>Permissions</Label>
-                        <div className="grid grid-cols-2 gap-3">
-                            {permissions?.map((permission) => (
-                                <div key={permission.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={permission.id}
-                                        className={cn("data-[state=checked]:bg-hms-primary")}
-                                        checked={(formData.permissionIds || []).includes(permission.id)}
-                                        onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
-                                        disabled={isRoleLoading}
-                                    />
-                                    {isRoleLoading ?
-                                        (
-                                            <Skeleton className='h-5' />
-                                        ) : (
+                        {isLoading ? (
+                            <Skeleton className='h-40 w-full' />
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                                    {permissions?.map((permission) => (
+                                        <div key={permission.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={permission.id}
+                                                className={cn("data-[state=checked]:bg-hms-primary")}
+                                                checked={(formData.permissionIds || []).includes(permission.id)}
+                                                onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
+                                                disabled={isRoleLoading}
+                                            />
                                             <Label htmlFor={permission.id} className="text-sm">
                                                 {permission.action.charAt(0).toUpperCase() + permission.action.slice(1)} {permission.subject.charAt(0).toUpperCase() + permission.subject.slice(1)}
                                             </Label>
-                                        )}
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+
+                                {renderPaginationControls()}
+                            </>
+                        )}
                     </div>
 
                     {/* Submit Button */}
