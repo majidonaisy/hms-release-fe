@@ -141,7 +141,9 @@ const RoomTypes = () => {
       actions={actions}
       primaryAction={{
         label: 'Add Room Type',
-        onClick: handleAddRoomType
+        onClick: handleAddRoomType,
+        action: "create",
+        subject: "RoomType"
       }}
       getRowKey={(item: RoomType) => item.id}
       deleteConfig={{

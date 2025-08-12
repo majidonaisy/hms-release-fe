@@ -9,7 +9,7 @@ export interface HomeRouteConfig {
   requiredPermissions?: {
     action: string;
     subject: string;
-  };
+  }[];
 }
 
 const createHomeRoute = (path: string,title:string,
@@ -20,7 +20,7 @@ const createHomeRoute = (path: string,title:string,
     requiredPermissions?: {
       action: string;
       subject: string;
-    },
+    }[],
     subRoutes: HomeRouteConfig[] = []): HomeRouteConfig => {
   return {
     path,

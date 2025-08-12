@@ -420,7 +420,7 @@ const TeamMemberProfile = () => {
                                 <div className="space-y-4">
                                     {teamMember.Session.length === 0 ? (
                                         <div className="text-center text-muted-foreground text-sm py-8">
-                                            No activity logs found
+                                            No sessions found
                                         </div>
                                     ) : (
                                         (() => {
@@ -476,9 +476,9 @@ const TeamMemberProfile = () => {
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>Activity Logs</CardTitle>
 
                             </CardHeader>
-                            <CardContent className='text-muted-foreground text-center text-sm'>
-                                No Activity Logged
-                            </CardContent>
+                            <div className="text-center text-muted-foreground text-sm py-8">
+                                No activity logs found
+                            </div>
                         </Card>
                     </div>
                 </div>

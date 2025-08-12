@@ -178,7 +178,9 @@ const TeamMembers = () => {
             searchLoading={searchLoading}
             primaryAction={{
                 label: 'New Team Member',
-                onClick: () => { navigate("/team-members/new") }
+                onClick: () => { navigate("/team-members/new") },
+                action: "create",
+                subject:"User"
             }}
             onRowClick={handleRowClick}
             getRowKey={(member) => member.id}
