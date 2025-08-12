@@ -272,10 +272,10 @@ const RoutesList = () => {
             component: AdminDashboard,
             isShown: true,
             isAuthenticated: true,
-            // requiredPermissions: [{
-            //     action: "manage",
-            //     subject: "all"
-            // }],
+            requiredPermissions: [{
+                action: "manage",
+                subject: "all"
+            }],
             subRoutes: [
                 {
                     path: '/roles-permissions',
