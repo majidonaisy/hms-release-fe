@@ -69,7 +69,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
         { value: 'CREDIT_CARD', label: 'Credit Card' },
         { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
         { value: "PAYPAL", label: "PayPal" },
-        { value: 'CHECK', label: 'Check' },
         { value: 'OTHER', label: 'Other' }
     ];
 
