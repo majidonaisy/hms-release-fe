@@ -13,7 +13,7 @@ import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/Activi
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance, updateMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
 import TableSkeleton from '@/components/Templates/TableSkeleton';
-import { Can } from '@/context/CASLContext';
+import { Can, CanAll } from '@/context/CASLContext';
 
 const MaintenancePage = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
@@ -299,9 +299,11 @@ const MaintenancePage = () => {
                         </SelectContent>
                     </Select>
 
-                    <Can
-                        action="create"
-                        subject="Maintenance"
+                    <CanAll
+                        permissions={[
+                            { action: "create", subject: "Maintenance" },
+                            { action: "read", subject: "Area" }
+                        ]}
                     >
                         <div className="">
                             <Button onClick={() => {
@@ -313,7 +315,7 @@ const MaintenancePage = () => {
                                 Add Maintenance
                             </Button>
                         </div>
-                    </Can>
+                    </CanAll>
                 </div>
             </div>
 
@@ -369,63 +371,78 @@ const MaintenancePage = () => {
                                     <TableCell className="px-6 py-4 text-gray-600">
                                         {request.user?.firstName + " " + request.user?.lastName || 'Unassigned'}
                                     </TableCell>
-                                    <TableCell className="px-6 py-4">
-                                        <DropdownMenu modal={false}>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <EllipsisVertical />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer"
-                                                    onClick={(e) => handleEditClick(e, request.id)}
-                                                >
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer"
-                                                    onClick={() => handleActivityLogClick(request.id)}
-                                                >
-                                                    Activity Log
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                {request.status === 'PENDING' && (
-                                                    <>
+                                    {/* <CanAll permissions={[
+                                        { action: "manage", subject: "Maintenance" },
+                                        { action: "read", subject: "Area" }
+                                    ]}> */}
+                                        <TableCell className="px-6 py-4">
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <EllipsisVertical />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                                    <CanAll permissions={[
+                                                        { action: "update", subject: "Maintenance" },
+                                                        { action: "read", subject: "Area" }
+                                                    ]}>
                                                         <DropdownMenuItem
                                                             className="cursor-pointer"
-                                                            onClick={() => handleStatusChange(request.id)}
+                                                            onClick={(e) => handleEditClick(e, request.id)}
                                                         >
-                                                            Start Work
+                                                            Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
-                                                    </>
-                                                )}
-                                                {request.status === 'IN_PROGRESS' && (
-                                                    <>
+                                                    </CanAll>
+
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={() => handleActivityLogClick(request.id)}
+                                                    >
+                                                        Activity Log
+                                                    </DropdownMenuItem>
+                                                    <Can action='update' subject='Maintenance'>
+                                                        {request.status === 'PENDING' && (
+                                                            <>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    className="cursor-pointer"
+                                                                    onClick={() => handleStatusChange(request.id)}
+                                                                >
+                                                                    Start Work
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
+                                                        {request.status === 'IN_PROGRESS' && (
+                                                            <>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    className="cursor-pointer"
+                                                                    onClick={() => handleStatusComplete(request.id)}
+                                                                >
+                                                                    Mark Complete
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
+                                                    </Can>
+                                                    <Can action='delete' subject='Maintenance'>
+                                                        <DropdownMenuSeparator />
                                                         <DropdownMenuItem
-                                                            className="cursor-pointer"
-                                                            onClick={() => handleStatusComplete(request.id)}
+                                                            className="cursor-pointer text-red-600"
+                                                            onClick={(e) => handleDeleteClick(e, request)}
                                                         >
-                                                            Mark Complete
+                                                            Delete
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                    </>
-                                                )}
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer text-red-600"
-                                                    onClick={(e) => handleDeleteClick(e, request)}
-                                                >
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
+                                                    </Can>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    {/* </CanAll> */}
                                 </TableRow>
                             ))
                         )}
@@ -482,7 +499,7 @@ const MaintenancePage = () => {
                 title="Maintenance activity log"
                 activities={selectedRequestId ? getMockActivityLog(selectedRequestId) : []}
             />
-        </div>
+        </div >
     );
 };
 

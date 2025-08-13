@@ -114,9 +114,7 @@ const NewTeamMember = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const requiredFields = isEditMode
-            ? ['email', 'username', 'firstName', 'lastName', 'roleId']
-            : ['email', 'username', 'password', 'firstName', 'lastName', 'roleId'];
+        const requiredFields = ['email', 'username', 'password', 'firstName', 'lastName', 'roleId'];
 
         const missingFields = requiredFields.filter(field => !formData[field as keyof AddEmployeeRequest]);
 
@@ -245,7 +243,7 @@ const NewTeamMember = () => {
 
                             <div className='space-y-1'>
                                 <Label>
-                                    Password {isEditMode ? '(leave blank to keep current)' : '*'}
+                                    Password 
                                 </Label>
                                 <Input
                                     type='password'

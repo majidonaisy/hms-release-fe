@@ -13,7 +13,7 @@ import ActivityLogDialog, { type ActivityLogEntry } from '@/components/dialogs/A
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';
 import { type Housekeeping } from '@/validation';
 import TableSkeleton from '@/components/Templates/TableSkeleton';
-import { Can } from '@/context/CASLContext';
+import { Can, CanAll } from '@/context/CASLContext';
 
 interface HousekeepingFormData {
     id?: string;
@@ -326,10 +326,10 @@ const HousekeepingPage = () => {
                         </SelectContent>
                     </Select>
 
-                    <Can
-                        action="create"
-                        subject="HouseKeeping"
-                    >
+                    <CanAll permissions={[
+                        { action: "create", subject: "HouseKeeping" },
+                        { action: "read", subject: "Room" }
+                    ]}>
                         <div className="">
                             <Button onClick={() => {
                                 setIsEditMode(false);
@@ -340,7 +340,7 @@ const HousekeepingPage = () => {
                                 Assign Cleaning Tasks
                             </Button>
                         </div>
-                    </Can>
+                    </CanAll>
                 </div>
             </div>
 
@@ -402,6 +402,10 @@ const HousekeepingPage = () => {
                                     <TableCell className="px-6 py-4 text-gray-600 w-1/7 text-center">
                                         {task.user ? `${task.user.firstName} ${task.user.lastName}` : 'Unassigned'}
                                     </TableCell>
+                                    {/* <CanAll permissions={[
+                                        { action: "manage", subject: "HouseKeeping" },
+                                        { action: "read", subject: "Room" }
+                                    ]}> */}
                                     <TableCell className="px-6 py-4 text-center ">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild>
@@ -420,45 +424,55 @@ const HousekeepingPage = () => {
                                                 >
                                                     Activity Log
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer"
-                                                    onClick={(e) => handleEditClick(e, task)}
-                                                >
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                {task.status === 'PENDING' && (
-                                                    <>
-                                                        <DropdownMenuItem
-                                                            className="cursor-pointer"
-                                                            onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}
-                                                        >
-                                                            Start Task
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                    </>
-                                                )}
-                                                {task.status === 'IN_PROGRESS' && (
-                                                    <>
-                                                        <DropdownMenuItem
-                                                            className="cursor-pointer"
-                                                            onClick={() => handleStatusChange(task.id, 'COMPLETED')}
-                                                        >
-                                                            Mark Complete
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                    </>
-                                                )}
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer text-red-600"
-                                                    onClick={(e) => handleDeleteClick(e, task)}
-                                                >
-                                                    Delete
-                                                </DropdownMenuItem>
+                                                <CanAll permissions={[
+                                                    { action: "update", subject: "HouseKeeping" },
+                                                    { action: "read", subject: "Room" }
+                                                ]}>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
+                                                        onClick={(e) => handleEditClick(e, task)}
+                                                    >
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                </CanAll>
+                                                <Can action='update' subject='HouseKeeping'>
+                                                    {task.status === 'PENDING' && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer"
+                                                                onClick={() => handleStatusChange(task.id, 'IN_PROGRESS')}
+                                                            >
+                                                                Start Task
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                    {task.status === 'IN_PROGRESS' && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer"
+                                                                onClick={() => handleStatusChange(task.id, 'COMPLETED')}
+                                                            >
+                                                                Mark Complete
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                </Can>
+                                                <Can action='delete' subject='HouseKeeping'>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer text-red-600"
+                                                        onClick={(e) => handleDeleteClick(e, task)}
+                                                    >
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </Can>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
+                                    {/* </CanAll> */}
                                 </TableRow>
                             ))
                         )}

@@ -126,6 +126,8 @@ const Amenities = () => {
         e.stopPropagation();
         handleEditAmenity(item);
       },
+      action: "update",
+      subject: "Amenity"
     }
   ];
 
@@ -148,6 +150,8 @@ const Amenities = () => {
         getDeleteTitle: () => 'Delete Amenity',
         getDeleteDescription: (item: Amenity | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this amenity? This action cannot be undone.',
         getItemName: (item: Amenity | null) => item ? item.name : 'this amenity',
+        action: "delete",
+        subject: "Amenity"
       }}
       showBackButton
       onBackClick={() => navigate(-1)}
