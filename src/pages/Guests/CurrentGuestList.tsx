@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/atoms/DropdownMenu"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
-import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
 import { useDebounce } from "@/hooks/useDebounce"
 import { getCurrentGroupProfiles, getCurrentGuests } from "@/services/Reservation"
