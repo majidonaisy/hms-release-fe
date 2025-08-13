@@ -185,9 +185,9 @@ const ChooseReservationOptionDialog = ({
                     </Can>
 
                     <CanAll permissions={[
-                        {action: 'update', subject: 'FolioItem'},
-                        {action: 'read', subject: "FolioItem"},
-                        {action: "read", subject:"ExchangeRate"}
+                        { action: 'update', subject: 'FolioItem' },
+                        { action: 'read', subject: "FolioItem" },
+                        { action: "read", subject: "ExchangeRate" }
                     ]}>
                         <div
                             className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
