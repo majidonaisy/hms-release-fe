@@ -13,7 +13,7 @@ export const getAddChargeCurrencies = async () => {
     });
     return response as GetCurrenciesResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Login failed";
+    const errorMessage = error.response?.data?.message || "Failed to get currencies";
     throw {
       userMessage: errorMessage,
       originalError: error,

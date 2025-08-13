@@ -37,6 +37,10 @@ const RoutesList = () => {
             requiredPermissions: [{
                 action: "read",
                 subject: "Room"
+            },
+            {
+                action: "read",
+                subject: "RoomType"
             }],
             subRoutes: [
                 {
@@ -86,7 +90,20 @@ const RoutesList = () => {
             requiredPermissions: [{
                 action: "read",
                 subject: "Guest"
-            }],
+            },
+            {
+                action: "read",
+                subject: "Reservation"
+            },
+            {
+                action: "read",
+                subject: "RoomType"
+            },
+            {
+                action: "read",
+                subject: "Room"
+            },
+            ],
             isAuthenticated: true,
             subRoutes: [
                 {
