@@ -96,10 +96,10 @@ const HomePage = () => {
     ]
 
     return (
-        <div className="">
-            <div className="p-5">
+        <div className="p-5 bg-gray-50">
+            <div className="">
                 <div className="">
-                    <div className="animate-fade-in-up">
+                    <div className="animate-fade-in-up text-center mb-10">
                         <h1 className="text-3xl font-bold mb-3">
                             Welcome to Hotel Management
                         </h1>
@@ -121,7 +121,7 @@ const HomePage = () => {
                         {systemBenefits.map((benefit, index) => (
                             <Card
                                 key={index}
-                                className="group border-hms-accent hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 bg-gradient-to-br from-white to-hms-accent/10 hover:scale-105 animate-scale-in"
+                                className="group border-hms-accent hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 bg-gradient-to-br from-white to-hms-accent/20 hover:scale-105 animate-scale-in"
                                 style={{ animationDelay: `${index * 0.1}s` }}
                             >
                                 <CardHeader className="p-6">
@@ -155,7 +155,7 @@ const HomePage = () => {
                         {systemCapabilities.map((capability, index) => (
                             <Card
                                 key={index}
-                                className="group border-hms-accent  hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 hover:scale-105 animate-scale-in"
+                                className="group border-hms-accent  hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 hover:scale-105 animate-scale-in bg-gradient-to-br from-white to-hms-accent/20"
                                 style={{ animationDelay: `${index * 0.05}s` }}
                             >
                                 <CardHeader className="p-6">
@@ -190,7 +190,7 @@ const HomePage = () => {
                             {operationalWorkflow.map((workflow, index) => (
                                 <Card
                                     key={index}
-                                    className="group border-hms-accent hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 bg-white hover:scale-105 animate-slide-in-right"
+                                    className="group border-hms-accent hover:shadow-xl hover:shadow-hms-primary/10 transition-all duration-300 bg-gradient-to-br from-white to-hms-accent/20 hover:scale-105 animate-slide-in-right"
                                     style={{ animationDelay: `${index * 0.1}s` }}
                                 >
                                     <CardHeader className="p-6">
