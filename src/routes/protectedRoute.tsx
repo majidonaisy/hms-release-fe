@@ -22,7 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     if (!requireAuth && isAuthenticated) {
         // Redirect authenticated users away from auth pages
-        return <Navigate to="/rooms" replace />;
+        return <Navigate to="/homepage" replace />;
     }
 
     return <>{children}</>;
