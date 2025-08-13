@@ -85,6 +85,8 @@ const ExchangeRates = () => {
                 e.stopPropagation();
                 handleUpdateExchangeRate(item);
             },
+            action: "update",
+            subject: "ExchangeRate"
         }
     ];
 

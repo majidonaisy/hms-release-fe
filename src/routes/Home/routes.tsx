@@ -124,6 +124,10 @@ const RoutesList = () => {
                     component: GuestProfileView,
                     isAuthenticated: true,
                     isShown: false,
+                    requiredPermissions: [{
+                        action: "read",
+                        subject: "GroupProfile"
+                    }]
                 },
                 {
                     path: "/group-profile/:id/view",
@@ -145,7 +149,7 @@ const RoutesList = () => {
                     isAuthenticated: true,
                     isShown: false,
                     requiredPermissions: [{
-                        action: "read",
+                        action: "update",
                         subject: "Guest"
                     }]
                 }
@@ -158,10 +162,10 @@ const RoutesList = () => {
             icon: <Calendar className=" " />,
             component: HotelReservationCalendar,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "Reservation"
-            }]
+            requiredPermissions: [
+                { action: "read", subject: "Reservation" },
+                { action: "read", subject: "Guest" }
+            ]
         },
         {
             path: '/team-members',
@@ -181,10 +185,9 @@ const RoutesList = () => {
                     component: NewTeamMember,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "create",
-                        subject: "TeamMembers"
-                    }],
+                    requiredPermissions: [
+                        { action: "create", subject: "User" },
+                        { action: "read", subject: "Role" }],
                 },
                 {
                     path: "/team-members/profile/:id",
@@ -195,7 +198,7 @@ const RoutesList = () => {
                     isShown: false,
                     requiredPermissions: [{
                         action: "read",
-                        subject: "TeamMembers"
+                        subject: "User"
                     }],
                 },
                 {
@@ -207,7 +210,7 @@ const RoutesList = () => {
                     isShown: false,
                     requiredPermissions: [{
                         action: "update",
-                        subject: "TeamMembers"
+                        subject: "User"
                     }],
                 },
             ]

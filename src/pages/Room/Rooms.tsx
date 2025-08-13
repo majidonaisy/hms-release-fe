@@ -176,7 +176,9 @@ const Rooms = () => {
             onClick: (room, e) => {
                 e.stopPropagation();
                 navigate(`/rooms/${room.id}`);
-            }
+            },
+            action: "update",
+            subject: "Room"
         }
     ];
 
@@ -296,6 +298,8 @@ const Rooms = () => {
                 deleteConfig={{
                     onDelete: handleDeleteRoom,
                     getDeleteTitle: () => 'Delete Room',
+                    action: "delete",
+                    subject: "Room"
                 }}
             />
             <NewRoomTypeDialog
