@@ -2,6 +2,7 @@ import axios from "axios";
 import { store } from "@/redux/store";
 import { logout, setTokens } from "@/redux/slices/authSlice";
 import { refreshToken as rf } from "@/services/Auth";
+import { toast } from "sonner";
 
 // Track if we're currently refreshing to avoid multiple refresh calls
 let isRefreshing = false;
@@ -78,12 +79,12 @@ export const createAxiosInstance = (baseURL: string) => {
       });
 
       return response;
-      // Log error response details
     },
     async (error) => {
       const originalRequest = error.config;
       const state = store.getState();
       const { refreshToken } = state.auth;
+
       // Log error response details
       console.error("Response Error:", {
         url: error.config?.url,
@@ -96,6 +97,29 @@ export const createAxiosInstance = (baseURL: string) => {
         requestParams: error.config?.params,
         message: error.message,
       });
+
+      // Handle 403 Forbidden (Insufficient Permissions)
+      if (error.response?.status === 403) {
+        const errorData = error.response?.data;
+
+        if (errorData?.error === "INSUFFICIENT_PERMISSIONS" && errorData?.required) {
+          // Format the missing permissions message
+          const missingPermissions = errorData.required.join(", ");
+          const message = `You don't have the permissions to perform this action, missing: ${missingPermissions}`;
+
+          // Show error toast
+          toast.error(message);
+
+          console.error("Permission Error:", {
+            message,
+            required: errorData.required,
+            denied: errorData.denied,
+            available: errorData.available,
+          });
+        }
+
+        return Promise.reject(error);
+      }
 
       // Handle 401 Unauthorized with refresh token logic
       if (error.response?.status === 401 && !originalRequest._retry) {
