@@ -11,15 +11,18 @@ import { getPermissions, getRoleBId, updateRole } from '@/services/Role';
 import { ZodError } from 'zod/v4';
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/atoms/Accordion';
+import { ScrollArea } from '../atoms/ScrollArea';
 
 interface NewRoleDialogProps {
     isOpen: boolean;
     onConfirm: (data: AddRoleRequest) => Promise<void>;
     onCancel: () => void;
-    editingRole?: Role | null; // Add editing role prop
+    editingRole?: Role | null;
 }
 
 const PAGE_SIZE = 20;
+const GROUPS_PER_PAGE = 5;
 
 const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     isOpen,
@@ -30,18 +33,42 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
     const [formData, setFormData] = useState<AddRoleRequest>({
         name: '',
         permissionIds: [],
-
     });
     const [isLoading, setIsLoading] = useState(false);
     const [isRoleLoading, setIsRoleLoading] = useState(false);
     const [permissions, setPermissions] = useState<PermissionsResponse['data'] | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [groupsPage, setGroupsPage] = useState(1); // New state for groups pagination
     const [pagination, setPagination] = useState<{
         totalItems: number;
         totalPages: number;
         currentPage: number;
         pageSize: number;
     } | null>(null);
+
+    const subjects = [
+        "User",
+        "Role",
+        "Hotel",
+        "Room",
+        "RoomType",
+        "Guest",
+        "Amenity",
+        "Reservation",
+        "ExchangeRate",
+        "Folio",
+        "POSOutlet",
+        "RatePlan",
+        "HouseKeeping",
+        "Maintenance",
+        "GroupProfile",
+        "GroupBooking",
+        "FolioItem",
+        "Payout",
+        "Area"
+    ];
+    const [searchBySubject, setSearchBySubject] = useState("all");
+    const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]); // Track open accordion items
 
     const isEditing = editingRole !== null;
 
@@ -73,7 +100,6 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
             setFormData({
                 name: '',
                 permissionIds: [],
-
             });
             onCancel();
         } catch (error: any) {
@@ -98,8 +124,8 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         setFormData({
             name: '',
             permissionIds: [],
-
         });
+        setOpenAccordionItems([]); // Reset accordion state
         onCancel();
     };
 
@@ -112,38 +138,65 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         }));
     };
 
+    const fetchPermissions = async (subject: string = "all") => {
+        setIsLoading(true);
+        try {
+            const params: { page: number; limit: number; subject?: string } = {
+                page: currentPage,
+                limit: PAGE_SIZE
+            };
+
+            if (subject !== "all") {
+                params.subject = subject;
+            }
+
+            const response = await getPermissions(params);
+            setPermissions(response.data);
+            if (response.pagination) {
+                setPagination(response.pagination);
+            } else {
+                setPagination({
+                    totalItems: response.data.length,
+                    totalPages: 1,
+                    currentPage,
+                    pageSize: PAGE_SIZE,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch permissions:', error);
+            toast.error('Failed to load permissions');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleAccordionChange = (values: string[]) => {
+        setOpenAccordionItems(values);
+
+        // Find newly opened items
+        const newlyOpened = values.filter(value => !openAccordionItems.includes(value));
+
+        if (newlyOpened.length > 0) {
+            const latestValue = newlyOpened[0];
+            if (latestValue !== searchBySubject) {
+                setSearchBySubject(latestValue);
+                setCurrentPage(1);
+                fetchPermissions(latestValue);
+            }
+        }
+    };
+
     useEffect(() => {
         if (!isOpen) return;
-
-        const fetchPermissions = async () => {
-            setIsLoading(true);
-            try {
-                const response = await getPermissions({ page: currentPage, limit: PAGE_SIZE });
-                setPermissions(response.data);
-                if (response.pagination) {
-                    setPagination(response.pagination);
-                } else {
-                    setPagination({
-                        totalItems: response.data.length,
-                        totalPages: 1,
-                        currentPage,
-                        pageSize: PAGE_SIZE,
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to fetch permissions:', error);
-                toast.error('Failed to load permissions');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchPermissions();
+        fetchPermissions(searchBySubject);
     }, [currentPage, isOpen]);
 
     useEffect(() => {
         if (isOpen) {
             setCurrentPage(1);
+            setGroupsPage(1); // Reset groups page
+            setSearchBySubject("all");
+            setOpenAccordionItems([]); // Reset accordion state
         }
     }, [isOpen]);
 
@@ -168,7 +221,6 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                 setFormData({
                     name: '',
                     permissionIds: [],
-
                 });
             }
         };
@@ -176,7 +228,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         loadRoleData();
     }, [isEditing, editingRole, isOpen]);
 
-    if (isLoading) {
+    if (isLoading && !permissions) {
         return (
             <Dialog open={isOpen} onOpenChange={handleCancel}>
                 <DialogContent className="max-w-md">
@@ -202,20 +254,12 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     type='button'
                 >
-                    <ArrowLeft/>
+                    <ArrowLeft />
                 </Button>
 
-                {/* {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
-                    <Button
-                        key={pageNum}
-                        variant={pageNum === currentPage ? 'defaultLint' : 'defaultLint'}
-                        onClick={() => setCurrentPage(pageNum)}
-                        disabled={isLoading}
-                        type='button'
-                    >
-                        {pageNum}
-                    </Button>
-                ))} */}
+                <span className="flex items-center text-sm text-gray-600">
+                    Page {currentPage} of {pagination.totalPages}
+                </span>
 
                 <Button
                     variant="defaultLint"
@@ -223,15 +267,66 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
                     type='button'
                 >
-                    <ArrowRight/>
+                    <ArrowRight />
                 </Button>
             </div>
         );
     };
 
+    // Group pagination controls for subjects
+    const renderGroupsPaginationControls = () => {
+        const totalGroupsPages = Math.ceil(subjects.length / GROUPS_PER_PAGE);
+        if (totalGroupsPages <= 1) return null;
+
+        return (
+            <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                <Button
+                    variant="defaultLint"
+                    disabled={groupsPage === 1}
+                    onClick={() => setGroupsPage(prev => Math.max(prev - 1, 1))}
+                    type='button'
+                    size="sm"
+                >
+                    <ArrowLeft />
+                </Button>
+
+                <span className="flex items-center text-xs text-gray-500">
+                    Groups {groupsPage} of {totalGroupsPages}
+                </span>
+
+                <Button
+                    variant="defaultLint"
+                    disabled={groupsPage === totalGroupsPages}
+                    onClick={() => setGroupsPage(prev => Math.min(prev + 1, totalGroupsPages))}
+                    type='button'
+                    size="sm"
+                >
+                    <ArrowRight />
+                </Button>
+            </div>
+        );
+    };
+
+    // Get subjects for current page
+    const getCurrentPageSubjects = () => {
+        const startIndex = (groupsPage - 1) * GROUPS_PER_PAGE;
+        const endIndex = startIndex + GROUPS_PER_PAGE;
+        return subjects.slice(startIndex, endIndex);
+    };
+
+    // Group permissions by subject for display
+    const groupedPermissions = permissions?.reduce((acc, permission) => {
+        const subject = permission.subject;
+        if (!acc[subject]) {
+            acc[subject] = [];
+        }
+        acc[subject].push(permission);
+        return acc;
+    }, {} as Record<string, typeof permissions>);
+
     return (
         <Dialog open={isOpen} onOpenChange={handleCancel}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl">
                 <DialogHeader className="flex flex-row items-center justify-between">
                     <DialogTitle className="text-xl font-semibold">
                         {isEditing ? 'Edit Role' : 'New Role'}
@@ -260,24 +355,87 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                             <Skeleton className='h-40 w-full' />
                         ) : (
                             <>
-                                <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-                                    {permissions?.map((permission) => (
-                                        <div key={permission.id} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={permission.id}
-                                                className={cn("data-[state=checked]:bg-hms-primary")}
-                                                checked={(formData.permissionIds || []).includes(permission.id)}
-                                                onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
-                                                disabled={isRoleLoading}
-                                            />
-                                            <Label htmlFor={permission.id} className="text-sm">
-                                                {permission.action.charAt(0).toUpperCase() + permission.action.slice(1)} {permission.subject.charAt(0).toUpperCase() + permission.subject.slice(1)}
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </div>
+                                <Accordion
+                                    type="multiple"
+                                    className="w-full ml-4"
+                                    value={openAccordionItems}
+                                    onValueChange={handleAccordionChange}
+                                >
+                                    {/* All Subjects Option */}
+                                    <AccordionItem value="all">
+                                        <AccordionTrigger className="text-left">
+                                            All Permissions
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            {searchBySubject === "all" && groupedPermissions && (
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    <ScrollArea className='h-[100px]'>
 
-                                {renderPaginationControls()}
+                                                        {Object.entries(groupedPermissions).map(([subject, subjectPermissions]) => (
+                                                            <div key={subject} className="border-l-2 border-gray-200 pl-3">
+                                                                <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                                                    {subject.charAt(0).toUpperCase() + subject.slice(1)}
+                                                                </h4>
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {subjectPermissions?.map((permission) => (
+                                                                        <div key={permission.id} className="flex items-center space-x-2">
+                                                                            <Checkbox
+                                                                                id={permission.id}
+                                                                                className={cn("data-[state=checked]:bg-hms-primary")}
+                                                                                checked={(formData.permissionIds || []).includes(permission.id)}
+                                                                                onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
+                                                                                disabled={isRoleLoading}
+                                                                            />
+                                                                            <Label htmlFor={permission.id} className="text-sm">
+                                                                                {permission.action.charAt(0).toUpperCase() + permission.action.slice(1)}
+                                                                            </Label>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </ScrollArea>
+                                                </div>
+                                            )}
+                                            {searchBySubject === "all" && renderPaginationControls()}
+                                        </AccordionContent>
+                                    </AccordionItem>
+
+                                    {/* Individual Subject Options - Show only 5 at a time */}
+                                    {getCurrentPageSubjects().map((subject) => (
+                                        <AccordionItem key={subject} value={subject}>
+                                            <AccordionTrigger className="text-left">
+                                                {subject}
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                {searchBySubject === subject && (
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                                                            {permissions?.map((permission) => (
+                                                                <div key={permission.id} className="flex items-center space-x-2">
+                                                                    <Checkbox
+                                                                        id={permission.id}
+                                                                        className={cn("data-[state=checked]:bg-hms-primary")}
+                                                                        checked={(formData.permissionIds || []).includes(permission.id)}
+                                                                        onCheckedChange={(checked: any) => handlePermissionsChange(permission.id, checked as boolean)}
+                                                                        disabled={isRoleLoading}
+                                                                    />
+                                                                    <Label htmlFor={permission.id} className="text-sm">
+                                                                        {permission.action.charAt(0).toUpperCase() + permission.action.slice(1)} {permission.subject.charAt(0).toUpperCase() + permission.subject.slice(1)}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        {renderPaginationControls()}
+                                                    </>
+                                                )}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
+
+                                {/* Groups pagination controls */}
+                                {renderGroupsPaginationControls()}
                             </>
                         )}
                     </div>

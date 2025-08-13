@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { deleteGroupProfile, deleteGuest } from "@/services/Guests"
-import type { RoomType } from "@/validation"
-import { getRoomTypes } from "@/services/RoomTypes"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
 import { Button } from "@/components/atoms/Button"
@@ -38,6 +36,10 @@ type CombinedGuestData = {
   type: "individual" | "CORPORATE" | "TRAVEL_AGENCY" | "EVENT_PLANNER" | "GOVERNMENT" | "OTHER"
   isGroup: boolean
   originalData: Guest | GetGroupProfilesResponse["data"][0]
+  checkedInRoom?: string
+  checkedInRoomType?: string
+  checkInDateTime?: Date
+  checkOutDateTime?: Date
 }
 
 const CurrentGuestList = () => {
@@ -50,9 +52,7 @@ const CurrentGuestList = () => {
   const [groupSearchTerm, setGroupSearchTerm] = useState("")
 
   const [guests, setGuests] = useState<GetCurrentGuestsResponse["data"]>([])
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
   const [groupProfiles, setGroupProfiles] = useState<GetCurrentGroupProfilesResponse["data"]>([])
-  const [loading, setLoading] = useState(false)
   const [openGuestDialog, setOpenGuestDialog] = useState(false)
   const [activeTab, setActiveTab] = useState("individuals")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -61,14 +61,6 @@ const CurrentGuestList = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
   const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
-
-  const roomTypeMap = roomTypes.reduce(
-    (map, roomType) => {
-      map[roomType.id] = roomType.name
-      return map
-    },
-    {} as Record<string, string>,
-  )
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
@@ -127,34 +119,25 @@ const CurrentGuestList = () => {
     handleGetGroupProfiles()
   }, [debouncedGroupSearch, currentPage, activeTab, pageSize])
 
-  useEffect(() => {
-    const handleGetRoomTypes = async () => {
-      setLoading(true)
-      try {
-        const response = await getRoomTypes()
-        setRoomTypes(response.data)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    handleGetRoomTypes()
-  }, [])
-
   const getCombinedData = (): CombinedGuestData[] => {
-    const transformedGuests: CombinedGuestData[] = guests.map((guest: Guest) => ({
-      id: guest.id,
-      name: `${guest.firstName} ${guest.lastName}`,
-      firstName: guest.firstName,
-      lastName: guest.lastName,
-      email: guest.email,
-      phoneNumber: guest.phoneNumber,
-      preferences: guest.preferences,
-      type: "individual" as const,
-      isGroup: false,
-      originalData: guest,
-    }))
+    const transformedGuests: CombinedGuestData[] = guests.map((guest) => {
+      return {
+        id: guest.id,
+        name: `${guest.firstName} ${guest.lastName}`,
+        firstName: guest.firstName,
+        lastName: guest.lastName,
+        email: guest.email,
+        phoneNumber: guest.phoneNumber,
+        preferences: guest.preferences as { roomType?: string; smoking?: boolean },
+        type: "individual" as const,
+        isGroup: false,
+        originalData: guest as unknown as Guest, // cast here so TS stops complaining
+        checkedInRoom: guest.currentReservation?.rooms?.[0]?.roomNumber || "N/A",
+        checkedInRoomType: guest.currentReservation?.rooms?.[0]?.roomType || "N/A",
+        checkInDateTime: guest.currentReservation?.checkIn,
+        checkOutDateTime: guest.currentReservation?.checkOut,
+      }
+    })
 
     const transformedGroups: CombinedGuestData[] = groupProfiles.map((group: GroupProfile) => ({
       id: group.id,
@@ -253,10 +236,6 @@ const CurrentGuestList = () => {
     }
   }
 
-  if (loading && combinedData.length === 0) {
-    return <TableSkeleton title="Current Guests" />
-  }
-
   return (
     <>
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -321,20 +300,20 @@ const CurrentGuestList = () => {
                   <TableHeader className="bg-hms-accent/15">
                     <TableRow className="border-b border-gray-200">
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Email
                       </TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Preferred Room</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Other Requests</TableHead>
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Contact Info
                       </TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Checked-In Room</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Check-In Time</TableHead>
+                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Check-Out Time</TableHead>
                       <TableHead className="w-[100px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {searchLoading || loading ? (
+                    {searchLoading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                           Loading guests...
@@ -367,21 +346,15 @@ const CurrentGuestList = () => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium">INDIVIDUAL</span>
-                          </TableCell>
                           <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="text-gray-600">
-                              {(item.preferences?.roomType && roomTypeMap[item.preferences.roomType]) || "Unknown"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="text-gray-600">
-                              {item.preferences?.smoking ? "Smoking" : "No Smoking"}
-                            </span>
-                          </TableCell>
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
+                          <TableCell className="px-6 py-4">{item.checkedInRoomType} {item.checkedInRoom}</TableCell>
+                          <TableCell className="px-6 py-4">
+                            {item.checkInDateTime ? new Date(item.checkInDateTime).toLocaleString() : "—"}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            {item.checkOutDateTime ? new Date(item.checkOutDateTime).toLocaleString() : "—"}
+                          </TableCell>
                           <CanAny permissions={[
                             { action: 'delete', subject: "Guest" },
                             { action: 'update', subject: "Guest" },
@@ -442,7 +415,7 @@ const CurrentGuestList = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {searchLoading || loading ? (
+                    {searchLoading ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                           Loading guests...

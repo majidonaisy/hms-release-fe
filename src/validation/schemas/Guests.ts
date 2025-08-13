@@ -199,10 +199,46 @@ export const GetGroupProfilesResponseSchema = z.object({
   pagination: PaginationSchema.optional(),
 });
 
+export const CurrentGuestShape = z.object({
+  id: z.string(),
+  gid: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  phoneNumber: z.string(),
+  nationality: z.string(),
+  identification: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+  preferences: {
+    smoking: z.boolean(),
+    roomType: z.string(),
+  },
+  dob: z.date(),
+  hotelId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  currentReservation: z.object({
+    id: z.string(),
+    checkIn: z.date(),
+    checkOut: z.date(),
+    price: z.string(),
+    status: z.enum(["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"]),
+    rooms: z.array(
+      z.object({
+        id: z.string(),
+        roomNumber: z.string(),
+        roomType: z.string()
+      })
+    )
+  })
+})
+
 export const GetCurrentGuestsResponseSchema = z.object({
   status: z.number(),
   message: z.string(),
-  data: z.array(GuestShape),
+  data: z.array(CurrentGuestShape),
 });
 
 export const GetCurrentGroupProfilesResponseSchema = z.object({
@@ -239,3 +275,4 @@ export type GroupProfileResponse = z.infer<typeof GroupProfileResponseSchema>
 export type GetCurrentGuestsResponse = z.infer<typeof GetCurrentGuestsResponseSchema>;
 export type GetCurrentGroupProfilesResponse = z.infer<typeof GetCurrentGroupProfilesResponseSchema>;
 export type UpdateGroupProfileRequest = z.infer<typeof UpdateGroupProfileRequestSchema>
+export type CurrentGuest = z.infer<typeof CurrentGuestShape>

@@ -1,7 +1,7 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation/schemas/Guests";
-import { AddGroupReservationRequest, AddReservationRequest, CheckInReservations, GetNightPriceResponse, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
+import { AddGroupReservationRequest, AddReservationRequest, CheckInReservations, GetNightPriceResponse, GetReservationByGroupId, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
@@ -188,7 +188,6 @@ export const cancelReservation = async (reservationId: string): Promise<any> => 
 };
 
 export const getReservationByGuestId = async (guestId: string): Promise<GetReservationByGuestId> => {
-  console.log("called");
   try {
     const response = await apiClient({
       method: "GET",
@@ -197,6 +196,23 @@ export const getReservationByGuestId = async (guestId: string): Promise<GetReser
       params: { guestId },
     });
     return response as GetReservationByGuestId;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const getReservationByGroupId = async (groupId: string): Promise<GetReservationByGroupId> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Reservations.GetByGroupId}/${groupId}`,
+      baseURL,
+    });
+    return response as GetReservationByGroupId;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get reservation";
     throw {

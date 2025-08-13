@@ -61,6 +61,7 @@ export const ENDPOINTS = {
     GetNightPrice: "reservation/get-night-price",
     Cancel: "reservation/cancel",
     GetByGuestId: "reservation/get-reservation-by-guestId",
+    GetByGroupId: "reservation/get-reservations-by-group",
     CheckedInReservations: "/reservation/get-checked-in-reservations"
   },
   Maintenance: {

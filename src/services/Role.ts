@@ -30,6 +30,7 @@ export const getRoles = async (params?: GetRolesParams): Promise<RoleResponse> =
 interface GetPermissionsParams {
     page?: number;
     limit?: number;
+    subject?: string
 }
 
 export const getPermissions = async (params?: GetPermissionsParams): Promise<PermissionsResponse> => {
@@ -49,7 +50,6 @@ export const getPermissions = async (params?: GetPermissionsParams): Promise<Per
         };
     }
 };
-
 
 export const addRole = async (data: AddRoleRequest): Promise<AddUpdateRoleResponse> => {
     try {
