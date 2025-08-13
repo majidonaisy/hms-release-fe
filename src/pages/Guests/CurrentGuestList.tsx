@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules
 import { useDebounce } from "@/hooks/useDebounce"
 import { getCurrentGroupProfiles, getCurrentGuests } from "@/services/Reservation"
 import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse, GetGroupProfilesResponse, GroupProfile, Guest } from "@/validation/schemas/Guests"
-import { Can } from "@/context/CASLContext"
+import { Can, CanAny } from "@/context/CASLContext"
 
 type CombinedGuestData = {
   id: string
@@ -382,34 +382,39 @@ const CurrentGuestList = () => {
                             </span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
-                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu modal={false}>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <EllipsisVertical />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <Can action="update" subject="Guest">
-                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                </Can>
-                                <Can action="delete" subject="Guest">
-                                  <DropdownMenuItem
-                                    onClick={(e) => handleDeleteClick(item, e)}
-                                    className="text-red-600 hover:text-red-700"
+                          <CanAny permissions={[
+                            { action: 'delete', subject: "Guest" },
+                            { action: 'update', subject: "Guest" },
+                          ]}>
+                            <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    Delete
-                                  </DropdownMenuItem>
-                                </Can>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                                    <EllipsisVertical />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                  <Can action="update" subject="Guest">
+                                    <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                  </Can>
+                                  <Can action="delete" subject="Guest">
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleDeleteClick(item, e)}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </Can>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </CanAny>
                         </TableRow>
                       ))
                     )}
@@ -479,34 +484,39 @@ const CurrentGuestList = () => {
                             </span>
                           </TableCell>
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
-                          <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu modal={false}>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <EllipsisVertical />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <Can action="update" subject="GroupProfile">
-                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                </Can>
-                                <Can action="delete" subject="GroupProfile">
-                                  <DropdownMenuItem
-                                    onClick={(e) => handleDeleteClick(item, e)}
-                                    className="text-red-600 hover:text-red-700"
+                          <CanAny permissions={[
+                            { action: 'delete', subject: "GroupProfile" },
+                            { action: 'update', subject: "GroupProfile" },
+                          ]}>
+                            <TableCell className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="bg-inherit shadow-none p-0 text-hms-accent font-bold text-xl border hover:border-hms-accent hover:bg-hms-accent/15"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    Delete
-                                  </DropdownMenuItem>
-                                </Can>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                                    <EllipsisVertical />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
+                                  <Can action="update" subject="GroupProfile">
+                                    <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                  </Can>
+                                  <Can action="delete" subject="GroupProfile">
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleDeleteClick(item, e)}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </Can>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </CanAny>
                         </TableRow>
                       ))
                     )}
