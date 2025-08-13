@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import DeleteDialog from "../../components/molecules/DeleteDialog";
 import { getReservationByGuestId } from '@/services/Reservation';
 import { AddGuestRequest, GetGuestByIdResponse } from '@/validation/schemas/Guests';
+import { Can, CanAny } from '@/context/CASLContext';
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
@@ -290,40 +291,50 @@ const GuestProfileView = () => {
                             </CardContent>
                         </div>
 
-                        <div className='flex gap-2 text-center justify-center'>
-                            {isEditMode ? (
-                                <>
-                                    <Button
-                                        onClick={handleSaveEdit}
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Saving...' : 'Save Changes'}
-                                    </Button>
-                                    <Button
-                                        variant='primaryOutline'
-                                        onClick={handleCancelEdit}
-                                        disabled={loading}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button onClick={() => setIsEditMode(true)}>
-                                        Edit Profile
-                                    </Button>
-                                    <Button
-                                        variant='primaryOutline'
-                                        onClick={() => {
-                                            setGuestToDelete(guest.data);
-                                            setDeleteDialogOpen(true);
-                                        }}
-                                    >
-                                        Delete Profile
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                        <CanAny permissions={[
+                            { action: 'delete', subject: "Guest" },
+                            { action: 'update', subject: "Guest" },
+                        ]}>
+                            <div className='flex gap-2 text-center justify-center'>
+                                {isEditMode ? (
+                                    <>
+                                        <Button
+                                            onClick={handleSaveEdit}
+                                            disabled={loading}
+                                        >
+                                            {loading ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                        <Button
+                                            variant='primaryOutline'
+                                            onClick={handleCancelEdit}
+                                            disabled={loading}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Can action="update" subject="Guest">
+
+                                            <Button onClick={() => setIsEditMode(true)}>
+                                                Edit Profile
+                                            </Button>
+                                        </Can>
+                                        <Can action="delete" subject="Guest">
+                                            <Button
+                                                variant='primaryOutline'
+                                                onClick={() => {
+                                                    setGuestToDelete(guest.data);
+                                                    setDeleteDialogOpen(true);
+                                                }}
+                                            >
+                                                Delete Profile
+                                            </Button>
+                                        </Can>
+                                    </>
+                                )}
+                            </div>
+                        </CanAny>
                     </Card>
 
                     {/* Personal Info Card */}
@@ -553,39 +564,42 @@ const GuestProfileView = () => {
                         </div>
                     </CardHeader>
                     <CardContent className='space-y-3 px-0'>
-                        {reservationData?.data.map((reservation) => (
-                            <Card key={reservation.id} className='bg-hms-accent/15 px-2 gap-2'>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <DoorOpen className='size-4' />
-                                        Room(s):
-                                    </p>
-                                    <span className='text-sm'>
-                                        {reservation.rooms.map((room) => (
-                                            <p key={room.id}>{room.roomNumber}</p>
-                                        ))}
+                        {reservationData && reservationData?.data.length > 0 ?
+                            (reservationData?.data.map((reservation) => (
+                                <Card key={reservation.id} className='bg-hms-accent/15 px-2 gap-2'>
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <DoorOpen className='size-4' />
+                                            Room(s):
+                                        </p>
+                                        <span className='text-sm'>
+                                            {reservation.rooms.map((room) => (
+                                                <p key={room.id}>{room.roomNumber}</p>
+                                            ))}
+                                        </span>
                                     </span>
-                                </span>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <Calendar1 className='size-4' />
-                                        Stay Dates:
-                                    </p>
-                                    <p className='text-sm'>
-                                        {formatHistoryDate(reservation.checkIn)} - {formatHistoryDate(reservation.checkOut)}
-                                    </p>
-                                </span>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <Pin className='size-4' />
-                                        Status:
-                                    </p>
-                                    <p className='text-sm'>
-                                        {reservation.status.replace('_', ' ').charAt(0) + reservation.status.slice(1).replace('_', " ").toLowerCase()}
-                                    </p>
-                                </span>
-                            </Card>
-                        ))}
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <Calendar1 className='size-4' />
+                                            Stay Dates:
+                                        </p>
+                                        <p className='text-sm'>
+                                            {formatHistoryDate(reservation.checkIn)} - {formatHistoryDate(reservation.checkOut)}
+                                        </p>
+                                    </span>
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <Pin className='size-4' />
+                                            Status:
+                                        </p>
+                                        <p className='text-sm'>
+                                            {reservation.status.replace('_', ' ').charAt(0) + reservation.status.slice(1).replace('_', " ").toLowerCase()}
+                                        </p>
+                                    </span>
+                                </Card>
+                            ))) : (
+                                <div className='text-muted-foreground text-center'>This guest had no reservation history</div>
+                            )}
                     </CardContent>
                 </Card>
 

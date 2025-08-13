@@ -16,6 +16,7 @@ import DeleteDialog from '@/components/molecules/DeleteDialog';
 import { Role } from '@/validation/schemas/Roles';
 import { Departments } from '@/validation/schemas/Departments';
 import { getDepartments } from '@/services/Departments';
+import { Can, CanAny } from '@/context/CASLContext';
 
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
@@ -251,40 +252,49 @@ const TeamMemberProfile = () => {
                                     </Badge>
                                 </div>
 
-                                <div className='flex gap-2 text-center justify-center'>
-                                    {isEditMode ? (
-                                        <>
-                                            <Button
-                                                onClick={handleSaveEdit}
-                                                disabled={loading}
-                                            >
-                                                {loading ? 'Saving...' : 'Save Changes'}
-                                            </Button>
-                                            <Button
-                                                variant='primaryOutline'
-                                                onClick={handleCancelEdit}
-                                                disabled={loading}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button onClick={() => setIsEditMode(true)}>
-                                                Edit Profile
-                                            </Button>
-                                            <Button
-                                                variant="primaryOutline"
-                                                onClick={() => {
-                                                    setEmployeeToDelete(teamMember);
-                                                    setDeleteDialogOpen(true);
-                                                }}
-                                            >
-                                                Delete Account
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
+                                <CanAny permissions={[
+                                    { action: 'delete', subject: "User" },
+                                    { action: 'update', subject: "User" },
+                                ]}>
+                                    <div className='flex gap-2 text-center justify-center'>
+                                        {isEditMode ? (
+                                            <>
+                                                <Button
+                                                    onClick={handleSaveEdit}
+                                                    disabled={loading}
+                                                >
+                                                    {loading ? 'Saving...' : 'Save Changes'}
+                                                </Button>
+                                                <Button
+                                                    variant='primaryOutline'
+                                                    onClick={handleCancelEdit}
+                                                    disabled={loading}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Can action="update" subject="User">
+                                                    <Button onClick={() => setIsEditMode(true)}>
+                                                        Edit Profile
+                                                    </Button>
+                                                </Can>
+                                                <Can action="delete" subject="User">
+                                                    <Button
+                                                        variant="primaryOutline"
+                                                        onClick={() => {
+                                                            setEmployeeToDelete(teamMember);
+                                                            setDeleteDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        Delete Account
+                                                    </Button>
+                                                </Can>
+                                            </>
+                                        )}
+                                    </div>
+                                </CanAny>
                             </Card>
 
                             <Card className="p-3">

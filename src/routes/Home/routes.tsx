@@ -79,6 +79,10 @@ const RoutesList = () => {
                 action: "read",
                 subject: "Room"
             },
+            {
+                action: "read",
+                subject: "GroupProfile"
+            },
             ]
         },
         {
@@ -102,6 +106,10 @@ const RoutesList = () => {
             {
                 action: "read",
                 subject: "Room"
+            },
+            {
+                action: "read",
+                subject: "GroupProfile"
             },
             ],
             isAuthenticated: true,

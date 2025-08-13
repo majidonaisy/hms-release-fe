@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import DeleteDialog from "@/components/molecules/DeleteDialog";
+import { Can, CanAny } from "@/context/CASLContext";
 
 const GroupProfileExpanded = () => {
     const { id } = useParams<{ id: string }>();
@@ -264,40 +265,49 @@ const GroupProfileExpanded = () => {
                             }
                         </CardContent>
 
-                        <div className='flex gap-2 text-center justify-center pb-4'>
-                            {isEditMode ? (
-                                <>
-                                    <Button
-                                        onClick={handleSaveEdit}
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Saving...' : 'Save Changes'}
-                                    </Button>
-                                    <Button
-                                        variant='primaryOutline'
-                                        onClick={handleCancelEdit}
-                                        disabled={loading}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button onClick={() => setIsEditMode(true)}>
-                                        Edit Profile
-                                    </Button>
-                                    <Button
-                                        variant='primaryOutline'
-                                        onClick={() => {
-                                            setGroupToDelete(group);
-                                            setDeleteDialogOpen(true);
-                                        }}
-                                    >
-                                        Delete Profile
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                        <CanAny permissions={[
+                            { action: 'delete', subject: "GroupProfile" },
+                            { action: 'update', subject: "GroupProfile" },
+                        ]}>
+                            <div className='flex gap-2 text-center justify-center pb-4'>
+                                {isEditMode ? (
+                                    <>
+                                        <Button
+                                            onClick={handleSaveEdit}
+                                            disabled={loading}
+                                        >
+                                            {loading ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                        <Button
+                                            variant='primaryOutline'
+                                            onClick={handleCancelEdit}
+                                            disabled={loading}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Can action="update" subject="GroupProfile">
+                                            <Button onClick={() => setIsEditMode(true)}>
+                                                Edit Profile
+                                            </Button>
+                                        </Can>
+                                        <Can action="delete" subject="GroupProfile">
+                                            <Button
+                                                variant='primaryOutline'
+                                                onClick={() => {
+                                                    setGroupToDelete(group);
+                                                    setDeleteDialogOpen(true);
+                                                }}
+                                            >
+                                                Delete Profile
+                                            </Button>
+                                        </Can>
+                                    </>
+                                )}
+                            </div>
+                        </CanAny>
                     </Card>
 
                     <Card className="p-3">
@@ -470,9 +480,11 @@ const GroupProfileExpanded = () => {
                 <Card>
                     <CardHeader className="flex justify-between items-center">
                         <CardTitle>Linked Guests</CardTitle>
-                        <Button onClick={() => setDialogOpen(true)} className="h-7" disabled={loading}>
-                            + Add Guests
-                        </Button>
+                        <Can action="update" subject="GroupProfile">
+                            <Button onClick={() => setDialogOpen(true)} className="h-7" disabled={loading}>
+                                + Add Guests
+                            </Button>
+                        </Can>
                     </CardHeader>
 
                     <ScrollArea className="h-[30rem] px-2">
@@ -518,16 +530,18 @@ const GroupProfileExpanded = () => {
                                         </p>
 
                                     </div>
-                                    <Button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setGuestToRemove(guest);
-                                            setRemoveGuestsDialog(true);
-                                        }}
-                                        className="cursor-pointer"
-                                    >
-                                        <X />
-                                    </Button>
+                                    <Can action="update" subject="GroupProfile">
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setGuestToRemove(guest);
+                                                setRemoveGuestsDialog(true);
+                                            }}
+                                            className="cursor-pointer"
+                                        >
+                                            <X />
+                                        </Button>
+                                    </Can>
                                 </div>
                             )))}
                     </ScrollArea>
@@ -537,7 +551,7 @@ const GroupProfileExpanded = () => {
                 <Card className="p-3">
                     <CardHeader className="p-0">
                         <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
-                            Reservation History / Upcoming Stays
+                            Reservation History
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 space-y-2">
