@@ -3,6 +3,7 @@ import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Ban
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
 import { Guest } from "@/validation/schemas/Guests"
+import { Can, CanAll } from "@/context/CASLContext"
 
 const ChooseReservationOptionDialog = ({
     open,
@@ -152,130 +153,143 @@ const ChooseReservationOptionDialog = ({
                         <ChevronRight size={15} />
                     </div>
 
-                    <div
-                        className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
-                        onClick={editReservation}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Edit className="h-5 w-5 text-gray-600" />
-                            <span className="font-medium text-gray-900">Edit Reservation</span>
-                        </div>
-                        <ChevronRight size={15} />
-                    </div>
-                    {/* View Payment */}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (isCheckedIn || isCheckedOut) { viewPayments() }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Banknote className={`h-5 w-5 ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>View Payment</span>
-                        </div>
-                        <span className={`${!isCheckedIn && !isCheckedOut ? "text-gray-400" : ""}`} >
+                    <Can action="update" subject="Reservation">
+                        <div
+                            className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                            onClick={editReservation}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Edit className="h-5 w-5 text-gray-600" />
+                                <span className="font-medium text-gray-900">Edit Reservation</span>
+                            </div>
                             <ChevronRight size={15} />
-                        </span>
-                    </div>
-                    {/* Add Payment */}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (isCheckedIn || isCheckedOut) {
-                                addCharges()
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Banknote className={`h-5 w-5 ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>Add Payment</span>
                         </div>
-                        <span className={` ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : ""}`}>
-                            <ChevronRight size={15} />
-                        </span>
-                    </div>
+                    </Can>
 
-                    {/* Add Charges */}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (isCheckedIn) {
-                                addCharge()
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <CircleDollarSign className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Add Charges</span>
-                        </div>
-                        <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
-                            <ChevronRight size={15} />
-                        </span>
-                    </div>
-
-                    {/*Transfer Charge*/}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (isCheckedIn) {
-                                transferCharge()
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <ArrowRightLeft className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Transfer Charges</span>
-                        </div>
-                        <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
-                            <ChevronRight size={15} />
-                        </span>
-                    </div>
-
-                    {/* Check-In */}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedIn || isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (!isCheckedIn && !isCheckedOut) {
-                                checkIn()
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <LogIn className={`h-5 w-5 ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>
-                                Check-In
+                    <Can action="read" subject="FolioItem">
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (isCheckedIn || isCheckedOut) { viewPayments() }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Banknote className={`h-5 w-5 ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>View Payment</span>
+                            </div>
+                            <span className={`${!isCheckedIn && !isCheckedOut ? "text-gray-400" : ""}`} >
+                                <ChevronRight size={15} />
                             </span>
                         </div>
-                        <span className={` ${isCheckedIn || isCheckedOut ? "text-gray-400" : ""}`} >
-                            <ChevronRight size={15} />
-                        </span>
-                    </div>
+                    </Can>
 
-                    {/* Check-Out */}
-                    <div
-                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn || isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                            }`}
-                        onClick={() => {
-                            if (isCheckedIn && !isCheckedOut) {
-                                checkOut()
-                            }
-                        }}
-                    >
-                        <div className="flex items-center gap-3">
-                            <LogOut className={`h-5 w-5 ${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
-                            <span className={`font-medium ${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>
-                                Check-Out
+                    <CanAll permissions={[
+                        {action: 'update', subject: 'FolioItem'},
+                        {action: 'read', subject: "FolioItem"},
+                        {action: "read", subject:"ExchangeRate"}
+                    ]}>
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (isCheckedIn || isCheckedOut) {
+                                    addCharges()
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Banknote className={`h-5 w-5 ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>Add Payment</span>
+                            </div>
+                            <span className={` ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : ""}`}>
+                                <ChevronRight size={15} />
                             </span>
                         </div>
-                        <span className={`${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`}>
-                            <ChevronRight size={15} />
-                        </span>
-                    </div>
+                    </CanAll>
+
+                    <Can action="create" subject="FolioItem">
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (isCheckedIn) {
+                                    addCharge()
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <CircleDollarSign className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Add Charges</span>
+                            </div>
+                            <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
+                                <ChevronRight size={15} />
+                            </span>
+                        </div>
+                    </Can>
+
+                    <Can action="update" subject="FolioItem">
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (isCheckedIn) {
+                                    transferCharge()
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <ArrowRightLeft className={`h-5 w-5 ${!isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${!isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Transfer Charges</span>
+                            </div>
+                            <span className={` ${!isCheckedIn ? "text-gray-400" : ""}`} >
+                                <ChevronRight size={15} />
+                            </span>
+                        </div>
+                    </Can>
+
+                    <Can action="update" subject="Reservation">
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedIn || isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (!isCheckedIn && !isCheckedOut) {
+                                    checkIn()
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <LogIn className={`h-5 w-5 ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>
+                                    Check-In
+                                </span>
+                            </div>
+                            <span className={` ${isCheckedIn || isCheckedOut ? "text-gray-400" : ""}`} >
+                                <ChevronRight size={15} />
+                            </span>
+                        </div>
+
+                        {/* Check-Out */}
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn || isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                }`}
+                            onClick={() => {
+                                if (isCheckedIn && !isCheckedOut) {
+                                    checkOut()
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3">
+                                <LogOut className={`h-5 w-5 ${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>
+                                    Check-Out
+                                </span>
+                            </div>
+                            <span className={`${!isCheckedIn || isCheckedOut ? "text-gray-400" : "text-gray-600"}`}>
+                                <ChevronRight size={15} />
+                            </span>
+                        </div>
+                    </Can>
 
                     {/* Cancel Reservation */}
                     <div

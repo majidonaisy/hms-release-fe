@@ -1,5 +1,5 @@
 import { HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings } from "lucide-react";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -14,11 +14,19 @@ import GroupProfileExpanded from "@/pages/Guests/GroupProfileExpanded";
 import HotelSettingsPage from "@/pages/management/HotelSettings";
 import ExchangeRates from "@/pages/dashboard/ExchangeRates/ExchangeRates";
 import Departments from "@/pages/dashboard/Departments/Departments";
+import HomePage from "@/pages/HomePage";
 
 const RoutesList = () => {
 
     const homeRoutesList: HomeRouteConfig[] = [
-
+        {
+            path: "/homepage",
+            title: "Home Page",
+            icon: <HomeIcon className=" " />,
+            component: HomePage,
+            isAuthenticated: true,
+            isShown: true,
+        },
         {
             path: "/rooms",
             title: "Rooms",
@@ -48,7 +56,7 @@ const RoutesList = () => {
         {
             path: '/current-guests',
             title: "Current Guests",
-            icon: <Users className=" " />,
+            icon: <UserCheck className=" " />,
             component: CurrentGuestList,
             isShown: true,
             requiredPermissions: [{
@@ -164,13 +172,15 @@ const RoutesList = () => {
             isShown: true,
             requiredPermissions: [
                 { action: "read", subject: "Reservation" },
-                { action: "read", subject: "Guest" }
+                { action: "read", subject: "Guest" },
+                { action: "read", subject: "Room" },
+                { action: "read", subject: "RoomType" },
             ]
         },
         {
             path: '/team-members',
             title: "Team Members",
-            icon: <Users className=" " />,
+            icon: <UserCog className=" " />,
             component: TeamMembers,
             isShown: true,
             requiredPermissions: [{

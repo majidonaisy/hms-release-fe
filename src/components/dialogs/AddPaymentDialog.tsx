@@ -627,7 +627,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                             disabled={isLoading || selectedItems.length === 0 || !paymentMethod || !selectedCurrency}
                             className="w-full max-w-md h-12 text-lg"
                         >
-                            {isLoading ? 'Processing...' : `Confirm Payment - $${totalAmount.toFixed(2)} USD`}
+                            {isLoading ? 'Processing...' : `Confirm Payment - ${formatNumber(exchangeRate)} ${selectedCurrency}`}
                         </Button>
                     </div>
                 </div>
