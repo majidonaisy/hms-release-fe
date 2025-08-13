@@ -155,6 +155,65 @@ export const GetReservationByGuestIdSchema = z.object({
   ),
 });
 
+export const GetReservationByGroupIdSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.object({
+    id: z.string(),
+    checkIn: z.date(),
+    checkOut: z.date(),
+    status: z.enum(["CHECKED_IN", "CHECKED_OUT", "DRAFT", "CONFIRMED", "CANCELLED", "NO_SHOW", "HELD"]),
+    guestId: z.string(),
+    hotelId: z.string(),
+    ratePlanId: z.string(),
+    price: z.string(),
+    groupBookingId: z.string(),
+    chargeRouting: z.enum(["OWN_FOLIO", "MASTER_FOLIO", "SPLIT"]),
+    identification: z.any(),
+    checkInTime: z.date(),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+    createdBy: z.string().nullable(),
+    updatedBy: z.string().nullable(),
+    rooms: z.array(
+      z.object({
+        id: z.string(),
+        roomNumber: z.string(),
+        roomTypeId: z.string(),
+        roomType: z.object({
+          name: z.string()
+        })
+      })
+    ),
+    ratePlan: z.object({
+      id: z.string(),
+      name: z.string(),
+      code: z.string()
+    }),
+    groupBooking: z.object({
+      id: z.string(),
+      groupProfileId: z.string(),
+      status: z.string(), //check what the possibilities are
+      checkIn: z.date(),
+      checkOut: z.date(),
+      specialRequests: z.string().nullable(),
+      notes: z.string().nullable()
+    }),
+    guest: z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      email: z.string()
+    }),
+    groupProfile: z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+      phone: 7897989
+    })
+  })
+})
+
 const ReservationByIdShape = z.object({
   status: z.number(),
   message: z.string(),
@@ -249,5 +308,6 @@ export type CheckInResponse = z.infer<typeof CheckInResponseSchema>;
 export type CheckOutResponse = z.infer<typeof CheckOutResponseSchema>;
 export type GetNightPriceResponse = z.infer<typeof GetNightPriceResponseSchema>;
 export type GetReservationByGuestId = z.infer<typeof GetReservationByGuestIdSchema>;
+export type GetReservationByGroupId = z.infer<typeof GetReservationByGroupIdSchema>;
 export type GetReservationById = z.infer<typeof ReservationByIdShape>;
 export type CheckInReservations = z.infer<typeof CheckedInReservationsSchema>

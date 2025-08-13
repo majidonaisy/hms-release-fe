@@ -10,12 +10,14 @@ import EditingSkeleton from "@/components/Templates/EditingSkeleton";
 import { getGroupProfileById, getGuests, linkGuestsToGroup, updateGroupProfile, deleteGroupProfile, unlinkGuests } from "@/services/Guests";
 import { GetGuestsResponse, GroupProfileResponse, UpdateGroupProfileRequest, Guest } from "@/validation/schemas/Guests";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { ChevronLeft, Mail, Phone, X } from "lucide-react";
+import { Calendar1, ChevronLeft, DoorOpen, Mail, Phone, Pin, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import DeleteDialog from "@/components/molecules/DeleteDialog";
 import { Can, CanAny } from "@/context/CASLContext";
+import { getReservationByGroupId } from "@/services/Reservation";
+import { GetReservationByGroupId } from "@/validation";
 
 const GroupProfileExpanded = () => {
     const { id } = useParams<{ id: string }>();
@@ -32,6 +34,7 @@ const GroupProfileExpanded = () => {
     const [removeGuestDialog, setRemoveGuestsDialog] = useState(false);
     const [guestToRemove, setGuestToRemove] = useState<Guest | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [reservationData, setReservationData] = useState<GetReservationByGroupId | null>(null)
 
     const [formData, setFormData] = useState<UpdateGroupProfileRequest>({
         name: '',
@@ -100,8 +103,18 @@ const GroupProfileExpanded = () => {
         }
     };
 
+    const getGroupHistory = async () => {
+        try {
+            const history = await getReservationByGroupId(id || '')
+            setReservationData(history)
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
     useEffect(() => {
         fetchData();
+        getGroupHistory()
     }, [id]);
 
     const handleSaveEdit = async () => {
@@ -208,6 +221,14 @@ const GroupProfileExpanded = () => {
             setDialogOpen(false);
         }
     };
+
+    const formatHistoryDate = (date: Date) => {
+        return new Date(date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short'
+        });
+    };
+
 
     if (loading && !group) {
         return (
@@ -554,8 +575,40 @@ const GroupProfileExpanded = () => {
                             Reservation History
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-0 space-y-2">
-
+                    <CardContent className='space-y-3 px-0'>
+                        {reservationData && (
+                            // (reservationData?.data.map((reservation) => (
+                            <Card key={reservationData.data.id} className='bg-hms-accent/15 px-2 gap-2'>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <DoorOpen className='size-4' />
+                                        Room(s):
+                                    </p>
+                                    <span className='text-sm'>
+                                        {reservationData.data.rooms.map((room) => (
+                                            <p key={room.id}>{room.roomNumber}</p>
+                                        ))}
+                                    </span>
+                                </span>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <Calendar1 className='size-4' />
+                                        Stay Dates:
+                                    </p>
+                                    <p className='text-sm'>
+                                        {formatHistoryDate(reservationData.data.checkIn)} - {formatHistoryDate(reservationData.data.checkOut)}
+                                    </p>
+                                </span>
+                                <span className='flex justify-between'>
+                                    <p className='flex gap-1 items-center font-semibold'>
+                                        <Pin className='size-4' />
+                                        Status:
+                                    </p>
+                                    <p className='text-sm'>
+                                        {reservationData.data.status.replace('_', ' ').charAt(0) + reservationData.data.status.slice(1).replace('_', " ").toLowerCase()}
+                                    </p>
+                                </span>
+                            </Card>)}
                     </CardContent>
                 </Card>
             </div>
