@@ -141,6 +141,20 @@ interface MultiPermissionProps {
   fallback?: ReactNode;
 }
 
+export const CanAny: React.FC<MultiPermissionProps> = ({
+  permissions,
+  children,
+  fallback = null
+}) => {
+  const { can } = useRole();
+
+  const hasAnyPermission = permissions.some(perm =>
+    can(perm.action, perm.subject)
+  );
+
+  return hasAnyPermission ? <>{children}</> : <>{fallback}</>;
+};
+
 // User needs ALL permissions (AND logic)
 export const CanAll: React.FC<MultiPermissionProps> = ({
   permissions,
