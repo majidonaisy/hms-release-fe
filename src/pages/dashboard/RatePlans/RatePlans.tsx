@@ -165,6 +165,8 @@ const RatePlans = () => {
         e.stopPropagation();
         handleEditRatePlan(item);
       },
+      action: "update",
+      subject: "RatePlan"
     }
   ];
 
@@ -188,6 +190,8 @@ const RatePlans = () => {
         getDeleteTitle: () => 'Delete Rate Plan',
         getDeleteDescription: (item: RatePlan | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this rate plan? This action cannot be undone.',
         getItemName: (item: RatePlan | null) => item ? item.name : 'this rate plan',
+        action: "delete",
+        subject: "RatePlan"
       }}
       showBackButton
       onBackClick={() => navigate(-1)}

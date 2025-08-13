@@ -61,7 +61,7 @@ const RoomTypes = () => {
       editData: roomType,
       onConfirm: async (data: AddRoomTypeRequest) => {
         try {
-          await updateRoomType(roomType.id, data); 
+          await updateRoomType(roomType.id, data);
           toast.success('Room type updated successfully');
           await fetchRoomTypes();
           return Promise.resolve();
@@ -128,6 +128,8 @@ const RoomTypes = () => {
         e.stopPropagation();
         handleEditRoomType(item);
       },
+      action: "update",
+      subject: "RoomType"
     }
   ];
 
@@ -151,6 +153,8 @@ const RoomTypes = () => {
         getDeleteTitle: () => 'Delete Room Type',
         getDeleteDescription: (item: RoomType | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this room type? This action cannot be undone.',
         getItemName: (item: RoomType | null) => item ? item.name : 'this room type',
+        action: "delete",
+        subject: "RoomType"
       }}
       showBackButton
       onBackClick={() => navigate(-1)}

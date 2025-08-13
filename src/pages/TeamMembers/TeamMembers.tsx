@@ -162,7 +162,9 @@ const TeamMembers = () => {
             onClick: (employee, e) => {
                 e.stopPropagation();
                 navigate(`/team-members/update/${employee.id}`);
-            }
+            },
+            action: "update",
+            subject: "User"
         }
     ];
     const handleRowClick = (member: any) => {
@@ -210,6 +212,8 @@ const TeamMembers = () => {
             deleteConfig={{
                 onDelete: handleDeleteEmployee,
                 getDeleteTitle: () => 'Delete Employee',
+                action: "delete",
+                subject: "User"
             }}
         />
     );

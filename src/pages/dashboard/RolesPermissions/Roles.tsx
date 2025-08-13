@@ -62,7 +62,9 @@ const Roles = () => {
                 e.stopPropagation();
                 setEditingRole(role as Role);
                 setNewRoleDialogOpen(true);
-            }
+            },
+            action: "update",
+            subject: "Role"
         },
     ];
 
@@ -97,7 +99,9 @@ const Roles = () => {
                     onClick: () => {
                         setEditingRole(null);
                         setNewRoleDialogOpen(true);
-                    }
+                    },
+                    action: "create",
+                    subject: "Role"
                 }}
                 getRowKey={role => role.id}
                 filter={{
@@ -110,6 +114,8 @@ const Roles = () => {
                     getDeleteTitle: () => 'Delete Role',
                     getDeleteDescription: (item: Role | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this role? This action cannot be undone.',
                     getItemName: (item: Role | null) => item ? item.name : 'this role',
+                    action: "delete",
+                    subject: "Role"
                 }}
                 showBackButton
                 onBackClick={() => navigate(-1)}
