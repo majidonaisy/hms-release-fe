@@ -23,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules
 import { useDebounce } from "@/hooks/useDebounce"
 import { GetGroupProfilesResponse, GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
 import { RoomType } from "@/validation"
-import { Can } from "@/context/CASLContext"
+import { Can, CanAll } from "@/context/CASLContext"
 
 type CombinedGuestData = {
   id: string
@@ -316,9 +316,11 @@ const GuestProfile = () => {
               <Search className="h-4 w-4 text-gray-400" />
             </div>
 
-            <Can
-              action="create"
-              subject="guest"
+            <CanAll
+              permissions={[
+                { action: "create", subject: "Guest" },
+                { action: "create", subject: "GroupProfile" }
+              ]}
             >
               <div className="flex gap-2 ml-auto">
                 <Button onClick={() => setOpenGuestDialog(true)} className="flex items-center gap-2">
@@ -326,7 +328,7 @@ const GuestProfile = () => {
                   New Guest Profile
                 </Button>
               </div>
-            </Can>
+            </CanAll>
           </div>
 
           {/* Tabs */}
@@ -415,14 +417,18 @@ const GuestProfile = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => handleDeleteClick(item, e)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
+                                <Can action="update" subject="Guest">
+                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </Can>
+                                <Can action="delete" subject="Guest">
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDeleteClick(item, e)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </Can>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -510,14 +516,18 @@ const GuestProfile = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => handleDeleteClick(item, e)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
+                                <Can action="update" subject="GroupProfile">
+                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </Can>
+                                <Can action="delete" subject="GroupProfile">
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDeleteClick(item, e)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </Can>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

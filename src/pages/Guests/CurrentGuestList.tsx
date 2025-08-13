@@ -395,14 +395,18 @@ const CurrentGuestList = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => handleDeleteClick(item, e)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
+                                <Can action="update" subject="Guest">
+                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </Can>
+                                <Can action="delete" subject="Guest">
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDeleteClick(item, e)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </Can>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -488,14 +492,18 @@ const CurrentGuestList = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="shadow-lg border-hms-accent">
-                                <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={(e) => handleDeleteClick(item, e)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  Delete
-                                </DropdownMenuItem>
+                                <Can action="update" subject="GroupProfile">
+                                  <DropdownMenuItem onClick={(e) => handleEdit(item, e)}>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </Can>
+                                <Can action="delete" subject="GroupProfile">
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDeleteClick(item, e)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </Can>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
