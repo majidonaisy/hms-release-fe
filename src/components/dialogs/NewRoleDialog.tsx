@@ -355,7 +355,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                             <>
                                 <Accordion
                                     type="multiple"
-                                    className="w-full ml-4"
+                                    className="w-full px-4"
                                     value={openAccordionItems}
                                     onValueChange={handleAccordionChange}
                                 >

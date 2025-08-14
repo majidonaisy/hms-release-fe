@@ -72,7 +72,8 @@ export const GetEmployeeByIdResponseSchema = z.object({
     department: z.object({
       id: z.string(),
       name: z.string()
-    })
+    }),
+    isOnline: z.boolean()
   }),
 });
 

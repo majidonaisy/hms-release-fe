@@ -21,7 +21,6 @@ import { toast } from "sonner"
 import ViewPaymentsDialog from "@/components/dialogs/ViewPaymentsDialog"
 import ViewReservationDialog from "@/components/dialogs/ViewReservationDialog"
 import { Skeleton } from "@/components/atoms/Skeleton"
-import { getGuestById } from "@/services/Guests"
 import TransferChargesDialog from "@/components/dialogs/TransferChargesDialog"
 
 interface HotelReservationCalendarProps {
@@ -71,19 +70,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [transferChargesDialog, setTransferChargesDialog] = useState(false)
   const [loading, setLoading] = useState(false);
 
-  const fetchGuestName = async (guestId: string): Promise<string> => {
-    try {
-      const guestResponse = await getGuestById(guestId);
-      const guest = guestResponse.data || guestResponse;
-      const firstName = guest.firstName || '';
-      const lastName = guest.lastName || '';
-      return `${firstName} ${lastName}`.trim() || 'Unknown Guest';
-    } catch (error) {
-      console.error(`Failed to fetch guest ${guestId}:`, error);
-      return 'Unknown Guest';
-    }
-  };
-
   useEffect(() => {
     const fetchReservations = async () => {
       setLoading(true)
@@ -126,21 +112,17 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
         setAllRooms(extractedRooms);
 
+        // Create reservations with guest names - THIS WAS MISSING THE ACTUAL MAPPING LOGIC
         const reservationsWithGuestNames: UIReservation[] = [];
 
+        // Add the missing logic to populate reservations
         for (const reservation of apiReservations) {
           for (const room of reservation.Room) {
             for (const mappedReservation of room.reservations || []) {
-              const guestName = await fetchGuestName(mappedReservation.guestId);
-
-              const createdByUserName = mappedReservation.createdByUser
-                ? `${mappedReservation.createdByUser.firstName} ${mappedReservation.createdByUser.lastName}`.trim()
-                : 'Unknown User';
-
               reservationsWithGuestNames.push({
                 id: mappedReservation.id,
                 resourceId: room.id,
-                guestName: guestName,
+                guestName: `${mappedReservation.guest.firstName}${mappedReservation.guest.lastName}`,
                 bookingId: reservation.id,
                 start: new Date(mappedReservation.checkIn),
                 end: new Date(mappedReservation.checkOut),
@@ -152,8 +134,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 roomType: reservation.name,
                 ratePlanId: mappedReservation.ratePlanId,
                 roomTypeId: room.roomTypeId || room.roomTypeId,
-                createdByUser: createdByUserName,
-                checkInTime: mappedReservation.checkInTime || undefined,
+                createdByUser: mappedReservation.createdByUser?.firstName + ' ' + mappedReservation.createdByUser?.lastName,
+                checkInTime: mappedReservation.checkInTime ? new Date(mappedReservation.checkInTime) : undefined
               });
             }
           }
@@ -376,12 +358,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         for (const room of reservation.Room) {
           for (const mappedReservation of room.reservations || []) {
             // Fetch guest name for each reservation
-            const guestName = await fetchGuestName(mappedReservation.guestId);
 
             reservationsWithGuestNames.push({
               id: mappedReservation.id,
               resourceId: room.id,
-              guestName: guestName,
+              guestName: mappedReservation.guest.firstName + mappedReservation.guest.lastName,
               bookingId: reservation.id,
               start: new Date(mappedReservation.checkIn),
               end: new Date(mappedReservation.checkOut),
