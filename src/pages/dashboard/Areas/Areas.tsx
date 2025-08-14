@@ -4,23 +4,33 @@ import { useDialog } from '@/context/useDialog';
 import DataTable, { TableColumn } from '@/components/Templates/DataTable';
 import { useNavigate } from 'react-router-dom';
 import { deleteArea, getAllAreas } from '@/services/Area';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Areas = () => {
     const [areas, setAreas] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { openDialog } = useDialog();
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    const handleSearch = (value: string) => {
+        setSearchTerm(value);
+    };
 
     const fetchAreas = async () => {
-        setLoading(true)
         try {
+            setLoading(true);
+            const params: any = {};
+            if (debouncedSearchTerm.trim()) {
+                params.q = debouncedSearchTerm;
+            }
 
-            const response = await getAllAreas();
+            const response = await getAllAreas(params);
+
             setAreas(response.data);
-
         } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to load area');
-            console.error(error);
+            toast.error(error.userMessage || 'Failed to load areas');
             setAreas([]);
         } finally {
             setLoading(false);
@@ -29,7 +39,7 @@ const Areas = () => {
 
     useEffect(() => {
         fetchAreas();
-    }, []);
+    }, [debouncedSearchTerm]);
 
     const handleAddArea = () => {
         openDialog('area', {
@@ -100,6 +110,7 @@ const Areas = () => {
     return (
         <DataTable
             data={areas}
+            onSearch={handleSearch}
             searchLoading={loading}
             columns={AreaColumns}
             title="Area"
@@ -121,7 +132,6 @@ const Areas = () => {
             }}
             showBackButton
             onBackClick={() => navigate(-1)}
-            showSearch={false}
         />
     );
 };
