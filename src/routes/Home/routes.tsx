@@ -15,6 +15,7 @@ import HotelSettingsPage from "@/pages/management/HotelSettings";
 import ExchangeRates from "@/pages/dashboard/ExchangeRates/ExchangeRates";
 import Departments from "@/pages/dashboard/Departments/Departments";
 import HomePage from "@/pages/HomePage";
+import Areas from "@/pages/dashboard/Areas/Areas";
 
 const RoutesList = () => {
 
@@ -395,6 +396,18 @@ const RoutesList = () => {
                     requiredPermissions: [{
                         action: "manage",
                         subject: "Departments"
+                    }]
+                },
+                {
+                    path: '/areas',
+                    title: "Areas",
+                    icon: <Settings className=" " />,
+                    component: Areas,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [{
+                        action: "manage",
+                        subject: "Area"
                     }]
                 },
             ]
