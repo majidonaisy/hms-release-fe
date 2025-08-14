@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import { Button } from '@/components/atoms/Button';
 import { LogOut, Plus } from 'lucide-react';
 import NewDialogsWithTypes from '@/components/dialogs/NewDialogWIthTypes';
-import { Can, CanAll, useRole } from '@/context/CASLContext';
+import { CanAll, useRole } from '@/context/CASLContext';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 import { logoutService } from '@/services/Auth';

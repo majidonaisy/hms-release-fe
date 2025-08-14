@@ -108,6 +108,7 @@ const Departments = () => {
             }}
             showBackButton
             onBackClick={() => navigate(-1)}
+            showSearch={false}
         />
     );
 };

@@ -18,7 +18,6 @@ import HomePage from "@/pages/HomePage";
 import Areas from "@/pages/dashboard/Areas/Areas";
 
 const RoutesList = () => {
-
     const homeRoutesList: HomeRouteConfig[] = [
         {
             path: "/homepage",
@@ -35,14 +34,15 @@ const RoutesList = () => {
             component: Rooms,
             isAuthenticated: true,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "Room"
-            },
-            {
-                action: "read",
-                subject: "RoomType"
-            }],
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Room" },
+                        { action: "read", subject: "RoomType" }
+                    ]
+                }
+            ],
             subRoutes: [
                 {
                     path: "/rooms/:id",
@@ -51,10 +51,14 @@ const RoutesList = () => {
                     component: Room,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "update",
-                        subject: "Room"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "update", subject: "Room" }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -64,26 +68,20 @@ const RoutesList = () => {
             icon: <UserCheck className=" " />,
             component: CurrentGuestList,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "Guest"
-            },
-            {
-                action: "read",
-                subject: "Reservation"
-            },
-            {
-                action: "read",
-                subject: "RoomType"
-            },
-            {
-                action: "read",
-                subject: "Room"
-            },
-            {
-                action: "read",
-                subject: "GroupProfile"
-            },
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Reservation" }
+                    ]
+                },
+                {
+                    type: 'OR' as const,
+                    permissions: [
+                        { action: "read", subject: "Guest" },
+                        { action: "read", subject: "GroupProfile" }
+                    ]
+                }
             ]
         },
         {
@@ -92,26 +90,14 @@ const RoutesList = () => {
             icon: <Users className=" " />,
             component: GuestProfile,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "Guest"
-            },
-            {
-                action: "read",
-                subject: "Reservation"
-            },
-            {
-                action: "read",
-                subject: "RoomType"
-            },
-            {
-                action: "read",
-                subject: "Room"
-            },
-            {
-                action: "read",
-                subject: "GroupProfile"
-            },
+            requiredPermissions: [
+                {
+                    type: 'OR' as const,
+                    permissions: [
+                        { action: "read", subject: "Guest" },
+                        { action: "read", subject: "GroupProfile" }
+                    ]
+                }
             ],
             isAuthenticated: true,
             subRoutes: [
@@ -122,10 +108,14 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "create",
-                        subject: "Guest"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "create", subject: "Guest" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: "/guests-profile/new-group",
@@ -134,10 +124,14 @@ const RoutesList = () => {
                     component: NewGroupProfile,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "create",
-                        subject: "Guest"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "create", subject: "Guest" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: "/guests-profile/:id",
@@ -146,10 +140,14 @@ const RoutesList = () => {
                     component: NewGuest,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "update",
-                        subject: "Guest"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "update", subject: "Guest" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: "/guests-profile/:id/view",
@@ -158,10 +156,14 @@ const RoutesList = () => {
                     component: GuestProfileView,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "GroupProfile"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "GroupProfile" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: "/group-profile/:id/view",
@@ -170,10 +172,14 @@ const RoutesList = () => {
                     component: GroupProfileExpanded,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "Guest"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Guest" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: "/group-profile/:id",
@@ -182,12 +188,15 @@ const RoutesList = () => {
                     component: NewGroupProfile,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "update",
-                        subject: "Guest"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "update", subject: "Guest" }
+                            ]
+                        }
+                    ]
                 }
-
             ]
         },
         {
@@ -197,10 +206,15 @@ const RoutesList = () => {
             component: HotelReservationCalendar,
             isShown: true,
             requiredPermissions: [
-                { action: "read", subject: "Reservation" },
-                { action: "read", subject: "Guest" },
-                { action: "read", subject: "Room" },
-                { action: "read", subject: "RoomType" },
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Reservation" },
+                        { action: "read", subject: "Guest" },
+                        { action: "read", subject: "Room" },
+                        { action: "read", subject: "RoomType" }
+                    ]
+                }
             ]
         },
         {
@@ -209,10 +223,14 @@ const RoutesList = () => {
             icon: <UserCog className=" " />,
             component: TeamMembers,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "User"
-            }],
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "User" }
+                    ]
+                }
+            ],
             subRoutes: [
                 {
                     path: "/team-members/new",
@@ -222,8 +240,14 @@ const RoutesList = () => {
                     isAuthenticated: true,
                     isShown: false,
                     requiredPermissions: [
-                        { action: "create", subject: "User" },
-                        { action: "read", subject: "Role" }],
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "create", subject: "User" },
+                                { action: "read", subject: "Role" }
+                            ]
+                        }
+                    ],
                 },
                 {
                     path: "/team-members/profile/:id",
@@ -232,10 +256,14 @@ const RoutesList = () => {
                     component: TeamMemberProfile,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "User"
-                    }],
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "User" }
+                            ]
+                        }
+                    ],
                 },
                 {
                     path: "/team-members/update/:id",
@@ -244,10 +272,14 @@ const RoutesList = () => {
                     component: NewTeamMember,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "update",
-                        subject: "User"
-                    }],
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "update", subject: "User" }
+                            ]
+                        }
+                    ],
                 },
             ]
         },
@@ -258,10 +290,14 @@ const RoutesList = () => {
             icon: <Wrench className=" " />,
             component: MaintenancePage,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "Maintenance"
-            }]
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Maintenance" }
+                    ]
+                }
+            ]
         },
         {
             path: '/housekeeping',
@@ -269,13 +305,16 @@ const RoutesList = () => {
             icon: <Sparkles className=" " />,
             component: HousekeepingPage,
             isShown: true,
-            requiredPermissions: [{
-                action: "read",
-                subject: "HouseKeeping"
-            }]
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "HouseKeeping" }
+                    ]
+                }
+            ]
         },
         {
-
             path: "/new-reservation/new-group-reservation",
             title: "New Group Reservation",
             icon: <Plus />,
@@ -283,11 +322,16 @@ const RoutesList = () => {
             isAuthenticated: true,
             isShown: false,
             requiredPermissions: [
-                { action: "read", subject: "RatePlan" },
-                { action: "create", subject: "Reservation" },
-                { action: "read", subject: "GroupProfile" },
-                { action: "read", subject: "RoomType" },
-                { action: "read", subject: "Room" },
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "RatePlan" },
+                        { action: "create", subject: "Reservation" },
+                        { action: "read", subject: "GroupProfile" },
+                        { action: "read", subject: "RoomType" },
+                        { action: "read", subject: "Room" }
+                    ]
+                }
             ]
         },
         {
@@ -297,11 +341,16 @@ const RoutesList = () => {
             component: NewIndividualReservation,
             isShown: false,
             requiredPermissions: [
-                { action: "read", subject: "RatePlan" },
-                { action: "create", subject: "Reservation" },
-                { action: "read", subject: "Guest" },
-                { action: "read", subject: "RoomType" },
-                { action: "read", subject: "Room" },
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "RatePlan" },
+                        { action: "create", subject: "Reservation" },
+                        { action: "read", subject: "Guest" },
+                        { action: "read", subject: "RoomType" },
+                        { action: "read", subject: "Room" }
+                    ]
+                }
             ]
         },
         {
@@ -311,10 +360,14 @@ const RoutesList = () => {
             component: AdminDashboard,
             isShown: true,
             isAuthenticated: true,
-            requiredPermissions: [{
-                action: "manage",
-                subject: "all"
-            }],
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "all" }
+                    ]
+                }
+            ],
             subRoutes: [
                 {
                     path: '/roles-permissions',
@@ -323,10 +376,14 @@ const RoutesList = () => {
                     component: Roles,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "Roles"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Roles" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/amenities',
@@ -334,10 +391,14 @@ const RoutesList = () => {
                     icon: <Coffee className=" " />,
                     component: Amenities,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "Amenity"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Amenity" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/rate-plans',
@@ -346,10 +407,14 @@ const RoutesList = () => {
                     component: RatePlans,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "RatePlans"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "RatePlans" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/roomTypes',
@@ -357,10 +422,14 @@ const RoutesList = () => {
                     component: RoomTypes,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "RoomTypes"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "RoomTypes" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/hotel-settings',
@@ -369,10 +438,14 @@ const RoutesList = () => {
                     component: HotelSettingsPage,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "manage",
-                        subject: "Hotel"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "manage", subject: "Hotel" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/exchangeRates',
@@ -381,10 +454,14 @@ const RoutesList = () => {
                     component: ExchangeRates,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "read",
-                        subject: "ExchangeRate"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "ExchangeRate" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/departments',
@@ -393,10 +470,14 @@ const RoutesList = () => {
                     component: Departments,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "manage",
-                        subject: "Departments"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Departments" }
+                            ]
+                        }
+                    ]
                 },
                 {
                     path: '/areas',
@@ -405,10 +486,14 @@ const RoutesList = () => {
                     component: Areas,
                     isAuthenticated: true,
                     isShown: false,
-                    requiredPermissions: [{
-                        action: "manage",
-                        subject: "Area"
-                    }]
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Area" }
+                            ]
+                        }
+                    ]
                 },
             ]
         }

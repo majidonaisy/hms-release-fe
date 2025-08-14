@@ -9,6 +9,11 @@ interface Permission {
   action: string;
 }
 
+interface PermissionGroup {
+  type: 'AND' | 'OR';
+  permissions: Permission[];
+}
+
 interface RoleContextType {
   ability: AppAbility;
   permissions: Permission[];
@@ -18,7 +23,6 @@ interface RoleContextType {
   cannot: (action: string, subject: string) => boolean;
   logout: () => void;
   filterRoutesByPermissions: (routes: any[]) => any[];
-
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -46,6 +50,30 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
     (permission) => permission.action === 'manage' && permission.subject === 'all'
   );
 
+  // Helper function to check if user has required permissions with support for OR logic
+  const hasRequiredPermissions = (requiredPermissions: Permission[] | PermissionGroup[]): boolean => {
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      return true;
+    }
+
+    // Check if it's the old format (array of permissions) - assume AND logic
+    if (Array.isArray(requiredPermissions) && requiredPermissions.length > 0 && 'action' in requiredPermissions[0]) {
+      const permissions = requiredPermissions as Permission[];
+      return permissions.every(permission => can(permission.action, permission.subject));
+    }
+
+    // New format with permission groups
+    const permissionGroups = requiredPermissions as PermissionGroup[];
+    return permissionGroups.every(group => {
+      if (group.type === 'AND') {
+        return group.permissions.every(permission => can(permission.action, permission.subject));
+      } else if (group.type === 'OR') {
+        return group.permissions.some(permission => can(permission.action, permission.subject));
+      }
+      return false;
+    });
+  };
+
   const filterRoutesByPermissions = (routes: any[]): any[] => {
     return routes.filter(route => {
       // If user is admin (has manage all), show everything
@@ -58,17 +86,15 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({ children }) => {
         return true;
       }
 
-      // Check if user has ALL required permissions (AND logic)
-      const hasAllPermissions = route.requiredPermissions.every((permission: any) =>
-        can(permission.action, permission.subject)
-      );
+      // Check if user has required permissions
+      const hasPermissions = hasRequiredPermissions(route.requiredPermissions);
 
       // If route has subroutes, filter them too
-      if (route.subRoutes && hasAllPermissions) {
+      if (route.subRoutes && hasPermissions) {
         route.subRoutes = filterRoutesByPermissions(route.subRoutes);
       }
 
-      return hasAllPermissions;
+      return hasPermissions;
     });
   };
 
