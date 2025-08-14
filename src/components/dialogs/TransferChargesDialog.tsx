@@ -1,26 +1,11 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "../Organisms/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, } from "../Organisms/Dialog";
 import { Button } from "@/components/atoms/Button";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/molecules/Select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, } from "@/components/molecules/Select";
 import { Checkbox } from "@/components/atoms/Checkbox";
 import { Label } from "@/components/atoms/Label";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import {
-    CheckInReservations,
-    TransferItemsResponse,
-} from "@/validation";
+import { CheckInReservations, TransferItemsResponse, } from "@/validation";
 import { getCheckedInReservations } from "@/services/Reservation";
 import { getTransferItems } from "@/services/Charges";
 import { toast } from "sonner";
@@ -156,16 +141,22 @@ const TransferChargesDialog = ({
                             <SelectValue placeholder="Select a reservation" />
                         </SelectTrigger>
                         <SelectContent>
-                            {reservations.length > 0 ? (
-                                reservations.map((res) => (
-                                    <SelectItem key={res.id} value={res.id}>
-                                        {res.rooms.map((room) => room.roomNumber).join(", ")}
-                                    </SelectItem>
-                                ))
+                            {loading ? (
+                                <SelectItem value="loading" disabled>
+                                    Loading...
+                                </SelectItem>
                             ) : (
-                                <div className="px-4 py-2 text-sm text-muted-foreground">
-                                    No checked-in reservations
-                                </div>
+                                reservations.length > 0 ? (
+                                    reservations.map((res) => (
+                                        <SelectItem key={res.id} value={res.id}>
+                                            {res.rooms.map((room) => room.roomNumber).join(", ")}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <div className="px-4 py-2 text-sm text-muted-foreground">
+                                        No checked-in reservations
+                                    </div>
+                                )
                             )}
                         </SelectContent>
                     </Select>
@@ -176,27 +167,32 @@ const TransferChargesDialog = ({
                     <Label className="text-sm text-muted-foreground">Choose What to Transfer</Label>
                     {items.length > 0 ? (
                         <div className="grid gap-2">
-                            {items.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className={cn(
-                                        "flex items-center space-x-3 rounded-md border px-3 py-2 transition-colors",
-                                        selectedItems.includes(item.id)
-                                            ? "bg-muted border-hms-primary"
-                                            : "hover:bg-muted"
-                                    )}
-                                >
-                                    <Checkbox
-                                        id={item.id}
-                                        checked={selectedItems.includes(item.id)}
-                                        onCheckedChange={() => toggleItem(item.id)}
-                                        className="data-[state=checked]:bg-hms-primary"
-                                    />
-                                    <Label htmlFor={item.id} className="cursor-pointer">
-                                        {item.itemType}
-                                    </Label>
-                                </div>
-                            ))}
+                            {loading ? (
+                                <div className="px-4 py-2 text-sm text-muted-foreground">
+                                    Loading...
+                                </div>) : (
+                                items.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={cn(
+                                            "flex items-center space-x-3 rounded-md border px-3 py-2 transition-colors",
+                                            selectedItems.includes(item.id)
+                                                ? "bg-muted border-hms-primary"
+                                                : "hover:bg-muted"
+                                        )}
+                                    >
+                                        <Checkbox
+                                            id={item.id}
+                                            checked={selectedItems.includes(item.id)}
+                                            onCheckedChange={() => toggleItem(item.id)}
+                                            className="data-[state=checked]:bg-hms-primary"
+                                        />
+                                        <Label htmlFor={item.id} className="cursor-pointer">
+                                            {item.itemType}
+                                        </Label>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     ) : (
                         <p className="text-sm text-muted-foreground">No items to transfer</p>
