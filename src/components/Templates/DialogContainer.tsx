@@ -7,6 +7,7 @@ import NewRatePlanDialog from '../dialogs/NewRateplanDialog';
 import NewExchangeRateDialog from '../dialogs/NewExchangeRateDialog';
 import NewRoomTypeDialog from '../dialogs/NewRoomTypeDialog';
 import DepartmentDialog from '../dialogs/NewDepartmentDialog';
+import AreaDialog from '../dialogs/NewAreaDialog';
 
 const DialogContainer: React.FC = () => {
   const { isOpen, dialogType, dialogProps, closeDialog } = useDialog();
@@ -71,7 +72,15 @@ const DialogContainer: React.FC = () => {
             editData={(dialogProps as any).editData}
           />
         );
-
+      case 'area':
+        return (
+          <AreaDialog
+            isOpen={isOpen}
+            onConfirm={(dialogProps as any).onConfirm}
+            onOpenChange={closeDialog}
+            editData={(dialogProps as any).editData}
+          />
+        );
       case 'delete':
         return (
           <DeleteDialog

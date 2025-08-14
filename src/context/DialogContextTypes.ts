@@ -3,7 +3,7 @@ import { AddRoomTypeRequest } from "@/validation/schemas/RoomType";
 import { AddRoleRequest } from "@/validation/schemas/Roles";
 import { ExchangeRateRequest } from "@/validation/schemas/ExchangeRates";
 
-export type DialogType = "roomType" | "amenity" | "ratePlan" | "role" | "delete" | "exchangeRate" | "departments" | null;
+export type DialogType = "roomType" | "amenity" | "ratePlan" | "role" | "delete" | "exchangeRate" | "departments" | "area" | null;
 
 // Define proper types for dialog props
 export type RoomTypeDialogProps = {
@@ -30,6 +30,10 @@ export type DepartmentDialogProps = {
   onConfirm: (data: string) => Promise<boolean>;
 };
 
+export type AreaDialogProps = {
+  onConfirm: (data: string) => Promise<boolean>;
+};
+
 export type DeleteDialogProps = {
   title: string;
   description: string;
@@ -37,7 +41,7 @@ export type DeleteDialogProps = {
 };
 
 // Union type of all possible dialog props
-export type DialogProps = RoomTypeDialogProps | AmenityDialogProps | RatePlanDialogProps | RoleDialogProps | DeleteDialogProps | ExchangeRateProps | DepartmentDialogProps | Record<string, unknown>;
+export type DialogProps = RoomTypeDialogProps | AmenityDialogProps | RatePlanDialogProps | RoleDialogProps | DeleteDialogProps | ExchangeRateProps | DepartmentDialogProps | AreaDialogProps | Record<string, unknown>;
 
 export interface DialogContextType {
   isOpen: boolean;

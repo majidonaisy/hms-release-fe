@@ -16,6 +16,8 @@ import { ExchangeRateRequest, GetExchangeRateResponse } from '@/validation/schem
 import { addExchangeRate, getExchangeRates } from '@/services/ExchangeRates';
 import { getDepartments } from '@/services/Departments';
 import { Departments } from '@/validation/schemas/Departments';
+import { Areas } from '@/validation/schemas/Area';
+import { getAllAreas } from '@/services/Area';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -27,6 +29,11 @@ const Dashboard = () => {
     const [roles, setRoles] = useState<RoleResponse>({ status: 0, data: [] });
     const [exchangeRates, setExchangeRates] = useState<GetExchangeRateResponse>({ status: 0, data: [] });
     const [departments, setDepartments] = useState<Departments>({
+        status: 0,
+        message: '',
+        data: [],
+    });
+    const [areas, setAreas] = useState<Areas>({
         status: 0,
         message: '',
         data: [],
@@ -110,6 +117,22 @@ const Dashboard = () => {
             toast.error(error.userMessage || "Failed to fetch departments");
             // Set an empty data array to prevent undefined errors
             setDepartments({ status: 0, message: '', data: [] });
+        }
+    }
+
+    const fetchAreas = async () => {
+        try {
+            const response = await getAllAreas();
+            if (response && response.status === 200) {
+                setAreas(response);
+            } else {
+                throw new Error("Invalid response format");
+            }
+        } catch (error: any) {
+            console.error("Error fetching areas:", error);
+            toast.error(error.userMessage || "Failed to fetch areas");
+            // Set an empty data array to prevent undefined errors
+            setAreas({ status: 0, message: '', data: [] });
         }
     }
 
@@ -216,6 +239,20 @@ const Dashboard = () => {
             }
         });
     };
+   
+    const handleAreasDialog = () => {
+        openDialog('area', {
+            onConfirm: async () => {
+                try {
+                    await fetchAreas();
+                    return true;
+                } catch (error: any) {
+                    console.error('Error refreshing areas:', error);
+                    throw error;
+                }
+            }
+        });
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -226,7 +263,8 @@ const Dashboard = () => {
             fetchRoles().catch(err => console.error('Roles fetch error:', err)),
             fetchRatePlans().catch(err => console.error('Rate plans fetch error:', err)),
             fetchExchangeRates().catch(err => console.error('Exchange Rate fetch error:', err)),
-            fetchDepartments().catch(err => console.error('Exchange Rate fetch error:', err)),
+            fetchDepartments().catch(err => console.error('Departments fetch error:', err)),
+            fetchAreas().catch(err => console.error('Areas fetch error:', err)),
         ])
             .finally(() => {
                 setLoading(false);
@@ -316,6 +354,18 @@ const Dashboard = () => {
                     onViewClick={() => navigate('/departments')}
                     createButtonText="New Department"
                     viewButtonText="View Departments"
+                />
+                
+                <DashboardCard
+                    title="Areas"
+                    description="Configure sections of the hotel such as the lobby, dining, and recreational facilities."
+                    totalItems={areas.data?.length || 0}
+                    imageSrc="https://images.unsplash.com/photo-1711906439107-9c4f08e8c526?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    imageAlt="Areas"
+                    onCreateClick={handleAreasDialog}
+                    onViewClick={() => navigate('/areas')}
+                    createButtonText="New Area"
+                    viewButtonText="View Areas"
                 />
 
                 <HotelSettingsCard

@@ -1,0 +1,74 @@
+import { apiClient } from "@/api/base";
+import { ENDPOINTS } from "@/api/endpoints";
+import { AddAreaResponse, Areas } from "@/validation/schemas/Area";
+
+const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+
+export const getAllAreas = async (): Promise<Areas> => {
+    try {
+        const response = await apiClient({
+            method: "GET",
+            endpoint: ENDPOINTS.Area.GetAll,
+            baseURL,
+        });
+        return response as Areas;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Failed to get areas";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
+};
+
+export const addArea = async (data: { name: string }): Promise<AddAreaResponse> => {
+    try {
+        const response = await apiClient({
+            method: "POST",
+            endpoint: ENDPOINTS.Area.Add,
+            data,
+            baseURL,
+        });
+        return response as AddAreaResponse;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Failed to add area";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
+};
+
+export const deleteArea = async (id: string): Promise<void> => {
+    try {
+        await apiClient({
+            method: "DELETE",
+            endpoint: `${ENDPOINTS.Area.Delete}/${id}`,
+            baseURL,
+        });
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Failed to delete area";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
+};
+
+export const updateArea = async (id: string, data: { name: string }): Promise<AddAreaResponse> => {
+    try {
+        const response = await apiClient({
+            method: "PUT",
+            endpoint: `${ENDPOINTS.Area.Update}/${id}`,
+            data,
+            baseURL,
+        });
+        return response as AddAreaResponse;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Failed to update area";
+        throw {
+            userMessage: errorMessage,
+            originalError: error,
+        };
+    }
+};
