@@ -28,6 +28,171 @@ const RoutesList = () => {
             isShown: true,
         },
         {
+            path: '/dashboard',
+            title: "Hotel Dashboard",
+            icon: <LayoutDashboard className=" " />,
+            component: AdminDashboard,
+            isShown: true,
+            isAuthenticated: true,
+            requiredPermissions: [
+                {
+                    type: 'OR' as const,
+                    permissions: [
+                        { action: "read", subject: "RoomType" },
+                        { action: "read", subject: "Amenity" },
+                        { action: "read", subject: "RatePlan" },
+                        { action: "read", subject: "Role" },
+                        { action: "read", subject: "ExchangeRate" },
+                        { action: "read", subject: "Area" },
+                    ]
+                }
+            ],
+            subRoutes: [
+                {
+                    path: '/roles-permissions',
+                    title: "Roles",
+                    icon: <ChartColumnBig className=" " />,
+                    component: Roles,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Role" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/amenities',
+                    title: "Amenities",
+                    icon: <Coffee className=" " />,
+                    component: Amenities,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Amenity" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/rate-plans',
+                    title: "Rate Plans",
+                    icon: <DollarSign className=" " />,
+                    component: RatePlans,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "RatePlan" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/roomTypes',
+                    title: "Room Types",
+                    component: RoomTypes,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "RoomType" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/hotel-settings',
+                    title: "Hotel Settings",
+                    icon: <Settings className=" " />,
+                    component: HotelSettingsPage,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "manage", subject: "Hotel" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/exchangeRates',
+                    title: "Exchange Rates",
+                    icon: <Settings className=" " />,
+                    component: ExchangeRates,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "ExchangeRate" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/departments',
+                    title: "Departments",
+                    icon: <Settings className=" " />,
+                    component: Departments,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Departments" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    path: '/areas',
+                    title: "Areas",
+                    icon: <Settings className=" " />,
+                    component: Areas,
+                    isAuthenticated: true,
+                    isShown: false,
+                    requiredPermissions: [
+                        {
+                            type: 'AND' as const,
+                            permissions: [
+                                { action: "read", subject: "Area" }
+                            ]
+                        }
+                    ]
+                },
+            ]
+        },
+        {
+            path: '/calendar',
+            title: "Calendar",
+            icon: <Calendar className=" " />,
+            component: HotelReservationCalendar,
+            isShown: true,
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Reservation" },
+                        { action: "read", subject: "Guest" },
+                    ]
+                }
+            ]
+        },
+        {
             path: "/rooms",
             title: "Rooms",
             icon: <DoorOpen className=" " />,
@@ -200,24 +365,6 @@ const RoutesList = () => {
             ]
         },
         {
-            path: '/calendar',
-            title: "Calendar",
-            icon: <Calendar className=" " />,
-            component: HotelReservationCalendar,
-            isShown: true,
-            requiredPermissions: [
-                {
-                    type: 'AND' as const,
-                    permissions: [
-                        { action: "read", subject: "Reservation" },
-                        { action: "read", subject: "Guest" },
-                        { action: "read", subject: "Room" },
-                        { action: "read", subject: "RoomType" }
-                    ]
-                }
-            ]
-        },
-        {
             path: '/team-members',
             title: "Team Members",
             icon: <UserCog className=" " />,
@@ -353,150 +500,6 @@ const RoutesList = () => {
                 }
             ]
         },
-        {
-            path: '/dashboard',
-            title: "Admin Dashboard",
-            icon: <LayoutDashboard className=" " />,
-            component: AdminDashboard,
-            isShown: true,
-            isAuthenticated: true,
-            requiredPermissions: [
-                {
-                    type: 'AND' as const,
-                    permissions: [
-                        { action: "read", subject: "all" }
-                    ]
-                }
-            ],
-            subRoutes: [
-                {
-                    path: '/roles-permissions',
-                    title: "Roles",
-                    icon: <ChartColumnBig className=" " />,
-                    component: Roles,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "Roles" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/amenities',
-                    title: "Amenities",
-                    icon: <Coffee className=" " />,
-                    component: Amenities,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "Amenity" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/rate-plans',
-                    title: "Rate Plans",
-                    icon: <DollarSign className=" " />,
-                    component: RatePlans,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "RatePlans" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/roomTypes',
-                    title: "Room Types",
-                    component: RoomTypes,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "RoomTypes" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/hotel-settings',
-                    title: "Hotel Settings",
-                    icon: <Settings className=" " />,
-                    component: HotelSettingsPage,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "manage", subject: "Hotel" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/exchangeRates',
-                    title: "Exchange Rates",
-                    icon: <Settings className=" " />,
-                    component: ExchangeRates,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "ExchangeRate" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/departments',
-                    title: "Departments",
-                    icon: <Settings className=" " />,
-                    component: Departments,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "Departments" }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    path: '/areas',
-                    title: "Areas",
-                    icon: <Settings className=" " />,
-                    component: Areas,
-                    isAuthenticated: true,
-                    isShown: false,
-                    requiredPermissions: [
-                        {
-                            type: 'AND' as const,
-                            permissions: [
-                                { action: "read", subject: "Area" }
-                            ]
-                        }
-                    ]
-                },
-            ]
-        }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
         )

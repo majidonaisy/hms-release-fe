@@ -42,6 +42,18 @@ export const ReservationResponseShape = z.object({
               checkInTime: z.date(),
               createdBy: z.string(),
               updatedBy: z.string().nullable(),
+              guest: z.object({
+                id: z.string(),
+                firstName: z.string(),
+                lastName: z.string(),
+                email: z.string(),
+                phoneNumber: z.string(),
+                nationality: z.string(),
+                identification: z.object({
+                  type: z.string(),
+                  number: z.string()
+                })
+              }),
               createdByUser: z.object({
                 id: z.string(),
                 firstName: z.string(),

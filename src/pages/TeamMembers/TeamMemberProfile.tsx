@@ -247,8 +247,8 @@ const TeamMemberProfile = () => {
                                     {isEditMode ? `${formData.firstName} ${formData.lastName}` : `${teamMember.firstName} ${teamMember.lastName}`}
                                 </p>
                                 <div className="text-center">
-                                    <Badge className={`${getStatusColor(teamMember.isActive)} border-0 mb-2`}>
-                                        • {teamMember.isActive ? 'Active' : 'Inactive'}
+                                    <Badge className={`${getStatusColor(teamMember.isOnline)} border-0 mb-2`}>
+                                        • {teamMember.isOnline ? 'Online' : 'Offline'}
                                     </Badge>
                                 </div>
 

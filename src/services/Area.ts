@@ -4,12 +4,13 @@ import { AddAreaResponse, Areas } from "@/validation/schemas/Area";
 
 const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
 
-export const getAllAreas = async (): Promise<Areas> => {
+export const getAllAreas = async (params?: string): Promise<Areas> => {
     try {
         const response = await apiClient({
             method: "GET",
             endpoint: ENDPOINTS.Area.GetAll,
             baseURL,
+            params
         });
         return response as Areas;
     } catch (error: any) {

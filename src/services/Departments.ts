@@ -4,12 +4,13 @@ import { AddDepartmentResponse, Departments } from "@/validation/schemas/Departm
 
 const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
 
-export const getDepartments = async (): Promise<Departments> => {
+export const getDepartments = async (params?: string): Promise<Departments> => {
     try {
         const response = await apiClient({
             method: "GET",
             endpoint: ENDPOINTS.Departments.Manage,
             baseURL,
+            params
         });
         return response as Departments;
     } catch (error: any) {
