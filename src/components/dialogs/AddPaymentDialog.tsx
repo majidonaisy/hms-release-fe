@@ -448,178 +448,179 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Left Column - Select Charge/s */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Select Charge/s</h3>
+                    <ScrollArea className='h-[17rem]'>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Left Column - Select Charge/s */}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4">Select Charge/s</h3>
 
-                            {/* Search and Sort */}
-                            <div className="border p-2">
-                                <div className="flex gap-2 mb-4">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                        <Input
-                                            placeholder="Search by charge type"
-                                            value={searchText}
-                                            onChange={(e) => setSearchText(e.target.value)}
-                                            className="pl-9"
-                                        />
+                                {/* Search and Sort */}
+                                <div className="border p-2">
+                                    <div className="flex gap-2 mb-4">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                            <Input
+                                                placeholder="Search by charge type"
+                                                value={searchText}
+                                                onChange={(e) => setSearchText(e.target.value)}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex items-center gap-2"
+                                            onClick={() => setSortBy(sortBy === 'name' ? 'amount' : 'name')}
+                                        >
+                                            <ArrowUpDown className="h-4 w-4" />
+                                            Sort by {sortBy === 'name' ? 'Amount' : 'Type'}
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-2"
-                                        onClick={() => setSortBy(sortBy === 'name' ? 'amount' : 'name')}
-                                    >
-                                        <ArrowUpDown className="h-4 w-4" />
-                                        Sort by {sortBy === 'name' ? 'Amount' : 'Type'}
-                                    </Button>
-                                </div>
 
-                                {/* Charge Items List */}
-                                <ScrollArea className="h-36 ">
-                                    <div className="space-y-2">
-                                        {filteredAndSortedItems.map((item) => {
-                                            const isSelected = selectedItems.find(selected => selected.id === item.id);
-                                            const itemAmount = parseFloat(item.amount);
-                                            const isPaid = item.status === 'PAID';
+                                    {/* Charge Items List */}
+                                    <ScrollArea className="h-36 ">
+                                        <div className="space-y-2">
+                                            {filteredAndSortedItems.map((item) => {
+                                                const isSelected = selectedItems.find(selected => selected.id === item.id);
+                                                const itemAmount = parseFloat(item.amount);
+                                                const isPaid = item.status === 'PAID';
 
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className={`flex items-center justify-between rounded-lg cursor-pointer transition-colors ${isPaid
-                                                        ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                                                        : 'hover:bg-gray-50'
-                                                        }`}
-                                                    onClick={() => !isPaid && handleItemToggle(item)}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <Checkbox
-                                                            checked={!!isSelected}
-                                                            disabled={isPaid}
-                                                            className={`data-[state=checked]:bg-hms-primary ${isPaid ? 'opacity-50 cursor-not-allowed' : ''
-                                                                }`}
-                                                            onChange={() => !isPaid && handleItemToggle(item)}
-                                                        />
-                                                        <div className="flex flex-col">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className={`font-medium text-sm ${isPaid ? 'text-gray-500' : ''
-                                                                    }`}>
-                                                                    {item.itemType}
-                                                                </span>
-                                                                {isPaid && (
-                                                                    <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
-                                                                        PAID
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        className={`flex items-center justify-between rounded-lg cursor-pointer transition-colors ${isPaid
+                                                            ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                                                            : 'hover:bg-gray-50'
+                                                            }`}
+                                                        onClick={() => !isPaid && handleItemToggle(item)}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <Checkbox
+                                                                checked={!!isSelected}
+                                                                disabled={isPaid}
+                                                                className={`data-[state=checked]:bg-hms-primary ${isPaid ? 'opacity-50 cursor-not-allowed' : ''
+                                                                    }`}
+                                                                onChange={() => !isPaid && handleItemToggle(item)}
+                                                            />
+                                                            <div className="flex flex-col">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`font-medium text-sm ${isPaid ? 'text-gray-500' : ''
+                                                                        }`}>
+                                                                        {item.itemType}
                                                                     </span>
-                                                                )}
+                                                                    {isPaid && (
+                                                                        <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                                                                            PAID
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
+                                                                    }`}>
+                                                                    <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
+                                                                    <p>Added By:
+                                                                        {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
+                                                                    </p>
+                                                                </span>
                                                             </div>
-                                                            <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
-                                                                }`}>
-                                                                <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
-                                                                <p>Added By:
-                                                                    {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
-                                                                </p>
-                                                            </span>
                                                         </div>
+                                                        <span className={`font-semibold ${isPaid ? 'text-gray-400' : 'text-hms-accent'
+                                                            }`}>
+                                                            ${itemAmount.toFixed(2)} USD
+                                                        </span>
                                                     </div>
-                                                    <span className={`font-semibold ${isPaid ? 'text-gray-400' : 'text-hms-accent'
-                                                        }`}>
-                                                        ${itemAmount.toFixed(2)} USD
-                                                    </span>
+                                                );
+                                            })}
+                                            {filteredAndSortedItems.length === 0 && (
+                                                <div className="text-center text-gray-500 py-8">
+                                                    No charges found
                                                 </div>
-                                            );
-                                        })}
-                                        {filteredAndSortedItems.length === 0 && (
-                                            <div className="text-center text-gray-500 py-8">
-                                                No charges found
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
+                                {/* Total Amount */}
+                                <Separator className="my-4" />
+                                <div className="flex justify-between items-center text-lg font-bold bg-hms-accent/15 p-3 rounded-lg">
+                                    <span>Selected Total</span>
+                                    <span className="text-hms-primary">{formatCurrency(totalAmount, baseCurrency)}</span>
+                                </div>
+                            </div>
+
+                            {/* Right Column - Payment Method and Notes */}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
+
+                                <div className="space-y-4">
+                                    {/* Currency Selection */}
+                                    <div>
+                                        <Label htmlFor="currency">Currency</Label>
+                                        <div className='flex items-center gap-2'>
+
+                                            <Input
+                                                id="exchangeRate"
+                                                type="text"
+                                                value={loadingExchangeRate ? '' : formatNumber(exchangeRate)}
+                                                placeholder={loadingExchangeRate ? 'Loading...' : `0.00 ${selectedCurrency}`}
+                                                disabled
+                                                className="text-right font-mono"
+                                            />
+
+                                            <Select value={selectedCurrency} onValueChange={(code) => {
+                                                setSelectedCurrency(code);
+
+                                                if (code === baseCurrency) {
+                                                    setExchangeRate(totalAmount);
+                                                } else if (totalAmount > 0) {
+                                                    convert(baseCurrency, code, totalAmount);
+                                                }
+                                            }}>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select currency" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {currencies.map((currency) => (
+                                                        <SelectItem key={currency.code} value={currency.code}>
+                                                            {currency.code} - {currency.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+
+                                        </div>
                                     </div>
-                                </ScrollArea>
-                            </div>
-                            {/* Total Amount */}
-                            <Separator className="my-4" />
-                            <div className="flex justify-between items-center text-lg font-bold bg-hms-accent/15 p-3 rounded-lg">
-                                <span>Selected Total</span>
-                                <span className="text-hms-primary">{formatCurrency(totalAmount, baseCurrency)}</span>
-                            </div>
-                        </div>
 
-                        {/* Right Column - Payment Method and Notes */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-
-                            <div className="space-y-4">
-                                {/* Currency Selection */}
-                                <div>
-                                    <Label htmlFor="currency">Currency</Label>
-                                    <div className='flex items-center gap-2'>
-
-                                        <Input
-                                            id="exchangeRate"
-                                            type="text"
-                                            value={loadingExchangeRate ? '' : formatNumber(exchangeRate)}
-                                            placeholder={loadingExchangeRate ? 'Loading...' : `0.00 ${selectedCurrency}`}
-                                            disabled
-                                            className="text-right font-mono"
-                                        />
-
-                                        <Select value={selectedCurrency} onValueChange={(code) => {
-                                            setSelectedCurrency(code);
-
-                                            if (code === baseCurrency) {
-                                                setExchangeRate(totalAmount);
-                                            } else if (totalAmount > 0) {
-                                                convert(baseCurrency, code, totalAmount);
-                                            }
-                                        }}>
+                                    {/* Payment Method Selection */}
+                                    <div>
+                                        <Label htmlFor="paymentMethod">Payment Method</Label>
+                                        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select currency" />
+                                                <SelectValue placeholder="Select payment method" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {currencies.map((currency) => (
-                                                    <SelectItem key={currency.code} value={currency.code}>
-                                                        {currency.code} - {currency.name}
+                                                {paymentMethods.map((method) => (
+                                                    <SelectItem key={method.value} value={method.value}>
+                                                        {method.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-
                                     </div>
-                                </div>
 
-                                {/* Payment Method Selection */}
-                                <div>
-                                    <Label htmlFor="paymentMethod">Payment Method</Label>
-                                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select payment method" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {paymentMethods.map((method) => (
-                                                <SelectItem key={method.value} value={method.value}>
-                                                    {method.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {/* Notes */}
-                                <div>
-                                    <Label htmlFor="notes">Notes</Label>
-                                    <Textarea
-                                        id="notes"
-                                        placeholder="Add any additional notes about this payment..."
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        className="min-h-32"
-                                    />
+                                    {/* Notes */}
+                                    <div>
+                                        <Label htmlFor="notes">Notes</Label>
+                                        <Textarea
+                                            id="notes"
+                                            placeholder="Add any additional notes about this payment..."
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            className="min-h-32"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
+                    </ScrollArea>
                     {/* Confirm Payment Button - Always Visible */}
                     <div className="flex justify-center mt-6 pt-4 border-t bg-white sticky bottom-0">
                         <Button
