@@ -57,15 +57,13 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
         "Reservation",
         "ExchangeRate",
         "Folio",
-        "POSOutlet",
         "RatePlan",
         "HouseKeeping",
         "Maintenance",
         "GroupProfile",
         "GroupBooking",
         "FolioItem",
-        "Payout",
-        "Area"
+        "Area",
     ];
     const [searchBySubject, setSearchBySubject] = useState("all");
     const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]); // Track open accordion items
