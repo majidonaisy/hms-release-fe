@@ -76,6 +76,13 @@ const Areas = () => {
             key: 'name',
             label: 'Name',
         },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (item) => (
+                <div>{item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('_', ' ').toLowerCase()}</div>
+            ),
+        }
     ];
 
     const actions = [
@@ -85,6 +92,8 @@ const Areas = () => {
                 e.stopPropagation();
                 handleEditArea(item);
             },
+            action: "update",
+            subject: "Area"
         }
     ];
 
@@ -98,16 +107,21 @@ const Areas = () => {
             actions={actions}
             primaryAction={{
                 label: 'Add Area',
-                onClick: handleAddArea
+                onClick: handleAddArea,
+                action: 'create',
+                subject: "Area"
             }}
             deleteConfig={{
                 onDelete: handleDeleteArea,
                 getDeleteTitle: () => 'Delete Area',
                 getDeleteDescription: (item: any | null) => item ? `Are you sure you want to delete "${item.name}"? This action cannot be undone.` : 'Are you sure you want to delete this area? This action cannot be undone.',
                 getItemName: (item: any | null) => item ? item.name : 'this area',
+                action: "delete",
+                subject: 'Area'
             }}
             showBackButton
             onBackClick={() => navigate(-1)}
+            showSearch={false}
         />
     );
 };

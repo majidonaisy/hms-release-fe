@@ -21,7 +21,7 @@ export const getAllAreas = async (): Promise<Areas> => {
     }
 };
 
-export const addArea = async (data: { name: string }): Promise<AddAreaResponse> => {
+export const addArea = async (data: { name: string; status: string }): Promise<AddAreaResponse> => {
     try {
         const response = await apiClient({
             method: "POST",
@@ -55,7 +55,7 @@ export const deleteArea = async (id: string): Promise<void> => {
     }
 };
 
-export const updateArea = async (id: string, data: { name: string }): Promise<AddAreaResponse> => {
+export const updateArea = async (id: string, data: { name: string; status: string }): Promise<AddAreaResponse> => {
     try {
         const response = await apiClient({
             method: "PUT",
