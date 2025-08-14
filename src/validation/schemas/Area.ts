@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const AreaSchema = z.object({
     id: z.string(),
     name: z.string(),
+    status: z.enum(["AVAILABLE", "IN_USE", "MAINTENANCE", "OUT_OF_SERVICE"]),
 });
 
 export const AreasSchema = z.object({
@@ -17,6 +18,7 @@ export const AddAreaResponseSchema = z.object({
     data: z.object({
         id: z.string(),
         name: z.string(),
+        status: z.enum(["AVAILABLE", "IN_USE", "MAINTENANCE", "OUT_OF_SERVICE"]),
         hotelId: z.string(),
         createdAt: z.date(),
         updatedAt: z.date()

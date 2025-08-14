@@ -1,3 +1,13 @@
+export interface Permission {
+  action: string;
+  subject: string;
+}
+
+export interface PermissionGroup {
+  type: 'AND' | 'OR';
+  permissions: Permission[];
+}
+
 export interface HomeRouteConfig {
   path: string;
   title?: string;
@@ -6,22 +16,19 @@ export interface HomeRouteConfig {
   icon?: React.ReactNode;
   isAuthenticated?: boolean;
   subRoutes?: HomeRouteConfig[];
-  requiredPermissions?: {
-    action: string;
-    subject: string;
-  }[];
+  requiredPermissions?: Permission[] | PermissionGroup[];
 }
 
-const createHomeRoute = (path: string,title:string,
-   component: React.ComponentType,
-    isShown: boolean,
-    icon: React.ReactNode,
-    isAuthenticated?: boolean,
-    requiredPermissions?: {
-      action: string;
-      subject: string;
-    }[],
-    subRoutes: HomeRouteConfig[] = []): HomeRouteConfig => {
+const createHomeRoute = (
+  path: string,
+  title: string,
+  component: React.ComponentType,
+  isShown: boolean,
+  icon: React.ReactNode,
+  isAuthenticated?: boolean,
+  requiredPermissions?: Permission[] | PermissionGroup[],
+  subRoutes: HomeRouteConfig[] = []
+): HomeRouteConfig => {
   return {
     path,
     title,

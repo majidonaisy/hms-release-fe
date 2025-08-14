@@ -6,23 +6,26 @@ import { Label } from '@/components/atoms/Label';
 import { Loader2, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addArea, updateArea } from '@/services/Area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../molecules/Select';
 
 interface AreaDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
     onConfirm?: () => void;
-    editData?: { id: string; name: string } | null;
+    editData?: { id: string; name: string; status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE' | 'OUT_OF_SERVICE' } | null;
 }
 
 const AreaDialog = ({ isOpen, onOpenChange, onConfirm, editData }: AreaDialogProps) => {
     const isEditMode = !!editData;
     const [name, setName] = useState('');
+    const [status, setStatus] = useState('AVAILABLE');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
             setName(editData?.name || '');
+            setStatus(editData?.status || 'AVAILABLE');
             setError('');
         }
     }, [isOpen, editData]);
@@ -38,10 +41,10 @@ const AreaDialog = ({ isOpen, onOpenChange, onConfirm, editData }: AreaDialogPro
         setIsSubmitting(true);
         try {
             if (isEditMode && editData) {
-                await updateArea(editData.id, { name });
+                await updateArea(editData.id, { name, status });
                 toast.success('Area updated successfully');
             } else {
-                await addArea({ name });
+                await addArea({ name, status });
                 toast.success('Area added successfully');
             }
 
@@ -50,6 +53,7 @@ const AreaDialog = ({ isOpen, onOpenChange, onConfirm, editData }: AreaDialogPro
             }
 
             setName('');
+            setStatus('');
             setError('');
 
             onOpenChange(false);
@@ -68,7 +72,7 @@ const AreaDialog = ({ isOpen, onOpenChange, onConfirm, editData }: AreaDialogPro
                     <DialogDescription>
                         {isEditMode
                             ? 'Update the area details below.'
-                            : 'Enter the name of the new area you want to add.'}
+                            : 'Enter the data of the new area you want to add.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -90,6 +94,24 @@ const AreaDialog = ({ isOpen, onOpenChange, onConfirm, editData }: AreaDialogPro
                                     {error}
                                 </div>
                             )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="priority">Status</Label>
+                            <Select
+                                value={status}
+                                onValueChange={setStatus}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Low, Medium or High" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="AVAILABLE">Available</SelectItem>
+                                    <SelectItem value="IN_USE">In Use</SelectItem>
+                                    <SelectItem value="OUT_OF_SERVICE">Out of Service</SelectItem>
+                                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
