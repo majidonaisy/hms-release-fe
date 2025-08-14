@@ -5,6 +5,7 @@ export const RoleShape = z.object({
     id: z.string(),
     name: z.string(),
     hotelId: z.string(),
+    isTemplate: z.boolean(),
     permissions: z.array(z.object({
         id: z.string(),
         subject: z.string(),
