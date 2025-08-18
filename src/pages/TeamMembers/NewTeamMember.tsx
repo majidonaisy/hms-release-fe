@@ -23,6 +23,7 @@ interface Role {
         subject: string;
         action: string;
     }>;
+    isTemplate: boolean
 }
 
 const NewTeamMember = () => {
@@ -243,7 +244,7 @@ const NewTeamMember = () => {
 
                             <div className='space-y-1'>
                                 <Label>
-                                    Password 
+                                    Password
                                 </Label>
                                 <Input
                                     type='password'
@@ -271,7 +272,9 @@ const NewTeamMember = () => {
                                 <SelectContent>
                                     {roles.map((role) => (
                                         <SelectItem key={role.id} value={role.id}>
-                                            {role.name}
+                                            {role.name} {role.isTemplate && (
+                                                <p className='text-xs text-muted-foreground'>(Template Role)</p>
+                                            )}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

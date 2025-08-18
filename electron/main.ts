@@ -37,13 +37,33 @@ function createWindow() {
   win.maximize();
 
   win.webContents.on("did-finish-load", () => {
-    win?.webContents.send("main-process-message", new Date().toLocaleString());
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("main-process-message", new Date().toLocaleString());
+    }
+  });
+
+  // Add error handling for failed loads
+  win.webContents.on('did-fail-load', (_event, _errorCode, errorDescription, validatedURL) => {
+    console.log('Failed to load:', validatedURL, errorDescription);
+    // Fallback to index.html for client-side routing
+    if (!VITE_DEV_SERVER_URL && win && !win.isDestroyed()) {
+      win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    }
   });
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
+
+    // Handle navigation attempts for client-side routing
+    win.webContents.on('will-navigate', (event, navigationUrl) => {
+      const parsedUrl = new URL(navigationUrl);
+      if (parsedUrl.protocol === 'file:' && win && !win.isDestroyed()) {
+        event.preventDefault();
+        win.loadFile(path.join(RENDERER_DIST, "index.html"));
+      }
+    });
   }
 
   // Handle window close event
@@ -54,8 +74,10 @@ function createWindow() {
 
       console.log("🔴 Window closing - initiating logout sequence...");
 
-      // Send logout signal to renderer
-      win?.webContents.send("app-closing");
+      // Send logout signal to renderer - with null check
+      if (win && !win.isDestroyed()) {
+        win.webContents.send("app-closing");
+      }
 
       // Set timeout as fallback
       setTimeout(() => {
@@ -63,7 +85,7 @@ function createWindow() {
         isQuitting = true;
         logoutInProgress = false;
         app.quit();
-      }, 8000); // 8 seconds should be enough
+      }, 8000);
     }
   });
 

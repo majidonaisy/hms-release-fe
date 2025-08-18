@@ -122,7 +122,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               reservationsWithGuestNames.push({
                 id: mappedReservation.id,
                 resourceId: room.id,
-                guestName: `${mappedReservation.guest.firstName}${mappedReservation.guest.lastName}`,
+                guestName: `${mappedReservation.guest.firstName} ${mappedReservation.guest.lastName}`,
                 bookingId: reservation.id,
                 start: new Date(mappedReservation.checkIn),
                 end: new Date(mappedReservation.checkOut),

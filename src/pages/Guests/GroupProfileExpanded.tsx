@@ -229,7 +229,6 @@ const GroupProfileExpanded = () => {
         });
     };
 
-
     if (loading && !group) {
         return (
             <EditingSkeleton />
@@ -571,44 +570,46 @@ const GroupProfileExpanded = () => {
 
                 <Card className="p-3">
                     <CardHeader className="p-0">
-                        <CardTitle className="font-bold text-lg p-0 pb-1 border-b">
+                        <CardTitle className="font-bold text-lg p-0 pb-1 border-b flex gap-2 items-center">
                             Reservation History
+                            <p className="text-sm text-muted-foreground font-normal">(last 5 reservations)</p>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-3 px-0'>
                         {reservationData && (
-                            // (reservationData?.data.map((reservation) => (
-                            <Card key={reservationData.data.id} className='bg-hms-accent/15 px-2 gap-2'>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <DoorOpen className='size-4' />
-                                        Room(s):
-                                    </p>
-                                    <span className='text-sm'>
-                                        {reservationData.data.rooms.map((room) => (
-                                            <p key={room.id}>{room.roomNumber}</p>
-                                        ))}
+                            (reservationData?.data.map((reservation) => (
+                                <Card key={reservation.id} className='bg-hms-accent/10 px-2 gap-2'>
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <DoorOpen className='size-4' />
+                                            Room(s):
+                                        </p>
+                                        <span className='text-sm'>
+                                            {reservation.rooms.map((room) => (
+                                                <p key={room.id}>{room.roomNumber}</p>
+                                            ))}
+                                        </span>
                                     </span>
-                                </span>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <Calendar1 className='size-4' />
-                                        Stay Dates:
-                                    </p>
-                                    <p className='text-sm'>
-                                        {formatHistoryDate(reservationData.data.checkIn)} - {formatHistoryDate(reservationData.data.checkOut)}
-                                    </p>
-                                </span>
-                                <span className='flex justify-between'>
-                                    <p className='flex gap-1 items-center font-semibold'>
-                                        <Pin className='size-4' />
-                                        Status:
-                                    </p>
-                                    <p className='text-sm'>
-                                        {reservationData.data.status.replace('_', ' ').charAt(0) + reservationData.data.status.slice(1).replace('_', " ").toLowerCase()}
-                                    </p>
-                                </span>
-                            </Card>)}
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <Calendar1 className='size-4' />
+                                            Stay Dates:
+                                        </p>
+                                        <p className='text-sm'>
+                                            {formatHistoryDate(reservation.checkIn)} - {formatHistoryDate(reservation.checkOut)}
+                                        </p>
+                                    </span>
+                                    <span className='flex justify-between'>
+                                        <p className='flex gap-1 items-center font-semibold'>
+                                            <Pin className='size-4' />
+                                            Status:
+                                        </p>
+                                        <p className='text-sm'>
+                                            {reservation.status.replace('_', ' ').charAt(0) + reservation.status.slice(1).replace('_', " ").toLowerCase()}
+                                        </p>
+                                    </span>
+                                </Card>
+                            ))))}
                     </CardContent>
                 </Card>
             </div>
