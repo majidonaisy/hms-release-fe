@@ -224,8 +224,7 @@ export const GetReservationByGroupIdSchema = z.object({
         email: z.string(),
         phone: 7897989
       })
-    })
-  )
+    }))
 })
 
 const ReservationByIdShape = z.object({

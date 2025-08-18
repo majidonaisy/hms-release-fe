@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
-import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, ArrowRightLeft, } from "lucide-react"
+import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, ArrowRightLeft, User, } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
 import { Guest } from "@/validation/schemas/Guests"
@@ -49,7 +49,7 @@ const ChooseReservationOptionDialog = ({
     cancelReservation: () => void
     viewReservation: () => void
     createdByUser: string,
-    checkedInAt: Date,
+    checkedInAt: Date | null,
     transferCharge: () => void
 }) => {
     const [guestData, setGuestData] = useState<Guest | null>(null)
@@ -102,7 +102,7 @@ const ChooseReservationOptionDialog = ({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="px-0">
-                <DialogHeader className="px-6 pb-4">
+                <DialogHeader className="px-6">
                     <div className="flex items-center justify-between">
                         <DialogTitle className="text-xl font-semibold text-gray-900">{guestName}'s Reservation</DialogTitle>
                     </div>
@@ -126,10 +126,19 @@ const ChooseReservationOptionDialog = ({
                                 Booked By: {createdByUser}
                             </span>
                         </div>
+                        {checkedInAt && (
+                            <div className="flex items-center gap-2">
+                                <CalendarClock className="size-4" />
+                                <span>
+                                    Checked In At: {formatCheckedInDate(checkedInAt)}
+                                </span>
+                            </div>
+                        )}
+
                         <div className="flex items-center gap-2">
-                            <CalendarClock className="size-4" />
+                            <User className="size-4" />
                             <span>
-                                Checked In At: {formatCheckedInDate(checkedInAt)}
+                                Guest ID: {guestData?.gid}
                             </span>
                         </div>
                     </div>
