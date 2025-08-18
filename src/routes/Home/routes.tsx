@@ -188,6 +188,8 @@ const RoutesList = () => {
                     permissions: [
                         { action: "read", subject: "Reservation" },
                         { action: "read", subject: "Guest" },
+                        { action: "read", subject: "Room" },
+                        { action: "read", subject: "RoomType" },
                     ]
                 }
             ]
@@ -204,7 +206,6 @@ const RoutesList = () => {
                     type: 'AND' as const,
                     permissions: [
                         { action: "read", subject: "Room" },
-                        { action: "read", subject: "RoomType" }
                     ]
                 }
             ],
@@ -237,16 +238,11 @@ const RoutesList = () => {
                 {
                     type: 'AND' as const,
                     permissions: [
-                        { action: "read", subject: "Reservation" }
-                    ]
-                },
-                {
-                    type: 'OR' as const,
-                    permissions: [
+                        { action: "read", subject: "Reservation" },
                         { action: "read", subject: "Guest" },
                         { action: "read", subject: "GroupProfile" }
                     ]
-                }
+                },
             ]
         },
         {
@@ -430,7 +426,6 @@ const RoutesList = () => {
                 },
             ]
         },
-
         {
             path: '/maintenance',
             title: "Maintenance",

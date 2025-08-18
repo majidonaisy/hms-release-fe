@@ -115,6 +115,9 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
     useEffect(() => {
         if (isOpen) {
             if (isEditMode && editData) {
+                // Determine isExternal based on whether userId exists
+                const hasAssignee = Boolean(editData.userId);
+
                 setFormData({
                     id: editData.id || '',
                     areaTypeId: editData.areaTypeId || '',
@@ -125,7 +128,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                     userId: editData.userId || '',
                     photos: editData.photos || [],
                     frequency: editData.frequency || '',
-                    isExternal: editData.isExternal || false,
+                    isExternal: hasAssignee, // Set to true if there's a userId, false otherwise
                 });
             } else {
                 setFormData({
@@ -154,6 +157,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             ...prev,
             [field]: value,
             ...(field === 'areaTypeId' && { areaId: '', roomId: '' }), // reset selects on areaType change
+            // If isExternal is toggled off, clear userId
+            ...(field === 'isExternal' && !value && { userId: '' }),
         }));
     };
 
@@ -203,6 +208,11 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
             return;
         }
 
+        if (formData.isExternal && !formData.userId) {
+            toast.error('Please select an assignee');
+            return;
+        }
+
         setLoading(true);
         try {
             const submitData = {
@@ -210,6 +220,8 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                 ...(formData.areaTypeId === 'ROOM'
                     ? { roomId: formData.roomId, areaId: undefined }
                     : { areaId: formData.areaId, roomId: undefined }),
+                isExternal: Boolean(formData.userId),
+                userId: formData.isExternal ? formData.userId : undefined,
             };
 
             await onConfirm(submitData);
@@ -483,7 +495,7 @@ const NewMaintenanceDialog: React.FC<NewMaintenanceDialogProps> = ({
                                             onClick={() => removePhoto(index)}
                                             className="absolute -top-1 -right-1 rounded-full p-1 text-xs"
                                         >
-                                            <X className="h-3 w-3" />
+                                            <X className="h-3 w-4" />
                                         </button>
                                     </div>
                                 ))}

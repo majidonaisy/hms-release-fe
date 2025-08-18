@@ -543,8 +543,9 @@ const GuestProfileView = () => {
 
                 <Card className="p-3">
                     <CardHeader className='p-0'>
-                        <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
+                        <CardTitle className="font-bold text-lg p-0 pb-1 border-b flex gap-2 items-center">
                             Reservation History
+                            <p className="text-sm text-muted-foreground font-normal">(last 5 reservations)</p>
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="flex items-center rounded-lg border px-1">
