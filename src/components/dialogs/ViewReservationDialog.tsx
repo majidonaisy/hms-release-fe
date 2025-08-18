@@ -1,13 +1,14 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
-import { Badge } from "@/components/atoms/Badge"
 import { Separator } from "@/components/atoms/Separator"
 import { format } from "date-fns"
-import { User, MapPin, Calendar, Users, FileText, Loader2, AlertCircle, ArrowLeft, Pencil, CalendarClock } from "lucide-react"
 import { GetReservationById } from "@/validation"
 import { getReservationById } from "@/services/Reservation"
 import { Button } from "../atoms/Button"
+import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
+import { Badge } from "../atoms/Badge"
+import { store } from "@/redux/store"
 
 interface ViewReservationDialogProps {
     open: boolean
@@ -22,6 +23,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
     const [reservation, setReservation] = useState<GetReservationById['data'] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const baseCurrency = store.getState().currency.currency || 'USD';
 
     useEffect(() => {
         if (open && reservationId) {
@@ -38,7 +40,6 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
             const reservationData = "data" in response ? response.data : response
             if (reservationData) {
                 setReservation(reservationData)
-                console.log(reservationData)
             }
         } catch (err: any) {
             setError(err.userMessage || "Failed to load reservation")
@@ -78,7 +79,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className=" flex flex-col !max-w-2xl">
+            <DialogContent className=" flex flex-col !max-w-xl">
                 <DialogHeader className="flex-shrink-0 pb-4">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-row">
@@ -93,9 +94,11 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
-                            <DialogTitle className="text-2xl font-semibold">Reservation</DialogTitle>
+                            <DialogTitle className="text-2xl font-semibold">
+                                <p>Reservation</p>
+                                <DialogDescription className="text-sm text-muted-foreground mt-1">#{reservationId}</DialogDescription>
+                            </DialogTitle>
                         </div>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">#{reservationId}</DialogDescription>
 
                     </div>
                 </DialogHeader>
@@ -117,20 +120,11 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                         </div>
                     ) : reservation ? (
                         <div className="space-y-6">
-                            {/* Status Badge */}
-                            <div className="flex justify-start">
-                                <Badge className={getStatusBadgeVariant(reservation.status)}>
-                                    {reservation.status.replace("_", " ")}
-                                </Badge>
-                            </div>
 
-                            {/* Main Information Grid */}
-                            <h1 className="text-lg font-semibold">Reservation Info</h1>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Guest Information */}
-                                <div className="space-y-2">
+                                <div className="">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <User className="h-4 w-4" />
                                         Guest
                                     </div>
                                     <div className="text-lg font-semibold">
@@ -139,9 +133,8 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                 </div>
 
                                 {/* Room Type */}
-                                <div className="space-y-2">
+                                <div className="">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <MapPin className="h-4 w-4" />
                                         Room
                                     </div>
                                     <div className="text-lg font-semibold">{reservation.rooms.map((room) => (
@@ -149,9 +142,8 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                     ))}</div>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <Pencil className="h-4 w-4" />
                                         Booked By
                                     </div>
                                     <div className="text-lg font-semibold">
@@ -159,25 +151,23 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <CalendarClock className="h-4 w-4" />
                                         Checked In At
                                     </div>
                                     <div className="text-lg font-semibold">
                                         {formatCheckedInDate(checkedInAt)}
                                     </div>
                                 </div>
-                            </div>
+                            </div>  
 
                             <Separator />
 
                             {/* Stay Information Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-hms-accent/15 p-2 rounded-lg">
                                 {/* Stay Info */}
                                 <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <Calendar className="h-4 w-4" />
+                                    <div className="flex items-center gap-2 font-medium text-muted-foreground">
                                         Stay Info
                                     </div>
                                     <div className="space-y-1">
@@ -190,59 +180,20 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                     </div>
                                 </div>
 
-                                {/* Guest Count */}
                                 <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <Users className="h-4 w-4" />
-                                        Guest Count
+                                    <div className="flex items-center gap-2 font-medium text-muted-foreground">
+                                        Reservation Info
                                     </div>
                                     <div className="space-y-1">
                                         <div className="text-sm">
-                                            <span className="font-medium">Adults:</span> 2
+                                            <span className="font-medium">Status:</span> {reservation.status.charAt(0) + reservation.status.slice(1).replace("_", " ").toLowerCase()}
                                         </div>
                                         <div className="text-sm">
-                                            <span className="font-medium">Children:</span> 2
+                                            <span className="font-medium">Price:</span> {reservation.price} {baseCurrency}
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Special Requests */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                        <FileText className="h-4 w-4" />
-                                        Special Requests
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="text-sm">- Prefers upper floor</div>
-                                        <div className="text-sm">- Gluten allergy</div>
-                                    </div>
-                                </div>
                             </div>
-
-                            <Separator />
-
-                            {/* Additional Details */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <div className="text-sm font-medium text-muted-foreground">Charge Routing</div>
-                                    <div className="text-sm">{reservation.chargeRouting.replace("_", " ")}</div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="text-sm font-medium text-muted-foreground">Rate Plan ID</div>
-                                    <div className="text-sm font-mono">{reservation.ratePlanId}</div>
-                                </div>
-                            </div>
-
-                            {reservation.groupBookingId && (
-                                <>
-                                    <Separator />
-                                    <div className="space-y-2">
-                                        <div className="text-sm font-medium text-muted-foreground">Group Booking ID</div>
-                                        <div className="text-sm font-mono">{reservation.groupBookingId}</div>
-                                    </div>
-                                </>
-                            )}
                         </div>
                     ) : null}
                 </div>
