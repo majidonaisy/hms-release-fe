@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog"
-import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, ArrowRightLeft, } from "lucide-react"
+import { LogIn, LogOut, Edit, Eye, Trash2, DoorOpen, Calendar, ChevronRight, Banknote, CircleDollarSign, Pencil, CalendarClock, ArrowRightLeft, User, } from "lucide-react"
 import { useState, useEffect } from "react"
 import { getGuestById } from "../../services/Guests"
 import { Guest } from "@/validation/schemas/Guests"
@@ -134,6 +134,13 @@ const ChooseReservationOptionDialog = ({
                                 </span>
                             </div>
                         )}
+
+                        <div className="flex items-center gap-2">
+                            <User className="size-4" />
+                            <span>
+                                Guest ID: {guestData?.gid}
+                            </span>
+                        </div>
                     </div>
                 </DialogHeader>
 
