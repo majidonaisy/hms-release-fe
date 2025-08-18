@@ -49,7 +49,7 @@ const ChooseReservationOptionDialog = ({
     cancelReservation: () => void
     viewReservation: () => void
     createdByUser: string,
-    checkedInAt: Date,
+    checkedInAt: Date | null,
     transferCharge: () => void
 }) => {
     const [guestData, setGuestData] = useState<Guest | null>(null)
@@ -102,7 +102,7 @@ const ChooseReservationOptionDialog = ({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="px-0">
-                <DialogHeader className="px-6 pb-4">
+                <DialogHeader className="px-6">
                     <div className="flex items-center justify-between">
                         <DialogTitle className="text-xl font-semibold text-gray-900">{guestName}'s Reservation</DialogTitle>
                     </div>
@@ -126,12 +126,14 @@ const ChooseReservationOptionDialog = ({
                                 Booked By: {createdByUser}
                             </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <CalendarClock className="size-4" />
-                            <span>
-                                Checked In At: {formatCheckedInDate(checkedInAt)}
-                            </span>
-                        </div>
+                        {checkedInAt && (
+                            <div className="flex items-center gap-2">
+                                <CalendarClock className="size-4" />
+                                <span>
+                                    Checked In At: {formatCheckedInDate(checkedInAt)}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </DialogHeader>
 

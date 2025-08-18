@@ -707,7 +707,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         cancelReservation={() => setCancelReservationDialog(true)}
         viewReservation={() => setViewReservationDialog(true)}
         createdByUser={dialogReservation?.createdByUser || 'Unknown User'}
-        checkedInAt={dialogReservation?.checkInTime || new Date()}
+        checkedInAt={dialogReservation?.checkInTime || null}
         transferCharge={() => setTransferChargesDialog(true)} />
       <DeleteDialog isOpen={cancelReservationDialog} onCancel={() => { setCancelReservationDialog(false); setReservationToCancel('') }} onConfirm={handleCancelReservation} cancelText="Back" confirmText="Cancel Reservation" description="Are you sure you want to cancel this reservation?" title="Cancel Reservation" refetchReservations={refreshReservations} />
     </TooltipProvider>

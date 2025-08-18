@@ -429,7 +429,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                     </div>
                                     <div className="mb-2">
                                         <span className="text-gray-600">Price</span>
-                                        <p className="font-medium">{reservationDetails?.price || 'N/A'}</p>
+                                        <p className="font-medium">{reservationDetails?.price || 'N/A'} {baseCurrency}</p>
                                     </div>
                                     <div className="mb-2">
                                         <span className="text-gray-600">Stay Dates (Check-in & Check-out)</span>

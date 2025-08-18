@@ -18,7 +18,7 @@ import {
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
-import { Can, CanAny, useRole } from "@/context/CASLContext"
+import { Can, CanAny } from "@/context/CASLContext"
 
 const Roles = () => {
     const [newRoleDialogOpen, setNewRoleDialogOpen] = useState<boolean>(false)
