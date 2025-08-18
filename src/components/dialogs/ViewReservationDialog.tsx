@@ -7,7 +7,6 @@ import { GetReservationById } from "@/validation"
 import { getReservationById } from "@/services/Reservation"
 import { Button } from "../atoms/Button"
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react"
-import { Badge } from "../atoms/Badge"
 import { store } from "@/redux/store"
 
 interface ViewReservationDialogProps {
@@ -65,18 +64,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
             minute: "2-digit"
         })
     }
-
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case "CHECKED_IN":
-                return "bg-chart-1/20 text-chart-1"
-            case "HELD":
-                return "bg-chart-3/20 text-chart-3"
-            case "CHECKED_OUT":
-                return "bg-chart-5/20 text-chart-5"
-        }
-    }
-
+    
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className=" flex flex-col !max-w-xl">
@@ -159,7 +147,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                         {formatCheckedInDate(checkedInAt)}
                                     </div>
                                 </div>
-                            </div>  
+                            </div>
 
                             <Separator />
 
