@@ -349,6 +349,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
 
                     <div className="space-y-2">
                         <Label>Permissions</Label>
+                        <p className='text-muted-foreground text-sm px-4'>The "Manage" permission allows you to perform all operations (read, create, delete, and update) on the selected subject</p>
                         {isLoading ? (
                             <Skeleton className='h-40 w-full' />
                         ) : (

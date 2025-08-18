@@ -1,4 +1,4 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { HashRouter as Router } from 'react-router-dom';
 import { RoleProvider } from './context/CASLContext';
 import HomeRoutes from './routes/Home/homeRoutes';
 import { PostHogProvider } from 'posthog-js/react'

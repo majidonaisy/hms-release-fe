@@ -14,6 +14,21 @@ const Areas = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+    const getStatusLabel = (status: string) => {
+        switch (status?.toUpperCase()) {
+            case "AVAILABLE":
+                return "Available";
+            case "IN_USE":
+                return "In Use";
+            case "MAINTENANCE":
+                return "Maintenance";
+            case "OUT_OF_SERVICE":
+                return "Out of Service";
+            default:
+                return status;
+        }
+    };
+
     const handleSearch = (value: string) => {
         setSearchTerm(value);
     };
@@ -90,7 +105,7 @@ const Areas = () => {
             key: 'status',
             label: 'Status',
             render: (item) => (
-                <div>{item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('_', ' ').toLowerCase()}</div>
+                <div>{getStatusLabel(item.status)}</div>
             ),
         }
     ];

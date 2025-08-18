@@ -28,19 +28,36 @@ function createWindow() {
   });
   win.maximize();
   win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+    }
+  });
+  win.webContents.on("did-fail-load", (_event, _errorCode, errorDescription, validatedURL) => {
+    console.log("Failed to load:", validatedURL, errorDescription);
+    if (!VITE_DEV_SERVER_URL && win && !win.isDestroyed()) {
+      win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    }
   });
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    win.webContents.on("will-navigate", (event, navigationUrl) => {
+      const parsedUrl = new URL(navigationUrl);
+      if (parsedUrl.protocol === "file:" && win && !win.isDestroyed()) {
+        event.preventDefault();
+        win.loadFile(path.join(RENDERER_DIST, "index.html"));
+      }
+    });
   }
   win.on("close", (event) => {
     if (!isQuitting && !logoutInProgress) {
       event.preventDefault();
       logoutInProgress = true;
       console.log("🔴 Window closing - initiating logout sequence...");
-      win == null ? void 0 : win.webContents.send("app-closing");
+      if (win && !win.isDestroyed()) {
+        win.webContents.send("app-closing");
+      }
       setTimeout(() => {
         console.log("⏰ Logout timeout reached, force quitting...");
         isQuitting = true;

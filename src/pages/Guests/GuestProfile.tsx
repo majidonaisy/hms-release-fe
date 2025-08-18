@@ -23,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules
 import { useDebounce } from "@/hooks/useDebounce"
 import { GetGroupProfilesResponse, GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
 import { RoomType } from "@/validation"
-import { Can, CanAll, CanAny } from "@/context/CASLContext"
+import { Can, CanAll, CanAny, useRole } from "@/context/CASLContext"
 
 type CombinedGuestData = {
   id: string
@@ -65,13 +65,24 @@ const GuestProfile = () => {
   } | null>(null)
   const [loading, setLoading] = useState(false)
   const [openGuestDialog, setOpenGuestDialog] = useState(false)
-  const [activeTab, setActiveTab] = useState("individuals")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<CombinedGuestData | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
   const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
   const [searchLoading, setSearchLoading] = useState(false);
+  const { can } = useRole();
+
+  const canReadGuest = can('read', 'Guest');
+  const canReadGroup = can('read', 'GroupProfile');
+  const getInitialTab = () => {
+    if (canReadGuest && !canReadGroup) return "individuals";
+    if (!canReadGuest && canReadGroup) return "groups";
+    return "individuals"; // default when user has both or neither
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab());
+  const hasExactlyOne = (canReadGuest && !canReadGroup) || (!canReadGuest && canReadGroup);
 
   const roomTypeMap = roomTypes.reduce(
     (map, roomType) => {
@@ -333,9 +344,13 @@ const GuestProfile = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="individuals">Individuals</TabsTrigger>
-              <TabsTrigger value="groups">Groups</TabsTrigger>
+            <TabsList className={`grid w-full ${hasExactlyOne ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              <Can action="read" subject="Guest">
+                <TabsTrigger value="individuals">Individuals</TabsTrigger>
+              </Can>
+              <Can action="read" subject="GroupProfile">
+                <TabsTrigger value="groups">Groups</TabsTrigger>
+              </Can>
             </TabsList>
 
             <TabsContent value="individuals" className="mt-6">
