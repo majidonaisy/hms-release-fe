@@ -410,10 +410,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                         <p className="font-medium">{reservationId || 'N/A'}</p>
                                     </div>
                                     <div className="mb-2">
-                                        <span className="text-gray-600">Guest ID</span>
-                                        <p className="font-medium">{reservationDetails?.guest.id || 'N/A'}</p>
-                                    </div>
-                                    <div className="mb-2">
                                         <span className="text-gray-600">Booked By</span>
                                         <p className="font-medium">
                                             {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
@@ -429,7 +425,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                     </div>
                                     <div className="mb-2">
                                         <span className="text-gray-600">Price</span>
-                                        <p className="font-medium">{reservationDetails?.price || 'N/A'}</p>
+                                        <p className="font-medium">{reservationDetails?.price || 'N/A'} {baseCurrency}</p>
                                     </div>
                                     <div className="mb-2">
                                         <span className="text-gray-600">Stay Dates (Check-in & Check-out)</span>
@@ -438,10 +434,6 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                 `${format(new Date(reservationDetails.checkIn), 'MMM dd, yyyy')} - ${format(new Date(reservationDetails.checkOut), 'MMM dd, yyyy')}`
                                             ) : 'N/A'}
                                         </p>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="text-gray-600">Status</span>
-                                        <p className="font-medium">{reservationDetails?.status || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>

@@ -217,12 +217,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                                         <span className="text-gray-600">Reservation ID</span>
                                         <div className="font-medium">{reservationId || 'N/A'}</div>
                                     </div>
-                                    <div className="mb-2">
-                                        <span className="text-gray-600">Guest ID:</span>
-                                        <div className="font-medium">
-                                            {reservationDetails?.guest.id || 'N/A'}
-                                        </div>
-                                    </div>
+                                    
                                     <div className="mb-2">
                                         <span className="text-gray-600">Booked By:</span>
                                         <div className="font-medium">
@@ -248,10 +243,6 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                                                 `${format(new Date(reservationDetails.checkIn), 'MMM dd, yyyy')} - ${format(new Date(reservationDetails.checkOut), 'MMM dd, yyyy')}`
                                             ) : 'N/A'}
                                         </div>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="text-gray-600">Status</span>
-                                        <div className="font-medium">{reservationDetails?.status || 'N/A'}</div>
                                     </div>
                                 </div>
                             </div>
