@@ -4,7 +4,6 @@ import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
 import { Check, ChevronLeft, X, Search } from "lucide-react"
-import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
 import { GetRatePlansResponse, GetRoomTypesResponse } from "@/validation"
@@ -182,7 +181,7 @@ export default function NewIndividualReservation() {
                 errorMessage = error.message;
             }
 
-            toast('Error', {
+            toast.error('Error', {
                 description: errorMessage
             })
         } finally {
@@ -402,15 +401,6 @@ export default function NewIndividualReservation() {
             case 3:
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
-                        <div className="mb-4 p-3 bg-white rounded-lg">
-                            <p className="text-sm text-hms-primary font-bold">
-                                Showing available rooms for {format(formData.checkIn, "MMM dd")} - {format(formData.checkOut, "MMM dd, yyyy")}
-                            </p>
-                            <p className="text-xs text-hms-primary mt-1">
-                                {selectedRoomType ? `${roomsByType.length} room(s) available` : 'Select a room type to see available rooms'}
-                            </p>
-                        </div>
-
                         <div className='space-y-1'>
                             <Label>Room Type</Label>
                             <Select

@@ -212,11 +212,11 @@ const GroupProfileExpanded = () => {
 
         try {
             await linkGuestsToGroup(updatedGuests.map(g => g.id), id);
-            toast("Linked guests updated");
+            toast.success("Linked guests updated");
             fetchData(); // Refresh whole state from server
         } catch (err) {
             console.error(err);
-            toast("Failed to save linked guests");
+            toast.error("Failed to save linked guests");
         } finally {
             setDialogOpen(false);
         }

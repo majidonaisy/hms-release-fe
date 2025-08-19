@@ -26,6 +26,7 @@ export interface PaymentChargeItem {
     unitPrice: string;
     status: string;
     selected: boolean;
+    receiptId?: string | null;
     createdByUser: {
         id: string,
         firstName: string,
@@ -103,6 +104,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                 unitPrice: item.unitPrice,
                 status: item.status,
                 selected: false, // Add the missing selected property
+                receiptId: item.receiptId,
                 createdByUser: item.createdByUser,
                 updatedByUser: item.updatedByUser
             }));
@@ -509,13 +511,9 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                                 <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
                                                                     }`}>
                                                                     <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
-                                                                    <p>Added By:
-                                                                        {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
-                                                                    </p>
-                                                                    {reservationDetails?.receiptId && (
-                                                                        <p>
-                                                                            Receipt ID: {reservationDetails?.receiptId}
-                                                                        </p>
+                                                                    <p>Added By: {item.createdByUser.firstName} {item.createdByUser.lastName}</p>
+                                                                    {item.receiptId && (
+                                                                        <p>Receipt ID: {item.receiptId}</p>
                                                                     )}
                                                                 </span>
                                                             </div>
