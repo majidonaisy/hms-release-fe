@@ -388,11 +388,11 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const handleCancelReservation = async () => {
     try {
       await cancelReservation(reservationToCancel);
-      toast('Success', {
+      toast.success('Success', {
         description: 'Reservation was canceled'
       });
     } catch (error) {
-      toast('Error', {
+      toast.error('Error', {
         description: 'Could not cancel reservation'
       })
     } finally {

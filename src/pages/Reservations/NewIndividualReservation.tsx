@@ -88,7 +88,7 @@ export default function NewIndividualReservation() {
                 setRoomsByType(response.data);
             } catch (error) {
                 console.error('Error fetching rooms by type:', error);
-                toast("Error!", { description: "Failed to fetch rooms for selected type" });
+                toast.error("Error!", { description: "Failed to fetch rooms for selected type" });
                 setRoomsByType([]);
             } finally {
                 setRoomsLoading(false);
@@ -125,13 +125,10 @@ export default function NewIndividualReservation() {
                     const roomResponse = await getRoomById(roomId);
                     const actualRoomData = roomResponse.data;
                     const connectedRooms = actualRoomData.connectedRooms || [];
-                    console.log('Full room response:', roomResponse);
-                    console.log('Actual room data:', actualRoomData);
-                    console.log('Connected rooms:', connectedRooms);
                     setConnectableRooms(connectedRooms);
                 } catch (error) {
                     console.error('Failed to get room details:', error);
-                    toast("Error!", {
+                    toast.error("Error!", {
                         description: "Failed to get room connection details.",
                     });
                 }
@@ -161,7 +158,7 @@ export default function NewIndividualReservation() {
         setLoading(true);
         try {
             await addReservation(formData);
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Reservation was created successfully.",
             })
             navigate('/calendar');
@@ -241,7 +238,7 @@ export default function NewIndividualReservation() {
                 setNightPrice(price);
             } catch (error) {
                 console.error(error);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to fetch nightly rate."
                 });
             }

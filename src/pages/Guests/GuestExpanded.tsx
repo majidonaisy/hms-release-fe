@@ -131,7 +131,7 @@ const GuestProfileView = () => {
         setLoading(true);
         try {
             await updateGuest(id, formData);
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Guest was updated successfully.",
             });
 
@@ -140,7 +140,7 @@ const GuestProfileView = () => {
             setGuest(guestResponse);
             setIsEditMode(false);
         } catch (error) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Failed to update guest.",
             });
             console.error("Failed to update guest:", error);
@@ -180,7 +180,7 @@ const GuestProfileView = () => {
                 setDeleteDialogOpen(false);
                 setGuestToDelete(null);
                 navigate('/guests-profile');
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Guest was deleted successfully.",
                 });
             } catch (error) {

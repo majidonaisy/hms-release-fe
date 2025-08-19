@@ -235,6 +235,16 @@ const CurrentGuestList = () => {
     }
   }
 
+  const formatDate = (dateString: undefined | Date) => {
+    if (!dateString) return ""
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+
   return (
     <>
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -349,10 +359,10 @@ const CurrentGuestList = () => {
                           <TableCell className="px-6 py-4 text-gray-600">{item.phoneNumber}</TableCell>
                           <TableCell className="px-6 py-4">{item.checkedInRoomType} {item.checkedInRoom}</TableCell>
                           <TableCell className="px-6 py-4">
-                            {item.checkInDateTime ? new Date(item.checkInDateTime).toLocaleString() : "—"}
+                            {formatDate(item.checkInDateTime)}
                           </TableCell>
                           <TableCell className="px-6 py-4">
-                            {item.checkOutDateTime ? new Date(item.checkOutDateTime).toLocaleString() : "—"}
+                            {formatDate(item.checkOutDateTime)}
                           </TableCell>
                           <CanAny permissions={[
                             { action: 'delete', subject: "Guest" },

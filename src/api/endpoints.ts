@@ -139,5 +139,6 @@ export const ENDPOINTS = {
   },
   Departments: {
     Manage: "hotel/department"
-  }
+  },
+  Report: "reports"
 };

@@ -74,7 +74,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-chart-6: var(--chart-6);  
+  --color-chart-6: var(--chart-6);
   --color-chart-7: var(--chart-7);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -140,6 +140,89 @@
     /* hms-primary */
 
     --radius: 0.5rem;
+
+    /* Add this to your global CSS file after your existing styles */
+
+    /* Success Toast Styles */
+    [data-sonner-toast][data-type="success"],
+    .sonner-success-toast {
+      background-color: #ecd2c3 !important;
+      /* HMS accent color */
+      border-color: #C09681 !important;
+      color: #1E130B !important;
+      /* HMS primary for text */
+    }
+
+    [data-sonner-toast][data-type="success"] [data-title],
+    .sonner-success-toast [data-title] {
+      color: #1E130B !important;
+    }
+
+    [data-sonner-toast][data-type="success"] [data-description],
+    .sonner-success-toast [data-description] {
+      color: #1E130B !important;
+      opacity: 0.8;
+    }
+
+    /* Error Toast Styles */
+    [data-sonner-toast][data-type="error"],
+    .sonner-error-toast {
+      background-color: #6C0F23 !important;
+      /* Red color */
+      border-color: #420512 !important;
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="error"] [data-title],
+    .sonner-error-toast [data-title] {
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="error"] [data-description],
+    .sonner-error-toast [data-description] {
+      color: #ffffff !important;
+      opacity: 0.9;
+    }
+
+    /* Warning Toast Styles */
+    [data-sonner-toast][data-type="warning"],
+    .sonner-warning-toast {
+      background-color: #f59e0b !important;
+      /* Orange color */
+      border-color: #f59e0b !important;
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="warning"] [data-title],
+    .sonner-warning-toast [data-title] {
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="warning"] [data-description],
+    .sonner-warning-toast [data-description] {
+      color: #ffffff !important;
+      opacity: 0.9;
+    }
+
+    /* Info Toast Styles */
+    [data-sonner-toast][data-type="info"],
+    .sonner-info-toast {
+      background-color: #3b82f6 !important;
+      /* Blue color */
+      border-color: #3b82f6 !important;
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="info"] [data-title],
+    .sonner-info-toast [data-title] {
+      color: #ffffff !important;
+    }
+
+    [data-sonner-toast][data-type="info"] [data-description],
+    .sonner-info-toast [data-description] {
+      color: #ffffff !important;
+      opacity: 0.9;
+    }
   }
 }
 

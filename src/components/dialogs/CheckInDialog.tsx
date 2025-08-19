@@ -154,7 +154,7 @@ const CheckInDialog = ({
                     </div>
                 )}
 
-                <Card className="bg-hms-accent/15 border-none mb-5">
+                <Card className="bg-hms-accent/15 border-none">
                     <CardHeader>
                         <CardTitle className="text-lg">Reservation Summary</CardTitle>
                     </CardHeader>
@@ -164,13 +164,6 @@ const CheckInDialog = ({
                                 <div>
                                     <Label className="text-gray-600 text-xs">Guest Name</Label>
                                     <p className="font-medium">{reservationData?.guestName || "N/A"}</p>
-                                </div>
-                                <div>
-                                    <Label className="text-gray-600 text-xs">Guest Count:</Label>
-                                    <div className="ml-4">
-                                        <p className="text-sm">Adults: 2</p>
-                                        <p className="text-sm">Children: 0</p>
-                                    </div>
                                 </div>
                                 <div>
                                     <Label className="text-gray-600 text-xs">Room Type</Label>
