@@ -1,8 +1,9 @@
-import {  AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
+import { AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
 import { apiClient } from '@/api/base';
 import { ENDPOINTS } from '@/api/endpoints';
+import { getAuthServiceUrl } from './configServices';
 
-const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
+const baseURL = await getAuthServiceUrl();
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -10,7 +11,7 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
       method: "POST",
       endpoint: ENDPOINTS.Auth.Login,
       data,
-      baseURL, 
+      baseURL,
     });
     return response as LoginResponse;
   } catch (error: any) {

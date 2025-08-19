@@ -1,8 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { Amenity, AmenityResponse } from "@/validation/schemas/amenity";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 interface GetAmenitiesParams {
   page?: number;

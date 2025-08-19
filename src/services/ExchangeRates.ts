@@ -2,8 +2,9 @@ import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { GetCurrenciesResponse } from "@/validation/schemas/Currency";
 import { ExchangeRateRequest, ExchangeRateResponse, GetExchangeRateByIdResponse, GetExchangeRateResponse } from "@/validation/schemas/ExchangeRates";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 export const addExchangeRate = async (data: ExchangeRateRequest): Promise<ExchangeRateResponse> => {
     try {
