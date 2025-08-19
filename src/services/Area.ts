@@ -1,8 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddAreaResponse, Areas } from "@/validation/schemas/Area";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 export const getAllAreas = async (params?: string): Promise<Areas> => {
     try {

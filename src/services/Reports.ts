@@ -1,7 +1,8 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 export interface Report {
     id: string,

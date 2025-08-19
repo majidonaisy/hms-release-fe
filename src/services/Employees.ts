@@ -1,7 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddEmployeeRequest, AddTeamMemberResponse, GetEmployeeByIdResponse, GetEmployeesResponse } from "@/validation/schemas/Employees";
-const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
+import { getAuthServiceUrl } from "./configServices";
+
+const baseURL = await getAuthServiceUrl();
 
 interface GetEmployeesParams {
   page?: number;

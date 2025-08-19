@@ -2,7 +2,9 @@ import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { GetCurrentGroupProfilesResponse, GetCurrentGuestsResponse } from "@/validation/schemas/Guests";
 import { AddGroupReservationRequest, AddReservationRequest, CheckInReservations, GetNightPriceResponse, GetReservationByGroupId, GetReservationByGuestId, GetReservationById, ReservationResponse, UpdateReservationRequest } from "@/validation/schemas/Reservations";
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+import { getFrontdeskServiceUrl } from "./configServices";
+
+const baseURL = await getFrontdeskServiceUrl();
 
 export const addReservation = async (data: AddReservationRequest): Promise<ReservationResponse> => {
   try {

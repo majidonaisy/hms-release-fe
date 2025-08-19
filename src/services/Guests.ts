@@ -1,8 +1,10 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddGroupProfileRequest, AddGroupProfileResponse, AddGuestRequest, AddGuestResponse, GetGroupProfilesResponse, GetGuestByIdResponse, GetGuestsResponse, GroupProfileResponse, LinkGuestsToGroupResponse, UpdateGroupProfileRequest, UpdateGuestRequest, UpdateGuestResponse } from "@/validation/schemas/Guests";
+import { getCustomerServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_CUSTOMER_SERVICE_URL;
+const baseURL = await getCustomerServiceUrl();
+
 export const addGuest = async (data: AddGuestRequest): Promise<AddGuestResponse> => {
   try {
     const response = await apiClient({

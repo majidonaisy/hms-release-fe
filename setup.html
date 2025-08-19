@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS Setup</title>
+    <style>
+        :root {
+            --color-hms-primary: #6C0F23;
+            --color-hms-secondary: #1E130B;
+            --color-hms-accent: #C09681;
+            --color-hms-accent-35: #D9AC9659;
+            --color-hms-background: #FFF7E9;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: var(--color-hms-accent-35);
+            border-radius: 16px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            max-width: 550px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .setup-container:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        .icon-container {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 32px;
+            box-shadow: 0 8px 16px rgba(108, 15, 35, 0.2);
+        }
+
+        .icon {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        h1 {
+            margin-bottom: 12px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-hms-primary);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin-bottom: 40px;
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--color-hms-primary);
+            font-size: 0.875rem;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            color: #1f2937;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="email"]:focus {
+            border-color: var(--color-hms-accent);
+            box-shadow: 0 0 0 3px rgba(192, 150, 129, 0.1);
+        }
+
+        input[type="email"]::placeholder {
+            color: #9ca3af;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--color-hms-primary), var(--color-hms-secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 15, 35, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            color: #dc2626;
+            margin-top: 16px;
+            font-size: 14px;
+            display: none;
+            padding: 12px 16px;
+            background: #fef2f2;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            text-align: left;
+        }
+
+        .features {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .features h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-hms-primary);
+            margin-bottom: 16px;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--color-hms-accent-35);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .setup-container {
+                padding: 32px 24px;
+                margin: 16px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="setup-container">
+        <div class="icon-container">
+            <div class="icon">
+                <img src="./src/assets/LogoCollapsed.svg" alt=🏨 width="90" height="90" />
+            </div>
+        </div>
+
+        <h1>HMS Setup</h1>
+        <p class="subtitle">Welcome to Hotel Management System. Enter your email to configure your application and get
+            started.</p>
+
+        <form id="setupForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email">
+            </div>
+
+            <div class="spinner" id="spinner"></div>
+
+            <button type="submit" id="submitBtn">
+                Configure Application
+            </button>
+
+            <div class="error" id="errorMessage"></div>
+        </form>
+
+        <div class="features">
+            <h3>What you'll get:</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>Complete reservation management system</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>Room operations and housekeeping coordination</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>Staff management and role-based permissions</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <span>Real-time monitoring and analytics</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('setupForm');
+        const emailInput = document.getElementById('email');
+        const submitBtn = document.getElementById('submitBtn');
+        const spinner = document.getElementById('spinner');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Auto-focus email input
+        emailInput.focus();
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Configuring...';
+                spinner.style.display = 'block';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Configure Application';
+                spinner.style.display = 'none';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email = emailInput.value.trim();
+            if (!email) {
+                showError('Please enter a valid email address.');
+                return;
+            }
+
+            // For now, just show a message that this feature is coming soon
+            showError('Setup functionality is coming soon! Please create a config.json file manually for now.');
+
+            // Uncomment this when backend is ready:
+            /*
+            setLoading(true);
+      
+            try {
+              // Call the main process to handle setup
+              const result = await window.ipcRenderer.invoke('setup-submitted', email);
+              
+              if (result.success) {
+                // Success - the main process will navigate to the main app
+                console.log('Setup completed successfully');
+              } else {
+                throw new Error(result.error || 'Setup failed');
+              }
+            } catch (error) {
+              console.error('Setup error:', error);
+              showError(error.message || 'Setup failed. Please check your email and try again.');
+              setLoading(false);
+            }
+            */
+        });
+
+        // Handle Enter key
+        emailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                form.requestSubmit();
+            }
+        });
+    </script>
+</body>
+
+</html>

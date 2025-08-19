@@ -11,8 +11,9 @@ import {
   CompleteMaintenanceResponse,
   DeleteMaintenanceResponse,
 } from "@/validation/schemas/maintenance";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 export const addMaintenance = async (data: AddMaintenanceRequest): Promise<AddMaintenanceResponse> => {
   try {
