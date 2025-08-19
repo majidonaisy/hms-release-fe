@@ -98,7 +98,7 @@ const NewGuest = () => {
             if (isEditMode) {
                 if (id) {
                     await updateGuest(id, formData);
-                    toast("Success!", {
+                    toast.success("Success!", {
                         description: "Guest was updated successfully.",
                     })
 
@@ -107,14 +107,14 @@ const NewGuest = () => {
                 }
             } else {
                 await addGuest(formData);
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Guest was created successfully.",
                 })
             }
             setGuestCreatedDialog(true)
         } catch (error: any) {
             const err = error?.userMessage || "Failed to submit form.";
-            toast("Error!", {
+            toast.error("Error!", {
                 description: err,
             });
             console.error("Failed to submit form:", error);
@@ -185,7 +185,7 @@ const NewGuest = () => {
                         </div>
 
                         <div className='space-y-1'>
-                            <Label>Date od Birth</Label>
+                            <Label>Date of Birth</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button

@@ -14,19 +14,38 @@ const RoomTypes = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [pagination, setPagination] = useState<{
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    pageSize: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const fetchRoomTypes = async () => {
     try {
       setLoading(true);
-      const params: any = {};
+      const params: any = {
+        page: currentPage,
+        limit: pageSize
+      };
       if (debouncedSearchTerm.trim()) {
         params.q = debouncedSearchTerm;
       }
       const response = await getRoomTypes(params);
+      if (response.pagination) {
+        setPagination(response.pagination);
+      } else {
+        setPagination(null);
+      }
       setRoomTypes(response.data || []);
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to load room types');
@@ -36,9 +55,10 @@ const RoomTypes = () => {
     }
   };
 
+  // Fixed: Added currentPage to dependencies
   useEffect(() => {
     fetchRoomTypes();
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, currentPage]);
 
   const handleAddRoomType = () => {
     openDialog('roomType', {
@@ -63,7 +83,11 @@ const RoomTypes = () => {
         try {
           await updateRoomType(roomType.id, data);
           toast.success('Room type updated successfully');
+
+          // Fixed: Removed duplicate data fetching logic
+          // Just call fetchRoomTypes() to refresh the current page
           await fetchRoomTypes();
+
           return Promise.resolve();
         } catch (error: any) {
           toast.error(error.userMessage || 'Failed to update room type');
@@ -77,7 +101,13 @@ const RoomTypes = () => {
     try {
       await deleteRoomType(roomType.id);
       toast.success('Room type deleted successfully');
-      await fetchRoomTypes();
+
+      // Check if we need to go to previous page after deletion
+      if (roomTypes.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        await fetchRoomTypes();
+      }
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to delete room type');
       throw error; // Re-throw to let DataTable handle the error state
@@ -158,6 +188,14 @@ const RoomTypes = () => {
       }}
       showBackButton
       onBackClick={() => navigate(-1)}
+      pagination={pagination ? {
+        currentPage: pagination.currentPage,
+        totalPages: pagination.totalPages,
+        totalItems: pagination.totalItems,
+        onPageChange: setCurrentPage,
+        showPreviousNext: true,
+        maxVisiblePages: 7
+      } : undefined}
     />
   );
 };

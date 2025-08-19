@@ -311,6 +311,9 @@ const ViewPaymentsDialog: React.FC<ViewPaymentsDialogProps> = ({
                                   )
                                 }
                                 <span>Date: {format(new Date(payment.paymentDate), 'MMM d, yyyy h:mm a')}</span>
+                                {payment.receiptId && (
+                                  <span>Receipt ID: {payment.receiptId}</span>
+                                )}
                               </div>
                             </div>
                           </div>

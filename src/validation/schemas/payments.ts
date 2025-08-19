@@ -64,6 +64,7 @@ export const FolioItemShape = z.object({
     lastName: z.string(),
     email: z.string(),
   }).nullable(),
+  receiptId: z.string().nullable()
 });
 
 // Payment interface for UI display
@@ -98,6 +99,7 @@ export const PaymentShape = z.object({
     lastName: z.string(),
     email: z.string(),
   }).nullable(),
+  receiptId: z.string().nullable()
 });
 
 // API Response schemas
@@ -196,7 +198,8 @@ export const transformFolioItemToPayment = (item: FolioItem): Payment => {
     folioId: item.folioId,
     createdByUser: item.createdByUser,
     updatedByUser: item.updatedByUser,
-    voidedByUser: item.voidedByUser
+    voidedByUser: item.voidedByUser,
+    receiptId: item.receiptId
   };
 };
 

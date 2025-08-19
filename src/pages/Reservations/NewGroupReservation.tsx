@@ -98,7 +98,7 @@ export default function NewGroupReservation() {
                 setRoomsByType(response.data);
             } catch (error) {
                 console.error('Error fetching rooms by type:', error);
-                toast("Error!", { description: "Failed to fetch rooms for selected type" });
+                toast.error("Error!", { description: "Failed to fetch rooms for selected type" });
                 setRoomsByType([]);
             } finally {
                 setRoomsLoading(false);
@@ -155,7 +155,7 @@ export default function NewGroupReservation() {
         setLoading(true);
         try {
             await addGroupReservation(formData);
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Group reservation was created successfully.",
             })
             navigate('/calendar');
@@ -238,7 +238,7 @@ export default function NewGroupReservation() {
                 setNightPrice(price);
             } catch (error) {
                 console.error(error);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to fetch nightly rate."
                 });
             }

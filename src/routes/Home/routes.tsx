@@ -1,5 +1,5 @@
 import { HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog } from "lucide-react";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog, FileText } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -16,6 +16,7 @@ import ExchangeRates from "@/pages/dashboard/ExchangeRates/ExchangeRates";
 import Departments from "@/pages/dashboard/Departments/Departments";
 import HomePage from "@/pages/HomePage";
 import Areas from "@/pages/dashboard/Areas/Areas";
+import Reports from "@/pages/Reports";
 
 const RoutesList = () => {
     const homeRoutesList: HomeRouteConfig[] = [
@@ -495,6 +496,13 @@ const RoutesList = () => {
                 }
             ]
         },
+        {
+            path: '/reports',
+            title: "Reports",
+            icon: <FileText />,
+            component: Reports,
+            isShown: true
+        }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
         )
