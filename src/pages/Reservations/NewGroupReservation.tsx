@@ -20,6 +20,7 @@ import { Input } from "@/components/atoms/Input"
 import { getAlRoomTypes } from "@/services/RoomTypes"
 import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 import { GetGroupProfilesResponse } from "@/validation/schemas/Guests"
+import { ScrollArea } from "@/components/atoms/ScrollArea"
 
 interface GroupReservationRequest {
     groupProfileId: string;
@@ -179,7 +180,7 @@ export default function NewGroupReservation() {
                 errorMessage = error.message;
             }
 
-            toast('Error', {
+            toast.error('Error', {
                 description: errorMessage
             })
         } finally {
@@ -493,61 +494,78 @@ export default function NewGroupReservation() {
 
                         {selectedRoomType && !roomsLoading && roomsByType.length > 0 && (
                             <div className="rounded-lg border">
-                                <div className="grid grid-cols-9 gap-4 p-4 border-b font-medium text-sm">
-                                    <div className="col-span-1"></div>
-                                    <div className="col-span-3">Guest Name</div>
-                                    <div className="col-span-3">Room Number(s)</div>
-                                </div>
                                 <div className="divide-y">
                                     {linkedGuests.map((guest, index) => (
-                                        <div key={guest.id} className="p-4 space-y-4">
-                                            <div className="grid grid-cols-9 gap-4 items-center bg-hms-accent/35 p-7 rounded-lg">
-                                                <div className="col-span-1 flex items-center justify-center">
-                                                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
-                                                        {index + 1}
-                                                    </div>
+                                        <div key={guest.id} className="p-4 space-y-4 flex gap-2">
+                                            <div className="col-span-1 flex items-center justify-center bg-white border border-gray-300 rounded-sm">
+                                                <div className="w-6 rounded-full flex items-center justify-center text-sm font-medium">
+                                                    {index + 1}
                                                 </div>
-                                                <div className="col-span-3">
-                                                    <div className="w-full p-2 border rounded bg-white">
-                                                        {guest.firstName} {guest.lastName}
+                                            </div>
+                                            <div className="flex-1 bg-hms-accent/35 p-4 rounded-lg">
+                                                <div className="grid grid-cols-12 gap-4">
+                                                    {/* Guest Name */}
+                                                    <div className="col-span-6">
+                                                        <Label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            Guest Name
+                                                        </Label>
+                                                        <Input
+                                                            type="text"
+                                                            value={`${guest.firstName} ${guest.lastName}`}
+                                                            readOnly
+                                                            className=" bg-white text-sm"
+                                                            placeholder="Name"
+                                                        />
                                                     </div>
-                                                </div>
-                                                <div className="col-span-3 space-y-1 max-h-[150px] overflow-y-auto border rounded bg-white p-2">
-                                                    {roomsByType.map((room) => {
-                                                        const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
-                                                        return (
-                                                            <div key={room.id} className="flex items-center space-x-2">
-                                                                <Checkbox
-                                                                    checked={isChecked}
-                                                                    onCheckedChange={(checked) => {
-                                                                        const currentRooms = formData.guestsAndRooms[guest.id] || [];
-                                                                        if (checked) {
-                                                                            handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
-                                                                        } else {
-                                                                            handleGuestRoomAssignment(
-                                                                                guest.id,
-                                                                                currentRooms.filter((r) => r !== room.id)
-                                                                            );
-                                                                        }
-                                                                    }} />
-                                                                <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
-                                                                    {room.roomNumber}
-                                                                </Label>
+
+                                                    {/* Room Numbers - Multiple Selection */}
+                                                    <div className="col-span-4">
+                                                        <Label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            Room Numbers
+                                                        </Label>
+                                                        <ScrollArea className="h-[30px] rounded-lg">
+                                                            <div className=" border rounded-lg bg-white px-2 py-1">
+                                                                {roomsByType.map((room) => {
+                                                                    const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
+                                                                    return (
+                                                                        <div key={room.id} className="flex items-center space-x-2 text-sm py-1">
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    const currentRooms = formData.guestsAndRooms[guest.id] || [];
+                                                                                    if (checked) {
+                                                                                        handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
+                                                                                    } else {
+                                                                                        handleGuestRoomAssignment(
+                                                                                            guest.id,
+                                                                                            currentRooms.filter((r) => r !== room.id)
+                                                                                        );
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                            <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
+                                                                                {room.roomNumber}
+                                                                            </Label>
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                                <div className="col-span-2 flex items-center justify-end">
-                                                    {formData.guestsAndRooms[guest.id] && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveGuestRoomAssignment(guest.id)}
-                                                            className="text-gray-400 hover:text-red-500"
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
+                                                        </ScrollArea>
+                                                    </div>
+
+                                                    {/* Remove Button */}
+                                                    <div className="col-span-2 flex items-end justify-end">
+                                                        {formData.guestsAndRooms[guest.id] && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleRemoveGuestRoomAssignment(guest.id)}
+                                                                className="text-gray-400 hover:text-red-500"
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

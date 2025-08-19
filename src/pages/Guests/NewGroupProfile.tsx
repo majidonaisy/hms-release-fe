@@ -161,7 +161,7 @@ const NewGroupProfile = () => {
                         });
                     } catch (linkError) {
                         console.error("Failed to link guests:", linkError);
-                        toast("Partial Success", {
+                        toast.success("Partial Success", {
                             description: "Group profile updated but failed to link some guests.",
                         });
                     }
@@ -186,7 +186,7 @@ const NewGroupProfile = () => {
                         });
                     } catch (linkError) {
                         console.error("Failed to link guests:", linkError);
-                        toast("Partial Success", {
+                        toast.success("Partial Success", {
                             description: "Group profile created but failed to link some guests.",
                         });
                     }
