@@ -359,7 +359,6 @@ const GuestProfile = () => {
                   <TableHeader className="bg-hms-accent/15">
                     <TableRow className="border-b border-gray-200">
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Name</TableHead>
-                      <TableHead className="text-left font-medium text-gray-900 px-6 py-2">Type</TableHead>
                       <TableHead className="text-left font-medium text-gray-900 px-6 py-2">
                         Email
                       </TableHead>
@@ -403,9 +402,6 @@ const GuestProfile = () => {
                                 {item.firstName} {item.lastName}
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell className="px-6 py-4">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium">INDIVIDUAL</span>
                           </TableCell>
                           <TableCell className="px-6 py-4 font-medium text-gray-900">{item.email}</TableCell>
                           <TableCell className="px-6 py-4">
