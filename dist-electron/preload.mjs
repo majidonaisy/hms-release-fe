@@ -20,7 +20,7 @@ electron.contextBridge.exposeInMainWorld("ipcRenderer", {
     }
   },
   invoke: (channel, ...args) => {
-    const validChannels = ["app-version"];
+    const validChannels = ["app-version", "setup-submitted", "get-config"];
     if (validChannels.includes(channel)) {
       return electron.ipcRenderer.invoke(channel, ...args);
     }

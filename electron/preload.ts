@@ -21,7 +21,7 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
     }
   },
   invoke: (channel: string, ...args: any[]) => {
-    const validChannels = ["app-version"];
+    const validChannels = ["app-version", "setup-submitted", "get-config"];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args);
     }

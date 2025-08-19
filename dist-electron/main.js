@@ -1,15 +1,28 @@
-import { ipcMain, app, BrowserWindow, screen } from "electron";
+import { app, ipcMain, BrowserWindow, screen } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import fs from "fs";
+console.log("testt");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+const configPath = path.join(app.getPath("userData"), "config.json");
+console.log("User config path:", configPath);
 let win = null;
 let isQuitting = false;
 let logoutInProgress = false;
+function getConfig() {
+  console.log("User config path:", configPath);
+  const raw = fs.readFileSync(configPath, "utf-8");
+  console.log("Config content:", raw);
+  return JSON.parse(raw);
+}
+function hasConfig() {
+  return fs.existsSync(configPath);
+}
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
@@ -38,10 +51,20 @@ function createWindow() {
       win.loadFile(path.join(RENDERER_DIST, "index.html"));
     }
   });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
+  if (hasConfig()) {
+    if (VITE_DEV_SERVER_URL) {
+      win.loadURL(VITE_DEV_SERVER_URL);
+    } else {
+      win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    }
   } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    if (VITE_DEV_SERVER_URL) {
+      win.loadURL(`${VITE_DEV_SERVER_URL}/setup.html`);
+    } else {
+      win.loadFile(path.join(RENDERER_DIST, "setup.html"));
+    }
+  }
+  if (hasConfig() && !VITE_DEV_SERVER_URL) {
     win.webContents.on("will-navigate", (event, navigationUrl) => {
       const parsedUrl = new URL(navigationUrl);
       if (parsedUrl.protocol === "file:" && win && !win.isDestroyed()) {
@@ -70,6 +93,29 @@ function createWindow() {
     win = null;
   });
 }
+ipcMain.handle("setup-submitted", async (event, email) => {
+  try {
+    console.log("Setup requested for email:", email);
+    return {
+      success: false,
+      error: "Setup functionality is coming soon! Please create a config.json file manually."
+    };
+  } catch (error) {
+    console.error("Setup failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+});
+ipcMain.handle("get-config", () => {
+  try {
+    return getConfig();
+  } catch (error) {
+    console.error("Error getting config:", error);
+    return null;
+  }
+});
 ipcMain.on("logout-complete", () => {
   console.log("✅ Logout completed, quitting app...");
   isQuitting = true;

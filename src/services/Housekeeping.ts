@@ -11,8 +11,9 @@ import {
   CompleteHousekeepingResponse,
   DeleteHousekeepingResponse,
 } from "@/validation/schemas/housekeeping";
+import { getFrontdeskServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL;
+const baseURL = await getFrontdeskServiceUrl();
 
 export const addHousekeepingTask = async (data: AddHousekeepingRequest): Promise<AddHousekeepingResponse> => {
   try {

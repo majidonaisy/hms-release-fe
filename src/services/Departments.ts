@@ -1,8 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddDepartmentResponse, Departments } from "@/validation/schemas/Departments";
+import { getAuthServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
+ const baseURL = await getAuthServiceUrl();
 
 export const getDepartments = async (params?: string): Promise<Departments> => {
     try {

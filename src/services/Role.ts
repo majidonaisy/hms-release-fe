@@ -1,7 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { DeleteRoleResponse, AddRoleRequest, UpdateRoleRequest, RoleResponse, AddUpdateRoleResponse, RoleByIdResponse, PermissionsResponse } from "@/validation/schemas/Roles";
-const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL;
+import { getAuthServiceUrl } from "./configServices";
+
+const baseURL = await getAuthServiceUrl();
 
 interface GetRolesParams {
     page?: number;
