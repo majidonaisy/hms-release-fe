@@ -501,7 +501,15 @@ const RoutesList = () => {
             title: "Reports",
             icon: <FileText />,
             component: Reports,
-            isShown: true
+            isShown: true,
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Report" },
+                    ]
+                }
+            ]
         }
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
