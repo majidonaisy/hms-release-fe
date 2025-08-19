@@ -138,13 +138,13 @@ const EditReservationDialog = ({
             if (onRefresh) {
                 onRefresh();
             }
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Reservation was updated successfully.",
             });
             setOpen(false);
         } catch (error: any) {
             setError(error.userMessage || 'Failed to update reservation');
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Could not update reservation.",
             });
         } finally {

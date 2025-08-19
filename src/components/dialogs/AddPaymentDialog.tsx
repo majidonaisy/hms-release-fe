@@ -512,6 +512,11 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                                     <p>Added By:
                                                                         {reservationDetails?.createdByUser?.firstName || 'Unknown'} {reservationDetails?.createdByUser?.lastName || 'Unknown'}
                                                                     </p>
+                                                                    {reservationDetails?.receiptId && (
+                                                                        <p>
+                                                                            Receipt ID: {reservationDetails?.receiptId}
+                                                                        </p>
+                                                                    )}
                                                                 </span>
                                                             </div>
                                                         </div>

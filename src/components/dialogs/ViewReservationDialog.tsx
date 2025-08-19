@@ -135,7 +135,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                         Booked By
                                     </div>
                                     <div className="text-lg font-semibold">
-                                        {createdByUser}
+                                        {createdByUser || "Unknown User"}
                                     </div>
                                 </div>
 
@@ -144,7 +144,7 @@ const ViewReservationDialog: React.FC<ViewReservationDialogProps> = ({ open, set
                                         Checked In At
                                     </div>
                                     <div className="text-lg font-semibold">
-                                        {formatCheckedInDate(checkedInAt)}
+                                        {formatCheckedInDate(checkedInAt) || "Unknown"}
                                     </div>
                                 </div>
                             </div>

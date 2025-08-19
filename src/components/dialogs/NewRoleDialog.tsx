@@ -85,12 +85,12 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
             setIsLoading(true);
             if (isEditing && editingRole) {
                 await updateRole(editingRole.id, validatedData as UpdateRoleRequest);
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Role was updated successfully.",
                 });
             } else {
                 await onConfirm(validatedData);
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Role was created successfully.",
                 });
             }
@@ -108,7 +108,7 @@ const NewRoleDialog: React.FC<NewRoleDialogProps> = ({
                 description = errorMessages;
             }
 
-            toast("Error!", {
+            toast.error("Error!", {
                 description,
             });
         } finally {

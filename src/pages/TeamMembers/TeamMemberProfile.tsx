@@ -64,7 +64,7 @@ const TeamMemberProfile = () => {
             } catch (error: any) {
                 console.error('Failed to fetch team member:', error);
                 setTeamMember(null);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to load team member data.",
                 });
             } finally {
@@ -98,7 +98,7 @@ const TeamMemberProfile = () => {
             // Remove password if empty to keep current password
             const updateData = { ...formData };
             await updateEmployee(id, updateData);
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Team member was updated successfully.",
             });
 
@@ -108,7 +108,7 @@ const TeamMemberProfile = () => {
             setIsEditMode(false);
         } catch (error: any) {
             const err = error?.userMessage || "Failed to update team member.";
-            toast("Error!", {
+            toast.error("Error!", {
                 description: err,
             });
             console.error("Failed to update team member:", error);
@@ -140,7 +140,7 @@ const TeamMemberProfile = () => {
                 setDeleteDialogOpen(false);
                 setEmployeeToDelete(null);
                 navigate('/team-members');
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Employee was deleted successfully.",
                 });
             } catch (error) {

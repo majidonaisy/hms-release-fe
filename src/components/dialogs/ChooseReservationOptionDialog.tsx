@@ -98,6 +98,7 @@ const ChooseReservationOptionDialog = ({
     }
 
     const guestName = guestData ? `${guestData.firstName} ${guestData.lastName}` : isLoading ? "Loading..." : "Guest"
+    const gId = guestData ? `${guestData.gid}` : isLoading ? "..." : "Guest"
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -138,7 +139,7 @@ const ChooseReservationOptionDialog = ({
                         <div className="flex items-center gap-2">
                             <User className="size-4" />
                             <span>
-                                Guest ID: {guestData?.gid}
+                                Guest ID: {gId}
                             </span>
                         </div>
                     </div>
@@ -302,9 +303,13 @@ const ChooseReservationOptionDialog = ({
 
                     {/* Cancel Reservation */}
                     <div
-                        className="flex items-center justify-between p-3 hover:bg-red-50 rounded-lg cursor-pointer transition-colors"
-                        onClick={cancelReservation}
-                    >
+                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedIn || isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                            }`}
+                        onClick={() => {
+                            if (!isCheckedIn && !isCheckedOut) {
+                                cancelReservation()
+                            }
+                        }}                    >
                         <div className="flex items-center gap-3">
                             <Trash2 className="h-5 w-5 text-red-600" />
                             <span className="font-medium text-red-600">Cancel Reservation</span>

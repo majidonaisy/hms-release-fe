@@ -64,7 +64,7 @@ const NewTeamMember = () => {
                     });
                 } catch (error) {
                     console.error("Failed to fetch employee:", error);
-                    toast("Error!", {
+                    toast.error("Error!", {
                         description: "Failed to load employee data.",
                     });
                 } finally {
@@ -82,7 +82,7 @@ const NewTeamMember = () => {
                 setRoles(rolesResponse.data);
             } catch (error) {
                 console.error('Failed to fetch roles:', error);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to load roles.",
                 });
             }
@@ -95,7 +95,7 @@ const NewTeamMember = () => {
                 console.log(response)
             } catch (error) {
                 console.error('Failed to fetch departments:', error);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to load departments.",
                 });
             }
@@ -120,7 +120,7 @@ const NewTeamMember = () => {
         const missingFields = requiredFields.filter(field => !formData[field as keyof AddEmployeeRequest]);
 
         if (missingFields.length > 0) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Please fill in all required fields.",
             });
             return;
@@ -133,7 +133,7 @@ const NewTeamMember = () => {
                     const updateData = { ...formData };
 
                     await updateEmployee(id, updateData);
-                    toast("Success!", {
+                    toast.success("Success!", {
                         description: "Team member was updated successfully.",
                     });
                 } else {
@@ -142,7 +142,7 @@ const NewTeamMember = () => {
                 }
             } else {
                 await addTeamMember(formData);
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Team member was created successfully.",
                 });
             }
@@ -150,7 +150,7 @@ const NewTeamMember = () => {
             setTeamMemberCreatedDialog(true);
         } catch (error: any) {
             const err = error?.userMessage || `Failed to ${isEditMode ? 'update' : 'create'} team member.`;
-            toast("Error!", {
+            toast.error("Error!", {
                 description: err,
             });
             console.error(`Failed to ${isEditMode ? 'update' : 'create'} team member:`, error);

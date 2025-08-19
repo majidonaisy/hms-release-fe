@@ -123,14 +123,14 @@ const GroupProfileExpanded = () => {
         setLoading(true);
         try {
             await updateGroupProfile(id, formData);
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Group profile was updated successfully.",
             });
 
             fetchData();
             setIsEditMode(false);
         } catch (error) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Failed to update group profile.",
             });
             console.error("Failed to update group profile:", error);
@@ -163,11 +163,11 @@ const GroupProfileExpanded = () => {
             setDeleteDialogOpen(false);
             setGroupToDelete(null);
             navigate('/guests-profile');
-            toast("Success!", {
+            toast.success("Success!", {
                 description: "Group profile was deleted successfully.",
             });
         } catch (error) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Failed to delete group profile.",
             });
             console.error("Failed to delete group profile:", error);
@@ -184,7 +184,7 @@ const GroupProfileExpanded = () => {
             await unlinkGuests(guestToRemove.id, id);
             fetchData();
         } catch (error) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: "Failed to unlink guest.",
             });
             console.error("Failed to unlink guest:", error);

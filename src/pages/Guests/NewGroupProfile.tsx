@@ -85,7 +85,7 @@ const NewGroupProfile = () => {
                     setCreatedGroupId(id);
                 } catch (error) {
                     console.error("Failed to fetch group:", error);
-                    toast("Error!", {
+                    toast.error("Error!", {
                         description: "Failed to load group data.",
                     });
                 } finally {
@@ -156,7 +156,7 @@ const NewGroupProfile = () => {
                     const guestIds = linkedGuests.map((guest: Guest) => guest.id);
                     try {
                         await linkGuestsToGroup(guestIds, id);
-                        toast("Success!", {
+                        toast.success("Success!", {
                             description: "Group profile updated and guests linked successfully.",
                         });
                     } catch (linkError) {
@@ -166,7 +166,7 @@ const NewGroupProfile = () => {
                         });
                     }
                 } else {
-                    toast("Success!", {
+                    toast.success("Success!", {
                         description: "Group profile updated successfully.",
                     });
                 }
@@ -181,7 +181,7 @@ const NewGroupProfile = () => {
                     const guestIds = linkedGuests.map((guest: Guest) => guest.id);
                     try {
                         await linkGuestsToGroup(guestIds, groupId);
-                        toast("Success!", {
+                        toast.success("Success!", {
                             description: "Group profile created and guests linked successfully.",
                         });
                     } catch (linkError) {
@@ -191,7 +191,7 @@ const NewGroupProfile = () => {
                         });
                     }
                 } else {
-                    toast("Success!", {
+                    toast.success("Success!", {
                         description: "Group profile created successfully.",
                     });
                 }
@@ -199,7 +199,7 @@ const NewGroupProfile = () => {
                 navigate('/guests-profile');
             }
         } catch (error) {
-            toast("Error!", {
+            toast.error("Error!", {
                 description: isEditMode ? "Failed to update group profile." : "Failed to create group profile.",
             });
             console.error("Failed to submit form:", error);
@@ -215,12 +215,12 @@ const NewGroupProfile = () => {
             try {
                 const guestIds = selectedGuests.map((guest: Guest) => guest.id);
                 await linkGuestsToGroup(guestIds, createdGroupId);
-                toast("Success!", {
+                toast.success("Success!", {
                     description: "Guests linked to group successfully.",
                 });
             } catch (error) {
                 console.error("Failed to link guests:", error);
-                toast("Error!", {
+                toast.error("Error!", {
                     description: "Failed to link guests to group.",
                 });
             }
