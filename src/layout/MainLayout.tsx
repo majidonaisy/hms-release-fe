@@ -10,6 +10,8 @@ import { CanAll, useRole } from '@/context/CASLContext';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 import { logoutService } from '@/services/Auth';
+import LogoCollapsed from '@/assets/LogoCollapsed.svg'
+import LogoExpanded from '@/assets/LogoExpanded.svg'
 
 interface MainLayoutProps {
     routes: any[];
@@ -83,7 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                                 <route.icon className="h-4 w-4 shrink-0" /> :
                                                 <span className="h-4 w-4 shrink-0 flex items-center justify-center">{route.icon}</span>
                                             }
-                                            <span className={`group-data-[collapsible=icon]:hidden text-lg ml-2 ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                                            <span className={`group-data-[collapsible=icon]:hidden text-lg ml-2 ${isActive ? 'font-semibold' : 'font-normal'}`}>
                                                 {route.title || route.path}
                                             </span>
                                         </Link>
@@ -110,7 +112,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                             <route.icon className="shrink-0" /> :
                                             <span className=" shrink-0 flex items-center justify-center">{route.icon}</span>
                                         }
-                                        <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                                        <span className={`group-data-[collapsible=icon]:hidden text-lg ${isActive ? 'font-semibold' : 'font-normal'}`}>
                                             {route.title || route.path}
                                         </span>
                                     </Link>
@@ -146,12 +148,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                 <Sidebar collapsible="icon">
                     <SidebarHeader className='group-data-[collapsible=icon]:px-2 transition-all duration-300 ease-in-out'>
                         <div className="flex items-center justify-center min-h-[3rem]">
-                            <h2 className="text-lg font-semibold py-2 group-data-[collapsible=icon]:text-base transition-all duration-300 ease-in-out relative">
+                            <h2 className="text-lg font-normal py-2 group-data-[collapsible=icon]:text-base transition-all duration-300 ease-in-out relative">
                                 <span className="group-data-[collapsible=icon]:scale-0 group-data-[collapsible=icon]:opacity-0 transition-all duration-200 ease-in-out origin-center">
-                                    HMS
+                                    <img src={LogoExpanded} className='h-40 w-40'/>
                                 </span>
-                                <span className="absolute inset-0 flex items-center justify-center scale-0 opacity-0 group-data-[collapsible=icon]:scale-100 group-data-[collapsible=icon]:opacity-100 transition-all duration-200 ease-in-out delay-100 origin-center">
-                                    H
+                                <span className="absolute inset-0 flex items-center justify-center scale-0 opacity-0 group-data-[collapsible=icon]:scale-200 group-data-[collapsible=icon]:opacity-100 transition-all duration-200 ease-in-out delay-100 origin-center">
+                                    <img src={LogoCollapsed} className='h-24 w-24' />
                                 </span>
                             </h2>
                         </div>
@@ -173,7 +175,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                                 <SidebarMenuButton tooltip="Log Out" asChild>
                                     <Button disabled={loading} className="w-full transition-all duration-200" onClick={() => handleLogout()}>
                                         <LogOut className="!size-4" />
-                                        <span className="group-data-[collapsible=icon]:hidden text-md font-semibold">{loading ? "Logging out..." : "Log Out"}</span>
+                                        <span className="group-data-[collapsible=icon]:hidden text-md font-normal">{loading ? "Logging out..." : "Log Out"}</span>
                                     </Button>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
