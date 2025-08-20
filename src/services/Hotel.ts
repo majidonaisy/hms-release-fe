@@ -1,8 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { HotelSettingsResponse, UpdateHotelSettingsRequest } from "@/validation/schemas/Hotel";
+import { getAuthServiceUrl } from "./configServices";
 
-const baseURL = import.meta.env.VITE_AUTH_SERVICE_URL + "/" ;
+const baseURL = await getAuthServiceUrl();
 // Alaa was here
 export const getHotelSettings = async (): Promise<HotelSettingsResponse> => {
   try {

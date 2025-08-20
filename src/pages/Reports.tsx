@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/Organisms/Dialog";
 import { Button } from "@/components/atoms/Button";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 const Reports = () => {
     const [reports, setReports] = useState<ReportType[] | null>(null);
@@ -70,7 +71,7 @@ const Reports = () => {
                                 {loading ? (
                                     <TableRow className="">
                                         <TableCell
-                                            colSpan={2}
+                                            colSpan={3}
                                             className="py-10 text-center text-gray-600"
                                         >
                                             Loading reports...
@@ -117,6 +118,7 @@ const Reports = () => {
                     <DialogContent className="max-w-[90vw] w-[90vw] sm:max-w-4xl">
                         <DialogHeader>
                             <DialogTitle>Report Preview</DialogTitle>
+                            <DialogDescription></DialogDescription>
                         </DialogHeader>
                         <iframe
                             src={previewFile}

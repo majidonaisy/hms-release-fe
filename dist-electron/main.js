@@ -2,7 +2,6 @@ import { app, ipcMain, BrowserWindow, screen } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
-console.log("testt");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -10,14 +9,11 @@ const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 const configPath = path.join(app.getPath("userData"), "config.json");
-console.log("User config path:", configPath);
 let win = null;
 let isQuitting = false;
 let logoutInProgress = false;
 function getConfig() {
-  console.log("User config path:", configPath);
   const raw = fs.readFileSync(configPath, "utf-8");
-  console.log("Config content:", raw);
   return JSON.parse(raw);
 }
 function hasConfig() {
@@ -93,7 +89,7 @@ function createWindow() {
     win = null;
   });
 }
-ipcMain.handle("setup-submitted", async (event, email) => {
+ipcMain.handle("setup-submitted", async (_event, email) => {
   try {
     console.log("Setup requested for email:", email);
     return {
