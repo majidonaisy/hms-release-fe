@@ -2,7 +2,6 @@ import { app, BrowserWindow, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
-console.log("testt")
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -15,7 +14,6 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 // Config file path
 const configPath = path.join(app.getPath('userData'), 'config.json');
-console.log('User config path:', configPath);
 
 
 let win: BrowserWindow | null = null;
@@ -24,9 +22,7 @@ let logoutInProgress = false;
 
 // Config management functions
 function getConfig() {
-  console.log("User config path:", configPath);
   const raw = fs.readFileSync(configPath, "utf-8");
-  console.log("Config content:", raw);
   return JSON.parse(raw);
 }
 

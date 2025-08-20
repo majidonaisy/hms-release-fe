@@ -1,7 +1,9 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
 import { AddRoomTypeRequest, AddRoomTypeResponse, GetRoomTypesResponse, UpdateRoomTypeRequest, UpdateRoomTypeResponse } from "@/validation";
-const baseURL = import.meta.env.VITE_FRONTDESK_SERVICE_URL; // Base URL for room types
+import { getFrontdeskServiceUrl } from "./configServices";
+
+const baseURL = await getFrontdeskServiceUrl();
 
 export const addRoomType = async (data: AddRoomTypeRequest): Promise<AddRoomTypeResponse> => {
   try {
