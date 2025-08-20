@@ -35,19 +35,13 @@ const TableSkeleton: React.FC<{title: string}> = ({
                     <TableHeader>
                         <TableRow className="border-b border-gray-200">
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-4 w-24" />
                             </TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                <Skeleton className="h-4 w-12" />
+                                <Skeleton className="h-4 w-24" />
                             </TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                <Skeleton className="h-4 w-10" />
-                            </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                <Skeleton className="h-4 w-12" />
-                            </TableHead>
-                            <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
-                                <Skeleton className="h-4 w-20" />
+                                <Skeleton className="h-4 w-24" />
                             </TableHead>
                             <TableHead className="text-left font-medium text-gray-900 px-6 py-4">
                                 <Skeleton className="h-4 w-24" />
@@ -57,25 +51,19 @@ const TableSkeleton: React.FC<{title: string}> = ({
                     </TableHeader>
                     <TableBody>
                         {/* Skeleton Rows */}
-                        {Array.from({ length: 10 }).map((_, index) => (
+                        {Array.from({ length: 7 }).map((_, index) => (
                             <TableRow key={index} className="border-b border-gray-100">
                                 <TableCell className="px-6 py-4">
                                     <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-4 w-20 rounded-full" />
+                                    <Skeleton className="h-4 w-16 rounded-full" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-4 w-8" />
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-4 w-32" />
-                                </TableCell>
-                                <TableCell className="px-6 py-4">
-                                    <Skeleton className="h-4 w-12" />
+                                    <Skeleton className="h-4 w-16" />
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
                                     <Skeleton className="h-8 w-8 rounded" />
