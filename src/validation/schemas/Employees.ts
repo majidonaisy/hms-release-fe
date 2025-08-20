@@ -102,6 +102,131 @@ export const UpdateTeamMemberRequestSchema = z.object({
   departmentId: z.string().optional()
 })
 
+const BaseActivityShape = z.object({
+  id: z.string(),
+  userId: z.string(),
+  hotelId: z.string(),
+  service: z.string(),
+  resourceType: z.string(),
+  resourceId: z.string().nullable(),
+  status: z.string(),
+  errorMessage: z.string().nullable(),
+  timestamp: z.string(), // ISO string
+});
+
+// Create Group Booking activity
+const CreateGroupBookingActivity = BaseActivityShape.extend({
+  action: z.literal("Create Group Booking"),
+  requestData: z.object({
+    checkIn: z.string(),
+    checkOut: z.string(),
+    ratePlanId: z.string(),
+    groupProfileId: z.string(),
+    guestsAndRooms: z.record(z.string(), z.array(z.string())),
+  }),
+  responseData: z.null(),
+  metadata: z.object({
+    ip: z.string(),
+    path: z.string(),
+    method: z.string(),
+    userAgent: z.string(),
+    guestCount: z.number(),
+    ratePlanId: z.string(),
+    statusCode: z.number(),
+    totalRooms: z.number(),
+    checkInDate: z.date(),
+    checkOutDate: z.date(),
+    groupProfileId: z.string(),
+    uniqueRoomCount: z.number(),
+    groupProfileName: z.string(),
+    reservationCount: z.number(),
+    groupProfileEmail: z.string(),
+    groupProfilePhone: z.string(),
+    groupProfileStatus: z.string(),
+    groupProfileLegalName: z.string(),
+    groupProfileBusinessType: z.string(),
+  }),
+});
+
+// Create Reservation activity
+const CreateReservationActivity = BaseActivityShape.extend({
+  action: z.literal("Create Reservation"),
+  requestData: z.object({
+    guestId: z.string(),
+    ratePlanId: z.string(),
+  }),
+  responseData: z.object({
+    status: z.number(),
+  }).nullable(),
+  metadata: z.object({
+    ip: z.string(),
+    path: z.string(),
+    method: z.string(),
+    guestId: z.string(),
+    guestGid: z.string().optional(),
+    guestName: z.string().optional(),
+    roomCount: z.number(),
+    userAgent: z.string(),
+    guestCount: z.number(),
+    statusCode: z.number(),
+    checkInDate: z.date(),
+    roomNumbers: z.array(z.string()).optional(),
+    checkOutDate: z.date(),
+    guestLastName: z.string().optional(),
+    guestFirstName: z.string().optional(),
+    reservationPrice: z.string().optional(),
+  }),
+});
+
+// Add Charge activity
+const AddChargeActivity = BaseActivityShape.extend({
+  action: z.literal("Add Charge"),
+  requestData: z.null(),
+  responseData: z.object({
+    status: z.number(),
+  }),
+  metadata: z.object({
+    ip: z.string(),
+    path: z.string(),
+    rooms: z.array(z.string()).optional(),
+    method: z.string(),
+    folioId: z.string().optional(),
+    userAgent: z.string(),
+    chargeType: z.string().optional(),
+    itemStatus: z.string().optional(),
+    statusCode: z.number(),
+    chargeAmount: z.string().optional(),
+    operationType: z.string().optional(),
+  }),
+});
+
+// Full Activity Logs response
+export const ActivityLogsSchema = z.object({
+  status: z.number(),
+  message: z.string(),
+  data: z.array(
+    z.discriminatedUnion("action", [
+      CreateGroupBookingActivity,
+      CreateReservationActivity,
+      AddChargeActivity,
+    ])
+  ),
+});
+
+// Pagination wrapper
+export const PaginatedActivityLogsSchema = ActivityLogsSchema.extend({
+  pagination: z.object({
+    totalItems: z.number(),
+    totalPages: z.number(),
+    currentPage: z.number(),
+    pageSize: z.number(),
+    hasNext: z.boolean(),
+    hasPrevious: z.boolean(),
+    nextPage: z.number().nullable(),
+    previousPage: z.number().nullable(),
+  }),
+});
+
 export type Employee = z.infer<typeof EmployeeShape>;
 export type Pagination = z.infer<typeof PaginationSchema>;
 export type GetEmployeesResponse = z.infer<typeof GetEmployeesResponseSchema>;
@@ -109,3 +234,7 @@ export type GetEmployeeByIdResponse = z.infer<typeof GetEmployeeByIdResponseSche
 export type AddEmployeeRequest = z.infer<typeof AddEmployeeRequestSchema>
 export type AddTeamMemberResponse = z.infer<typeof AddTeamMemberResponseSchema>
 export type UpdateTeamMemberRequest = z.infer<typeof UpdateTeamMemberRequestSchema>
+export type ActivityLogItem = z.infer<typeof CreateGroupBookingActivity>
+  | z.infer<typeof CreateReservationActivity>
+  | z.infer<typeof AddChargeActivity>;
+export type PaginatedActivityLogs = z.infer<typeof PaginatedActivityLogsSchema>;

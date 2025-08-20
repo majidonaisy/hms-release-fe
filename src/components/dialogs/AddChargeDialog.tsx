@@ -201,7 +201,7 @@ const AddChargeDialog = ({ open, setOpen, reservationId, onBackToChooseOptions }
                     <div className="border rounded-lg p-4 bg-hms-primary/15">
                         <h3 className="font-semibold text-lg mb-3">Reservation Summary</h3>
                         {isLoadingReservation ? (
-                            <div className="flex justify-center items-center py-4 h-[200px]">
+                            <div className="flex justify-center items-center py-4 h-[150px]">
                                 <div className="text-sm text-gray-500">Loading reservation details...</div>
                             </div>
                         ) : (
