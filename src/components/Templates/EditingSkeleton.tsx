@@ -1,11 +1,16 @@
 import { Skeleton } from '@/components/atoms/Skeleton';
+import { Button } from '../atoms/Button';
+import { ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const EditingSkeleton = () => {
+    const navigate = useNavigate();
+
     return (
         <div className="p-5 min-h-screen">
             {/* Header Skeleton */}
             <div className="flex items-center gap-3 mb-6">
-                <Skeleton className="h-5 w-5" />
+                <Button variant='ghost' onClick={() => navigate(-1)}><ChevronLeft /></Button>
                 <Skeleton className="h-7 w-48" />
             </div>
 

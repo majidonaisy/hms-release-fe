@@ -576,7 +576,7 @@ const GroupProfileExpanded = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-3 px-0'>
-                        {reservationData && (
+                        {reservationData && reservationData.data.length > 0 ? (
                             (reservationData?.data.map((reservation) => (
                                 <Card key={reservation.id} className='bg-hms-accent/10 px-2 gap-2'>
                                     <span className='flex justify-between'>
@@ -609,7 +609,9 @@ const GroupProfileExpanded = () => {
                                         </p>
                                     </span>
                                 </Card>
-                            ))))}
+                            )))) : (
+                            <div className='text-muted-foreground text-center'>This group has no reservation history</div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
