@@ -18,6 +18,7 @@ import DeleteDialog from "../../components/molecules/DeleteDialog";
 import { getReservationByGuestId } from '@/services/Reservation';
 import { AddGuestRequest, GetGuestByIdResponse } from '@/validation/schemas/Guests';
 import { Can, CanAny } from '@/context/CASLContext';
+import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 
 const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
@@ -223,18 +224,7 @@ const GuestProfileView = () => {
 
     if (loading && !guest) {
         return (
-            <div className="p-6 bg-gray-50 min-h-screen">
-                <div className="flex items-center gap-4 mb-6">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(-1)}
-                        className="p-1"
-                    >
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-2xl font-semibold text-gray-900">Loading...</h1>
-                </div>
-            </div>
+            <EditingSkeleton />
         );
     }
 
@@ -599,7 +589,7 @@ const GuestProfileView = () => {
                                     </span>
                                 </Card>
                             ))) : (
-                                <div className='text-muted-foreground text-center'>This guest had no reservation history</div>
+                                <div className='text-muted-foreground text-center'>This guest has no reservation history</div>
                             )}
                     </CardContent>
                 </Card>

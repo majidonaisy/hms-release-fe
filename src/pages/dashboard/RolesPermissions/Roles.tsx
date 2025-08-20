@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import type { AddRoleRequest, Role, RoleResponse } from "@/validation/schemas/Roles"
+import type { AddRoleRequest, Role } from "@/validation/schemas/Roles"
 import { addRole, deleteRole, getRoles } from "@/services/Role"
 import NewRoleDialog from "@/components/dialogs/NewRoleDialog"
 import { useDebounce } from "@/hooks/useDebounce"
@@ -16,14 +16,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/atoms/DropdownMenu"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
-import TableSkeleton from "@/components/Templates/TableSkeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
 import { Can, CanAny } from "@/context/CASLContext"
 
 const Roles = () => {
     const [newRoleDialogOpen, setNewRoleDialogOpen] = useState<boolean>(false)
     const [editingRole, setEditingRole] = useState<Role | null>(null)
-    const [roles, setRoles] = useState<RoleResponse["data"]>()
     const [customRoles, setCustomRoles] = useState<Role[]>([])
     const [templateRoles, setTemplateRoles] = useState<Role[]>([])
     const navigate = useNavigate()
@@ -68,7 +66,6 @@ const Roles = () => {
             }
 
             const response = await getRoles(params)
-            setRoles(response.data)
 
             // Separate custom roles from template roles
             const custom = response.data?.filter(role => !role.isTemplate) || []
@@ -84,7 +81,6 @@ const Roles = () => {
             }
         } catch (error) {
             console.error(error)
-            setRoles([])
             setCustomRoles([])
             setTemplateRoles([])
         } finally {
@@ -252,10 +248,6 @@ const Roles = () => {
             </Table>
         </div>
     )
-
-    if (!roles && searchLoading) {
-        return <TableSkeleton title="Roles" />
-    }
 
     return (
         <>
