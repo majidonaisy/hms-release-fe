@@ -141,52 +141,66 @@ const MaintenancePage = () => {
         setSelectedRequestId(null);
     };
 
-    // Mock activity log data - replace this with actual API call
-    const getMockActivityLog = (_requestId: string): ActivityLogEntry[] => {
-        return [
-            {
-                id: '1',
-                date: '2025-06-21',
-                time: '3:27 am',
-                description: 'Status changed from "Working On" to "Completed"',
-                author: 'Rana K.'
-            },
-            {
-                id: '2',
-                date: '2025-06-20',
-                time: '5:36 am',
-                description: 'Edited',
-                author: 'Ali R.'
-            },
-            {
-                id: '3',
-                date: '2025-06-18',
-                time: '8:10 am',
-                description: 'Created',
-                author: 'Sara H.'
-            },
-            {
-                id: '4',
-                date: '2025-06-18',
-                time: '2:15 pm',
-                description: 'Priority changed from "Low" to "High"',
-                author: 'John D.'
-            },
-            {
-                id: '5',
-                date: '2025-06-17',
-                time: '10:30 am',
-                description: 'Assigned to maintenance team',
-                author: 'Admin'
-            },
-            {
-                id: '6',
-                date: '2025-06-17',
-                time: '9:45 am',
-                description: 'Photos uploaded for inspection',
-                author: 'Mike T.'
-            }
-        ];
+    // Generate activity log from maintenance request data
+    const generateActivityLog = (requestId: string): ActivityLogEntry[] => {
+        const request = maintenanceRequests.find(r => r.id === requestId);
+        if (!request) return [];
+
+        const activities: ActivityLogEntry[] = [];
+
+        // Helper function to format date and time
+        const formatDateTime = (dateString: string) => {
+            const date = new Date(dateString);
+            const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }).toLowerCase();
+            return { date: formattedDate, time: formattedTime };
+        };
+
+        // Add creation activity
+        if (request.createdAt) {
+            const { date, time } = formatDateTime(request.createdAt);
+            activities.push({
+                id: `${request.id}-created`,
+                date,
+                time,
+                description: 'Status changed from "New" to "Pending"'
+            });
+        }
+
+        // Add started activity if request was started
+        if (request.startedAt) {
+            const { date, time } = formatDateTime(request.startedAt);
+            activities.push({
+                id: `${request.id}-started`,
+                date,
+                time,
+                description: 'Status changed from "Pending" to "In Progress"'
+            });
+        }
+
+        // Add completion activity if request was completed
+        if (request.completedAt) {
+            const { date, time } = formatDateTime(request.completedAt);
+            activities.push({
+                id: `${request.id}-completed`,
+                date,
+                time,
+                description: 'Status changed from "In Progress" to "Completed"'
+            });
+        }
+
+        // Sort activities by date and time (most recent first)
+        activities.sort((a, b) => {
+            const dateA = new Date(`${a.date} ${a.time}`);
+            const dateB = new Date(`${b.date} ${b.time}`);
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        return activities;
     };
 
     const handleNewMaintenanceConfirm = async (data: any) => {
@@ -222,39 +236,88 @@ const MaintenancePage = () => {
     };
 
     const handleStatusChange = async (requestId: string) => {
+        const currentTimestamp = new Date().toISOString();
+
+        setMaintenanceRequests(prev =>
+            prev.map(request =>
+                request.id === requestId
+                    ? {
+                        ...request,
+                        status: 'IN_PROGRESS',
+                        startedAt: currentTimestamp
+                    }
+                    : request
+            )
+        );
+
         try {
-            await startMaintenance(requestId);
-            setMaintenanceRequests(prev =>
-                prev.map(request =>
-                    request.id === requestId
-                        ? { ...request, status: 'IN_PROGRESS' }
-                        : request
-                )
-            );
+            const apiResponse = await startMaintenance(requestId);
             toast.success('Status updated successfully');
+
+            if (apiResponse?.data) {
+                setMaintenanceRequests(prev =>
+                    prev.map(request =>
+                        request.id === requestId
+                            ? { ...request, ...apiResponse.data }
+                            : request
+                    )
+                );
+            }
         } catch (error) {
             console.error('Failed to update status:', error);
             toast.error('Failed to update status');
-            return;
 
+            setMaintenanceRequests(prev =>
+                prev.map(request =>
+                    request.id === requestId
+                        ? { ...request, status: 'PENDING', startedAt: undefined }
+                        : request
+                )
+            );
+            return;
         }
     };
+
     const handleStatusComplete = async (requestId: string) => {
+        const currentTimestamp = new Date().toISOString();
+
+        setMaintenanceRequests(prev =>
+            prev.map(request =>
+                request.id === requestId
+                    ? {
+                        ...request,
+                        status: 'COMPLETED',
+                        completedAt: currentTimestamp
+                    }
+                    : request
+            )
+        );
+
         try {
-            await completeMaintenance(requestId);
-            setMaintenanceRequests(prev =>
-                prev.map(request =>
-                    request.id === requestId
-                        ? { ...request, status: 'COMPLETED' }
-                        : request
-                )
-            );
+            const apiResponse = await completeMaintenance(requestId);
             toast.success('Status updated successfully');
+
+            if (apiResponse?.data) {
+                setMaintenanceRequests(prev =>
+                    prev.map(request =>
+                        request.id === requestId
+                            ? { ...request, ...apiResponse.data }
+                            : request
+                    )
+                );
+            }
         } catch (error) {
             console.error('Failed to update status:', error);
             toast.error('Failed to update status');
-            return;
 
+            setMaintenanceRequests(prev =>
+                prev.map(request =>
+                    request.id === requestId
+                        ? { ...request, status: 'IN_PROGRESS', completedAt: undefined }
+                        : request
+                )
+            );
+            return;
         }
     };
 
@@ -371,10 +434,6 @@ const MaintenancePage = () => {
                                     <TableCell className="px-6 py-4 text-gray-600">
                                         {request.user?.firstName + " " + request.user?.lastName || 'Unassigned'}
                                     </TableCell>
-                                    {/* <CanAll permissions={[
-                                        { action: "manage", subject: "Maintenance" },
-                                        { action: "read", subject: "Area" }
-                                    ]}> */}
                                     <TableCell className="px-6 py-4">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild>
@@ -442,7 +501,6 @@ const MaintenancePage = () => {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
-                                    {/* </CanAll> */}
                                 </TableRow>
                             ))
                         )}
@@ -460,7 +518,7 @@ const MaintenancePage = () => {
                     />
                 )}
             </div>
-            
+
             <NewMaintenanceDialog
                 isOpen={isNewMaintenanceDialogOpen}
                 onConfirm={handleNewMaintenanceConfirm}
@@ -497,7 +555,7 @@ const MaintenancePage = () => {
                 isOpen={activityLogOpen}
                 onClose={handleActivityLogClose}
                 title="Maintenance activity log"
-                activities={selectedRequestId ? getMockActivityLog(selectedRequestId) : []}
+                activities={selectedRequestId ? generateActivityLog(selectedRequestId) : []}
             />
         </div >
     );
