@@ -88,7 +88,7 @@ const CheckInDialog = ({
 
             onCheckInComplete?.();
             setOpen(false);
-            toast(
+            toast.success(
                 "Success!", {
                 description: "Check-in was successful"
             }

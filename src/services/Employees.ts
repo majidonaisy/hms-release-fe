@@ -1,6 +1,6 @@
 import { apiClient } from "@/api/base";
 import { ENDPOINTS } from "@/api/endpoints";
-import { AddEmployeeRequest, AddTeamMemberResponse, GetEmployeeByIdResponse, GetEmployeesResponse } from "@/validation/schemas/Employees";
+import { AddEmployeeRequest, AddTeamMemberResponse, GetEmployeeByIdResponse, GetEmployeesResponse, PaginatedActivityLogs } from "@/validation/schemas/Employees";
 import { getAuthServiceUrl } from "./configServices";
 
 const baseURL = await getAuthServiceUrl();
@@ -38,6 +38,28 @@ export const getEmployeeById = async (id: string): Promise<GetEmployeeByIdRespon
       baseURL,
     });
     return response as GetEmployeeByIdResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get employee";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const getActivityLogs = async (
+  id: string,
+  skip: number,
+  limit: number
+): Promise<PaginatedActivityLogs> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: `${ENDPOINTS.Employees.ActivityLog}/${id}`,
+      baseURL,
+      params: { skip, limit },
+    });
+    return response as PaginatedActivityLogs;
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Failed to get employee";
     throw {

@@ -94,7 +94,8 @@ export const ENDPOINTS = {
     GetEmployeeById: "auth/get-user",
     Create: "auth/add-user",
     Search: "auth/employees/search",
-    DeleteUpdate: "auth/employee"
+    DeleteUpdate: "auth/employee",
+    ActivityLog: "logger"
   },
   Role: {
     Add: "role/add",
