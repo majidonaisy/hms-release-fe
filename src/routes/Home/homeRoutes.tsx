@@ -50,7 +50,7 @@ const HomeRoutes: React.FC = () => {
                 }
             >
                 {/* Only show this if authenticated */}
-                {isAuthenticated && <Route index element={<Navigate to="/rooms" replace />} />}
+                {isAuthenticated && <Route index element={<Navigate to="/homepage" replace />} />}
                 {isAuthenticated && renderProtectedRoutes(allRoutes)}
             </Route>
 
