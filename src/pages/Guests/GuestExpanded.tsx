@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, Filter, Calendar as CalendarIcon, CloudUpload, Plus, DoorOpen, Calendar1, Pin } from 'lucide-react';
+import { ChevronLeft, Calendar as CalendarIcon, CloudUpload, Plus, DoorOpen, Calendar1, Pin } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/Organisms/Card';
@@ -24,7 +24,6 @@ const GuestProfileView = () => {
     const { id } = useParams<{ id: string }>();
     const location = useLocation();
     const navigate = useNavigate();
-    const [searchText, setSearchText] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -49,6 +48,7 @@ const GuestProfileView = () => {
             roomType: '',
         }
     });
+    const [historyLoading, setHistoryLoading] = useState(false)
 
     useEffect(() => {
         const fetchGuestData = async () => {
@@ -89,11 +89,14 @@ const GuestProfileView = () => {
         };
 
         const getGuestHistory = async () => {
+            setHistoryLoading(true)
             try {
                 const history = await getReservationByGuestId(id || '')
                 setReservationData(history)
             } catch (err) {
                 console.error(err)
+            } finally {
+                setHistoryLoading(false)
             }
         }
 
@@ -531,36 +534,24 @@ const GuestProfileView = () => {
                     </Card>
                 </div>
 
-                <Card className="p-3">
-                    <CardHeader className='p-0'>
+                <Card className="p-3 gap-3">
+                    <CardHeader className="p-0">
                         <CardTitle className="font-bold text-lg p-0 pb-1 border-b flex gap-2 items-center">
-                            Reservation History
-                            <p className="text-sm text-muted-foreground font-normal">(last 5 reservations)</p>
+                            Reservation History/ Upcoming Stays
                         </CardTitle>
-                        <div className="flex items-center gap-2 mt-2">
-                            <div className="flex items-center rounded-lg border px-1">
-                                <Input
-                                    type="text"
-                                    placeholder="Search here"
-                                    value={searchText}
-                                    onChange={(e) => setSearchText(e.target.value)}
-                                    className="border-none outline-none focus-visible:ring-0 bg-transparent text-sm h-5"
-                                />
-                                <Search className="h-4 w-4 text-gray-400" />
-                            </div>
-                            <Button variant="outline" className='h-6'>
-                                <Filter className="h-4 w-4 text-muted-foreground" />
-                                <p className='text-sm text-muted-foreground'>Filter</p>
-                            </Button>
-                        </div>
                     </CardHeader>
                     <CardContent className='space-y-3 px-0'>
-                        {reservationData && reservationData?.data.length > 0 ?
+                        <p className="text-sm text-muted-foreground font-normal">
+                            Showing the last 5 reservations (past, current, or upcoming)
+                        </p>
+                        {historyLoading ? (
+                            <div className='text-muted-foreground text-center'>Loading...</div>
+                        ) : reservationData && reservationData?.data.length > 0 ?
                             (reservationData?.data.map((reservation) => (
                                 <Card key={reservation.id} className='bg-hms-accent/15 px-2 gap-2'>
                                     <span className='flex justify-between'>
                                         <p className='flex gap-1 items-center font-semibold'>
-                                            <DoorOpen className='size-4' />
+                                            <DoorOpen className='size-4 text-hms-primary' />
                                             Room(s):
                                         </p>
                                         <span className='text-sm'>
@@ -571,7 +562,7 @@ const GuestProfileView = () => {
                                     </span>
                                     <span className='flex justify-between'>
                                         <p className='flex gap-1 items-center font-semibold'>
-                                            <Calendar1 className='size-4' />
+                                            <Calendar1 className='size-4 text-hms-primary' />
                                             Stay Dates:
                                         </p>
                                         <p className='text-sm'>
@@ -580,7 +571,7 @@ const GuestProfileView = () => {
                                     </span>
                                     <span className='flex justify-between'>
                                         <p className='flex gap-1 items-center font-semibold'>
-                                            <Pin className='size-4' />
+                                            <Pin className='size-4 text-hms-primary' />
                                             Status:
                                         </p>
                                         <p className='text-sm'>
