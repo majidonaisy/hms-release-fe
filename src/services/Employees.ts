@@ -49,7 +49,7 @@ export const getEmployeeById = async (id: string): Promise<GetEmployeeByIdRespon
 
 export const getActivityLogs = async (
   id: string,
-  skip: number,
+  page: number,
   limit: number
 ): Promise<PaginatedActivityLogs> => {
   try {
@@ -57,7 +57,7 @@ export const getActivityLogs = async (
       method: "GET",
       endpoint: `${ENDPOINTS.Employees.ActivityLog}/${id}`,
       baseURL,
-      params: { skip, limit },
+      params: { page, limit },
     });
     return response as PaginatedActivityLogs;
   } catch (error: any) {
