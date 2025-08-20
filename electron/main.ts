@@ -15,14 +15,12 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 // Config file path
 const configPath = path.join(app.getPath('userData'), 'config.json');
 
-
 let win: BrowserWindow | null = null;
 let isQuitting = false;
 let logoutInProgress = false;
 
 // Config management functions
 function getConfig() {
-  console.log("User config path:", configPath);
   const raw = fs.readFileSync(configPath, "utf-8");
   return JSON.parse(raw);
 }

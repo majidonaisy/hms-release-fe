@@ -13,7 +13,6 @@ let win = null;
 let isQuitting = false;
 let logoutInProgress = false;
 function getConfig() {
-  console.log("User config path:", configPath);
   const raw = fs.readFileSync(configPath, "utf-8");
   return JSON.parse(raw);
 }
