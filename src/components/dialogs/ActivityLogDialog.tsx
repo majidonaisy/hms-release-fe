@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/Organisms/Dialog';
 import { X, Search } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import DotLine from '../atoms/DotLine';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 export interface ActivityLogEntry {
     id: string;
@@ -88,8 +89,8 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-6 bg-white" showCloseButton={false}>
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-dashed border-hms-primary mb-6">
-                    <h2 className="text-lg font-semibold text-hms-primary">{title}</h2>
+                <div className="flex items-center justify-between">
+                    <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -106,7 +107,7 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
                         <div className="space-y-6">
                             {groupedActivities.map((group, groupIndex: number) => (
                                 <div key={groupIndex}>
-                                    <div className='bg-hms-primary/15 text-xs font-medium px-3 py-1 rounded-full mb-4 inline-block'>
+                                    <div className='bg-hms-primary/15 text-xs font-medium w-28 px-3 py-1 rounded-full mb-4 inline-block ml-3'>
                                         {isToday(group.date)
                                             ? 'Today'
                                             : isYesterday(group.date)
@@ -117,15 +118,12 @@ const ActivityLogDialog: React.FC<ActivityLogDialogProps> = ({
 
                                     <div className="space-y-2 ">
                                         {group.logs.map((activity: ActivityLogEntry, logIndex: number) => (
-                                            <div key={logIndex} className="flex gap-5 items-start">
+                                            <div key={logIndex} className="flex gap-5">
                                                 <DotLine className="-mt-5 mr-20" />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start">
                                                         <p className="text-sm text-gray-900 flex-1 pr-4">
                                                             {activity.description}
-                                                            {activity.author && (
-                                                                <span className="font-medium"> by {activity.author}</span>
-                                                            )}
                                                         </p>
                                                         <span className="text-xs text-gray-500 whitespace-nowrap">
                                                             {formatTime(activity.time)}

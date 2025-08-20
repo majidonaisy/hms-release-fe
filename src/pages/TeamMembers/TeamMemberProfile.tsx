@@ -17,6 +17,7 @@ import { Role } from '@/validation/schemas/Roles';
 import { Departments } from '@/validation/schemas/Departments';
 import { getDepartments } from '@/services/Departments';
 import { Can, CanAny } from '@/context/CASLContext';
+import DotLine from '@/components/atoms/DotLine';
 
 const TeamMemberProfile = () => {
     const { id } = useParams<{ id: string }>();
@@ -448,15 +449,10 @@ const TeamMemberProfile = () => {
                                                         {sessions.map((session) => {
                                                             return (
                                                                 <div key={session.id} className="ml-10">
-                                                                    <div className="right-30 relative -top-5" >
-                                                                        <div className="flex-shrink-0">
-                                                                            <div className="w-px h-10 bg-hms-primary mt-1 absolute left-20">
-                                                                                <div className='w-10 bg-hms-primary h-px relative top-9'></div>
-                                                                                <div className='w-2 h-2 rounded-full bg-hms-primary relative top-8 -left-1'></div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex justify-between ml-2 bg-hms-accent/15 p-2 rounded-lg">
+                                                                    {/* <div className="" > */}
+                                                                       <DotLine className='right-30 relative -top-3 mt-5 mr-20'/>
+                                                                    {/* </div>/ */}
+                                                                    <div className="flex flex-1 justify-between ml-2 bg-hms-accent/15 p-2 rounded-lg">
                                                                         <div className="flex flex-col">
                                                                             <span className="text-sm font-medium">
                                                                                 {getActivityDescription(session)}

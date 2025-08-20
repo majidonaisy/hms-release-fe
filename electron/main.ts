@@ -22,6 +22,7 @@ let logoutInProgress = false;
 
 // Config management functions
 function getConfig() {
+  console.log("User config path:", configPath);
   const raw = fs.readFileSync(configPath, "utf-8");
   return JSON.parse(raw);
 }

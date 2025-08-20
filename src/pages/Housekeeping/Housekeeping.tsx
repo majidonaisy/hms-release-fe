@@ -155,52 +155,60 @@ const HousekeepingPage = () => {
         setSelectedTaskId(null);
     };
 
-    // Mock activity log data - replace this with actual API call
-    const getMockActivityLog = (_taskId: string): ActivityLogEntry[] => {
-        return [
-            {
-                id: '1',
-                date: '2025-06-21',
-                time: '3:27 am',
-                description: 'Status changed from "Pending" to "Completed"',
-                author: 'Rana K.'
-            },
-            {
-                id: '2',
-                date: '2025-06-20',
-                time: '5:36 am',
-                description: 'Task started and status changed to "In Progress"',
-                author: 'Ali R.'
-            },
-            {
-                id: '3',
-                date: '2025-06-18',
-                time: '8:10 am',
-                description: 'Housekeeping task created',
-                author: 'Sara H.'
-            },
-            {
-                id: '4',
-                date: '2025-06-18',
-                time: '2:15 pm',
-                description: 'Priority changed from "Low" to "High"',
-                author: 'John D.'
-            },
-            {
-                id: '5',
-                date: '2025-06-17',
-                time: '10:30 am',
-                description: 'Task assigned to housekeeping staff',
-                author: 'Admin'
-            },
-            {
-                id: '6',
-                date: '2025-06-17',
-                time: '9:45 am',
-                description: 'Room inspection completed',
-                author: 'Mike T.'
-            }
-        ];
+    const generateActivityLog = (taskId: string): ActivityLogEntry[] => {
+        const task = housekeepingTasks.find(t => t.id === taskId);
+        if (!task) return [];
+
+        const activities: ActivityLogEntry[] = [];
+
+        const formatDateTime = (dateString: string) => {
+            const date = new Date(dateString);
+            const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }).toLowerCase();
+            return { date: formattedDate, time: formattedTime };
+        };
+
+        if (task.createdAt) {
+            const { date, time } = formatDateTime(task.createdAt);
+            activities.push({
+                id: `${task.id}-created`,
+                date,
+                time,
+                description: 'Status changed from "New" to "Pending"'
+            });
+        }
+
+        if (task.startedAt) {
+            const { date, time } = formatDateTime(task.startedAt);
+            activities.push({
+                id: `${task.id}-started`,
+                date,
+                time,
+                description: 'Status changed from "Pending" to "In Progress"'
+            });
+        }
+
+        if (task.completedAt) {
+            const { date, time } = formatDateTime(task.completedAt);
+            activities.push({
+                id: `${task.id}-completed`,
+                date,
+                time,
+                description: 'Status changed from "In Progress" to "Completed"'
+            });
+        }
+
+        activities.sort((a, b) => {
+            const dateA = new Date(`${a.date} ${a.time}`);
+            const dateB = new Date(`${b.date} ${b.time}`);
+            return dateB.getTime() - dateA.getTime();
+        });
+
+        return activities;
     };
 
     const handleNewTaskConfirm = async (data: HousekeepingFormData) => {
@@ -245,7 +253,6 @@ const HousekeepingPage = () => {
     };
 
     const handleStatusChange = async (taskId: string, newStatus: Housekeeping['status']) => {
-        // Store the current task state for potential rollback
         const currentTask = housekeepingTasks.find(task => task.id === taskId);
         const previousStatus = currentTask?.status;
 
@@ -254,25 +261,41 @@ const HousekeepingPage = () => {
             return;
         }
 
-        // Optimistic update - update the state immediately
+        const currentTimestamp = new Date().toISOString();
+
         setHousekeepingTasks(prev =>
             prev.map(task =>
                 task.id === taskId
-                    ? { ...task, status: newStatus }
+                    ? {
+                        ...task,
+                        status: newStatus,
+                        ...(newStatus === 'IN_PROGRESS' && { startedAt: currentTimestamp }),
+                        ...(newStatus === 'COMPLETED' && { completedAt: currentTimestamp })
+                    }
                     : task
             )
         );
 
         try {
+            let apiResponse;
             if (newStatus === 'IN_PROGRESS') {
-                await startHousekeepingTask(taskId);
+                apiResponse = await startHousekeepingTask(taskId);
                 toast.success('Housekeeping task started successfully');
             } else if (newStatus === 'COMPLETED') {
-                await completeHousekeepingTask(taskId);
+                apiResponse = await completeHousekeepingTask(taskId);
                 toast.success('Housekeeping task completed successfully');
             }
+
+            if (apiResponse?.data) {
+                setHousekeepingTasks(prev =>
+                    prev.map(task =>
+                        task.id === taskId
+                            ? { ...task, ...apiResponse.data }
+                            : task
+                    )
+                );
+            }
         } catch (error: any) {
-            // Revert the optimistic update using the stored previous status
             setHousekeepingTasks(prev =>
                 prev.map(task =>
                     task.id === taskId
@@ -402,10 +425,6 @@ const HousekeepingPage = () => {
                                     <TableCell className="px-6 py-4 text-gray-600 w-1/7 text-center">
                                         {task.user ? `${task.user.firstName} ${task.user.lastName}` : 'Unassigned'}
                                     </TableCell>
-                                    {/* <CanAll permissions={[
-                                        { action: "manage", subject: "HouseKeeping" },
-                                        { action: "read", subject: "Room" }
-                                    ]}> */}
                                     <TableCell className="px-6 py-4 text-center ">
                                         <DropdownMenu modal={false}>
                                             <DropdownMenuTrigger asChild>
@@ -472,7 +491,6 @@ const HousekeepingPage = () => {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
-                                    {/* </CanAll> */}
                                 </TableRow>
                             ))
                         )}
@@ -514,8 +532,8 @@ const HousekeepingPage = () => {
             <ActivityLogDialog
                 isOpen={activityLogOpen}
                 onClose={handleActivityLogClose}
-                title="Housekeeping activity log"
-                activities={selectedTaskId ? getMockActivityLog(selectedTaskId) : []}
+                title="Housekeeping Activity Log"
+                activities={selectedTaskId ? generateActivityLog(selectedTaskId) : []}
             />
         </div>
     );

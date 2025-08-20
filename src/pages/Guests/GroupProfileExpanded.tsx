@@ -35,6 +35,7 @@ const GroupProfileExpanded = () => {
     const [guestToRemove, setGuestToRemove] = useState<Guest | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [reservationData, setReservationData] = useState<GetReservationByGroupId | null>(null)
+    const [historyLoading, setHistoryLoading] = useState(false)
 
     const [formData, setFormData] = useState<UpdateGroupProfileRequest>({
         name: '',
@@ -104,11 +105,14 @@ const GroupProfileExpanded = () => {
     };
 
     const getGroupHistory = async () => {
+        setHistoryLoading(true)
         try {
             const history = await getReservationByGroupId(id || '')
             setReservationData(history)
         } catch (err) {
             console.error(err)
+        } finally {
+            setHistoryLoading(false)
         }
     }
 
@@ -568,15 +572,19 @@ const GroupProfileExpanded = () => {
 
                 </Card>
 
-                <Card className="p-3">
+                <Card className="p-3 gap-3">
                     <CardHeader className="p-0">
                         <CardTitle className="font-bold text-lg p-0 pb-1 border-b flex gap-2 items-center">
-                            Reservation History
-                            <p className="text-sm text-muted-foreground font-normal">(last 5 reservations)</p>
+                            Reservation History/ Upcoming Stays
                         </CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-3 px-0'>
-                        {reservationData && reservationData.data.length > 0 ? (
+                        <p className="text-sm text-muted-foreground font-normal">
+                            Showing the last 5 reservations (past, current, or upcoming)
+                        </p>
+                        {historyLoading ? (
+                            <div className='text-muted-foreground text-center'>Loading...</div>
+                        ) : reservationData && reservationData.data.length > 0 ? (
                             (reservationData?.data.map((reservation) => (
                                 <Card key={reservation.id} className='bg-hms-accent/10 px-2 gap-2'>
                                     <span className='flex justify-between'>
