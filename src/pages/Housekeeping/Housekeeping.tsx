@@ -46,6 +46,7 @@ const HousekeepingPage = () => {
         hasPrevious: boolean;
     } | null>(null);
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [error, setError] = useState<string | null>(null);
 
     // Priority badge styling
     const getPriorityBadge = (priority: Housekeeping['priority']) => {
@@ -70,6 +71,7 @@ const HousekeepingPage = () => {
 
     const fetchHousekeepingTasks = useCallback(async () => {
         setLoading(true);
+        setError(null)
         try {
             const params: any = {
                 page: currentPage,
@@ -88,9 +90,10 @@ const HousekeepingPage = () => {
             } else {
                 setPagination(null);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to fetch housekeeping tasks:', error);
             toast.error('Failed to load housekeeping tasks');
+            setError(error.userMessage || "Failed to load housekeeping tasks")
         } finally {
             setLoading(false);
         }
@@ -386,6 +389,12 @@ const HousekeepingPage = () => {
                             <TableRow>
                                 <TableCell colSpan={8} className="py-10 text-center text-gray-600">
                                     Loading housekeeping tasks...
+                                </TableCell>
+                            </TableRow>
+                        ) : error ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="py-10 text-center text-gray-600">
+                                    {error}
                                 </TableCell>
                             </TableRow>
                         ) : housekeepingTasks.length === 0 ? (

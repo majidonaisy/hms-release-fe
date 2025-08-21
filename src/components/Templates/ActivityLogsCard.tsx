@@ -118,7 +118,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                 return {
                     title: "Add Charge",
                     details: [
-                        `Amount: $${activity.metadata.chargeAmount || "0"}`,
+                        `Amount: ${activity.metadata.chargeAmount || "0"} ${activity.metadata.currencyCode || ''}`,
                         `Type: ${activity.metadata.chargeType || "Unknown"}`,
                         `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
                     ],

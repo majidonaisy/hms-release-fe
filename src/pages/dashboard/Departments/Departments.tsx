@@ -13,6 +13,7 @@ const Departments = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSearch = (value: string) => {
         setSearchTerm(value);
@@ -21,6 +22,7 @@ const Departments = () => {
     const fetchDepartments = async () => {
         try {
             setLoading(true);
+            setError(null)
             const params: any = {};
             if (debouncedSearchTerm.trim()) {
                 params.q = debouncedSearchTerm;
@@ -32,6 +34,7 @@ const Departments = () => {
         } catch (error: any) {
             toast.error(error.userMessage || 'Failed to load departments');
             setDepartments([]);
+            setError(error.userMessage || "Failed to get departments")
         } finally {
             setLoading(false);
         }

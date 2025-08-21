@@ -35,6 +35,7 @@ const Roles = () => {
     const [itemToDelete, setItemToDelete] = useState<Role | null>(null)
     const [deleteLoading, setDeleteLoading] = useState(false)
     const [activeTab, setActiveTab] = useState("custom")
+    const [error, setError] = useState<string | null>(null);
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value)
@@ -57,6 +58,7 @@ const Roles = () => {
     const fetchRoles = async () => {
         try {
             setSearchLoading(true)
+            setError(null)
             const params: any = {}
 
             if (activeTab === "custom" && debouncedCustomSearch.trim()) {
@@ -79,10 +81,11 @@ const Roles = () => {
                 setCustomRoles(custom)
                 setTemplateRoles(templates)
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
             setCustomRoles([])
             setTemplateRoles([])
+            setError(error.userMessage || "Failed to get roles")
         } finally {
             setSearchLoading(false)
         }

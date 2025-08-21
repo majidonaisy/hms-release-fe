@@ -17,6 +17,7 @@ const Amenities = () => {
   const [pageSize] = useState(8);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = (search: string) => {
     setSearchTerm(search);
@@ -25,6 +26,7 @@ const Amenities = () => {
 
   const fetchAmenities = async () => {
     setLoading(true)
+    setError(null)
     try {
       const params: any = {
         page: currentPage,
@@ -47,6 +49,7 @@ const Amenities = () => {
       toast.error(error.userMessage || 'Failed to load amenities');
       console.error(error);
       // Set an empty data array to prevent undefined errors
+      setError(error.userMessage || "Failed to get amenities")
       setAmenities([]);
     } finally {
       setLoading(false);
@@ -137,6 +140,7 @@ const Amenities = () => {
       searchLoading={loading}
       columns={amenityColumns}
       title="Amenities"
+      errorMessage={error || undefined}
       getRowKey={(item: Amenity) => item.id}
       actions={actions}
       primaryAction={{

@@ -34,6 +34,7 @@ const Rooms = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
     const [searchLoading, setSearchLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const roomStatusOptions = [
         { value: 'AVAILABLE', label: 'Available', color: 'bg-chart-1/20 text-chart-1' },
@@ -64,6 +65,7 @@ const Rooms = () => {
     useEffect(() => {
         const fetchRooms = async () => {
             setSearchLoading(true);
+            setError(null);
             try {
                 const params: any = {
                     page: currentPage,
@@ -90,8 +92,9 @@ const Rooms = () => {
                 } else {
                     setPagination(null);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error occurred:", error);
+                setError(error.userMessage || "Failed to fetch rooms");
             } finally {
                 setSearchLoading(false);
             }
@@ -246,6 +249,7 @@ const Rooms = () => {
                 loading={loading}
                 columns={roomColumns}
                 title="Rooms"
+                errorMessage={error || undefined}
                 actions={roomActions}
                 searchLoading={searchLoading}
                 primaryAction={canCreate('Room') ? {

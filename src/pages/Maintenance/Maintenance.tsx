@@ -37,6 +37,7 @@ const MaintenancePage = () => {
         hasNext: boolean;
         hasPrevious: boolean;
     } | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const getPriorityBadge = (priority: MaintenanceType['priority']) => {
         const styles = {
@@ -59,6 +60,7 @@ const MaintenancePage = () => {
 
     const fetchMaintenanceRequests = useCallback(async () => {
         setLoading(true);
+        setError(null)
         try {
             const params: any = {
                 page: currentPage,
@@ -77,9 +79,10 @@ const MaintenancePage = () => {
             } else {
                 setPagination(null);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to fetch maintenance requests:', error);
             toast.error('Failed to load maintenance requests');
+            setError(error.userMessage || "Failed to get maintenance requests")
         } finally {
             setLoading(false);
         }
@@ -400,6 +403,12 @@ const MaintenancePage = () => {
                             <TableRow>
                                 <TableCell colSpan={7} className="py-10 text-center text-gray-600">
                                     Loading maintenance requests...
+                                </TableCell>
+                            </TableRow>
+                        ) : error ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                                    {error}
                                 </TableCell>
                             </TableRow>
                         ) : maintenanceRequests.length === 0 ? (

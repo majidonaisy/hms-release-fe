@@ -109,6 +109,7 @@ export interface DataTableProps<T = any> {
     // Add permission properties
     action?: string
     subject?: string
+    errorMessage?: string
   }>
   onRowClick?: (item: T) => void
   getRowKey: (item: T) => string
@@ -148,6 +149,7 @@ export interface DataTableProps<T = any> {
   showBackButton?: boolean
   onBackClick?: () => void
   showSearch?: boolean
+  errorMessage?: string
 }
 
 export const defaultRenderers = {
@@ -204,7 +206,8 @@ const DataTable = <T,>({
   emptyStateMessage = "No data found",
   showBackButton = false,
   onBackClick,
-  showSearch = true
+  showSearch = true,
+  errorMessage = ""
 }: DataTableProps<T>) => {
   const [searchText, setSearchText] = useState("")
   const [showFilter, setShowFilter] = useState(false)
@@ -605,6 +608,15 @@ const DataTable = <T,>({
                     className="py-10 text-center text-gray-600"
                   >
                     Loading...
+                  </TableCell>
+                </TableRow>
+              ) : errorMessage ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length + (hasVisibleActions() ? 1 : 0)}
+                    className="py-10 text-center text-muted-foreground font-medium"
+                  >
+                    {errorMessage}
                   </TableCell>
                 </TableRow>
               ) :
