@@ -13,6 +13,7 @@ const Areas = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    const [error, setError] = useState<string | null>(null);
 
     const getStatusLabel = (status: string) => {
         switch (status?.toUpperCase()) {
@@ -36,6 +37,7 @@ const Areas = () => {
     const fetchAreas = async () => {
         try {
             setLoading(true);
+            setError(null)
             const params: any = {};
             if (debouncedSearchTerm.trim()) {
                 params.q = debouncedSearchTerm;
@@ -47,6 +49,7 @@ const Areas = () => {
         } catch (error: any) {
             toast.error(error.userMessage || 'Failed to load areas');
             setAreas([]);
+            setError(error.userMessage || "Failed to get areas")
         } finally {
             setLoading(false);
         }
@@ -129,6 +132,7 @@ const Areas = () => {
             searchLoading={loading}
             columns={AreaColumns}
             title="Area"
+            errorMessage={error || undefined}
             getRowKey={(item: any) => item.id}
             actions={actions}
             primaryAction={{

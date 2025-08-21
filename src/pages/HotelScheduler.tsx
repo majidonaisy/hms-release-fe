@@ -69,6 +69,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
   const [viewReservationDialog, setViewReservationDialog] = useState(false);
   const [transferChargesDialog, setTransferChargesDialog] = useState(false)
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('')
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -142,8 +143,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         }
 
         setReservations(reservationsWithGuestNames);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Failed to fetch reservations:", err);
+        setError(err.userMessage);
       } finally {
         setLoading(false)
       }
@@ -531,6 +533,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               <Skeleton className="h-[100px] mb-2" />
               <Skeleton className="h-[100px] mb-2" />
             </>
+          ) : error ? (
+            <div className="mt-10 text-center text-muted-foreground text-lg">{error}</div>
           ) : (
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-[calc(100vh-280px)]">

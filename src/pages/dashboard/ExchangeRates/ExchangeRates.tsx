@@ -11,16 +11,19 @@ const ExchangeRates = () => {
     const [loading, setLoading] = useState(true);
     const { openDialog } = useDialog();
     const navigate = useNavigate();
+    const [error, setError] = useState<string | null>(null);
 
     const fetchExchangeRates = async () => {
         try {
             setLoading(true);
+            setError(null)
             const response = await getExchangeRates();
             setExchangeRates(response.data);
         } catch (error: any) {
             toast.error(error.userMessage || 'Failed to load exchange rates');
             console.error(error);
             setExchangeRates([]);
+            setError(error.userMessage || "Failed to get exchange rates")
         } finally {
             setLoading(false);
         }
@@ -96,6 +99,7 @@ const ExchangeRates = () => {
             loading={loading}
             columns={exchangeRateColumns}
             title="Exchange Rates"
+            errorMessage={error || undefined}
             actions={actions}
             primaryAction={{
                 label: 'Add Exchange Rate',

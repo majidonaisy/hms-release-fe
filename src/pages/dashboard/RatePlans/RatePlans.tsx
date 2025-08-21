@@ -32,6 +32,7 @@ const RatePlans = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -40,6 +41,7 @@ const RatePlans = () => {
   const fetchRatePlans = async () => {
     try {
       setLoading(true);
+      setError(null)
       const params: any = {};
       if (debouncedSearchTerm.trim()) {
         params.q = debouncedSearchTerm;
@@ -57,6 +59,7 @@ const RatePlans = () => {
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to load rate plans');
       setRatePlans([]);
+      setError(error.userMessage || "Failed to get rate plans")
     } finally {
       setLoading(false);
     }
@@ -177,6 +180,7 @@ const RatePlans = () => {
       searchLoading={loading}
       columns={ratePlanColumns}
       title="Rate Plans"
+      errorMessage={error || undefined}
       actions={actions}
       primaryAction={{
         label: 'Add Rate Plan',
