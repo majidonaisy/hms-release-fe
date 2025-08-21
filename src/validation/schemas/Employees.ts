@@ -200,6 +200,52 @@ const AddChargeActivity = BaseActivityShape.extend({
   }),
 });
 
+const CheckInReservationActivity = BaseActivityShape.extend({
+  action: z.literal("Check In Reservation"),
+  // requestData: z.null(),
+  // responseData: z.object({
+  //   status: z.number(),
+  // }),
+  metadata: z.object({
+    // ip: z.string(),
+    // path: z.string(),
+    // rooms: z.array(z.string()).optional(),
+    // method: z.string(),
+    // folioId: z.string().optional(),
+    // userAgent: z.string(),
+    // chargeType: z.string().optional(),
+    // itemStatus: z.string().optional(),
+    // statusCode: z.number(),
+    // chargeAmount: z.string().optional(),
+    // operationType: z.string().optional(),
+    roomNumbers: z.array(z.string()).optional(),
+    depositAmount: z.number()
+  }),
+});
+
+const CheckOutReservationActivity = BaseActivityShape.extend({
+  action: z.literal("Check Out Reservation"),
+  // requestData: z.null(),
+  // responseData: z.object({
+  //   status: z.number(),
+  // }),
+  metadata: z.object({
+    // ip: z.string(),
+    // path: z.string(),
+    // rooms: z.array(z.string()).optional(),
+    // method: z.string(),
+    // folioId: z.string().optional(),
+    // userAgent: z.string(),
+    // chargeType: z.string().optional(),
+    // itemStatus: z.string().optional(),
+    // statusCode: z.number(),
+    // chargeAmount: z.string().optional(),
+    // operationType: z.string().optional(),
+    roomNumbers: z.array(z.string()).optional(),
+    checkOutTime: z.date()
+  }),
+});
+
 // Full Activity Logs response
 export const ActivityLogsSchema = z.object({
   status: z.number(),
@@ -209,6 +255,8 @@ export const ActivityLogsSchema = z.object({
       CreateGroupBookingActivity,
       CreateReservationActivity,
       AddChargeActivity,
+      CheckInReservationActivity,
+      CheckOutReservationActivity,
     ])
   ),
 });
@@ -236,5 +284,7 @@ export type AddTeamMemberResponse = z.infer<typeof AddTeamMemberResponseSchema>
 export type UpdateTeamMemberRequest = z.infer<typeof UpdateTeamMemberRequestSchema>
 export type ActivityLogItem = z.infer<typeof CreateGroupBookingActivity>
   | z.infer<typeof CreateReservationActivity>
-  | z.infer<typeof AddChargeActivity>;
+  | z.infer<typeof AddChargeActivity>
+  | z.infer<typeof CheckInReservationActivity>
+  | z.infer<typeof CheckOutReservationActivity>;
 export type PaginatedActivityLogs = z.infer<typeof PaginatedActivityLogsSchema>;
