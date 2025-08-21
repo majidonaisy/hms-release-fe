@@ -479,9 +479,7 @@ const TeamMemberProfile = () => {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <ActivityLogsCard teamMemberId={teamMember.id} />
-
                     </div>
                 </div>
             )}

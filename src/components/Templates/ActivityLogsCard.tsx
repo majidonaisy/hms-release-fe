@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms
 import { getActivityLogs } from "@/services/Employees";
 import { ActivityLogItem, PaginatedActivityLogs } from "@/validation/schemas/Employees";
 import { toast } from "sonner";
+import { store } from "@/redux/store";
 
 interface ActivityLogsCardProps {
     teamMemberId: string;
@@ -14,8 +15,9 @@ const LIMIT = 5;
 const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => {
     const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
     const [loading, setLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1); 
+    const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const baseCurrency = store.getState().currency.currency || 'USD';
 
     const fetchActivityLogs = async (page = 1): Promise<PaginatedActivityLogs> => {
         try {
@@ -121,6 +123,22 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                         `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
                     ],
                 };
+            case "Check In Reservation":
+                return {
+                    title: "Check In Reservation",
+                    details: [
+                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Deposit Amount: ${activity.metadata.depositAmount} ${baseCurrency}`,
+                    ],
+                };
+            case "Check Out Reservation":
+                return {
+                    title: "Check Out Reservation",
+                    details: [
+                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Check Out Time: ${activity.metadata.checkOutTime}`,
+                    ],
+                };
             default:
                 return { title: (activity as any).action || "", details: [] };
         }
@@ -210,7 +228,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                         </InfiniteScroll>
                     </div>
                 )}
-        </CardContent>
+            </CardContent>
         </Card >
     );
 };
