@@ -83,6 +83,7 @@ const GuestProfile = () => {
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
   const hasExactlyOne = (canReadGuest && !canReadGroup) || (!canReadGuest && canReadGroup);
+  const [error, setError] = useState<string | null>(null);
 
   const roomTypeMap = roomTypes.reduce(
     (map, roomType) => {
@@ -115,6 +116,7 @@ const GuestProfile = () => {
       if (activeTab === "groups") return
 
       setSearchLoading(true)
+      setError(null)
       try {
         const response = await searchGuests({
           q: debouncedIndividualSearch,
@@ -127,9 +129,10 @@ const GuestProfile = () => {
         } else {
           setPagination(null)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching guests:", error)
         setGuests([])
+        setError(error.userMessage || "Failed to get guests")
       } finally {
         setSearchLoading(false)
       }
@@ -142,6 +145,7 @@ const GuestProfile = () => {
       if (activeTab === "individuals") return
 
       setSearchLoading(true)
+      setError(null)
       try {
         const response = await searchGroupProfiles({
           q: debouncedGroupSearch,
@@ -154,9 +158,10 @@ const GuestProfile = () => {
         } else {
           setPagination(null)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching group profiles:", error)
         setGroupProfiles([])
+        setError(error.userMessage || "Failed to get group profiles")
       } finally {
         setSearchLoading(false)
       }
@@ -377,11 +382,18 @@ const GuestProfile = () => {
                           Loading guests...
                         </TableCell>
                       </TableRow>
-                    ) : combinedData.length === 0 ? (<TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                        No individual guests found
-                      </TableCell>
-                    </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          {error}
+                        </TableCell>
+                      </TableRow>
+                    ) : combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No individual guests found
+                        </TableCell>
+                      </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow
@@ -483,11 +495,18 @@ const GuestProfile = () => {
                           Loading guests...
                         </TableCell>
                       </TableRow>
-                    ) : combinedData.length === 0 ? (<TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                        No group profiles found
-                      </TableCell>
-                    </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          {error}
+                        </TableCell>
+                      </TableRow>
+                    ) : combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No group profiles found
+                        </TableCell>
+                      </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow

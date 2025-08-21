@@ -17,6 +17,7 @@ const TeamMembers = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 400);
     const [searchLoading, setSearchLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const getStatusColor = (status: boolean): string => {
         switch (status) {
@@ -45,6 +46,7 @@ const TeamMembers = () => {
     useEffect(() => {
         const fetchTeamMembers = async () => {
             setSearchLoading(true);
+            setError(null)
             try {
                 const params: any = {
                     page: currentPage,
@@ -67,8 +69,9 @@ const TeamMembers = () => {
                 } else {
                     setPagination(null);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error occurred:", error);
+                setError(error.userMessage || "Failed to get team members")
             } finally {
                 setSearchLoading(false);
             }
@@ -176,13 +179,14 @@ const TeamMembers = () => {
             data={employees}
             columns={teamColumns}
             title="Team Members"
+            errorMessage={error || undefined}
             actions={teamActions}
             searchLoading={searchLoading}
             primaryAction={{
                 label: 'New Team Member',
                 onClick: () => { navigate("/team-members/new") },
                 action: "create",
-                subject:"User"
+                subject: "User"
             }}
             onRowClick={handleRowClick}
             getRowKey={(member) => member.id}

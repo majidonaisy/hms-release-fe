@@ -24,6 +24,7 @@ const RoomTypes = () => {
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(8);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -33,6 +34,7 @@ const RoomTypes = () => {
   const fetchRoomTypes = async () => {
     try {
       setLoading(true);
+      setError(null)
       const params: any = {
         page: currentPage,
         limit: pageSize
@@ -50,6 +52,7 @@ const RoomTypes = () => {
     } catch (error: any) {
       toast.error(error.userMessage || 'Failed to load room types');
       setRoomTypes([]);
+      setError(error.userMessage || "Failed to get room types")
     } finally {
       setLoading(false);
     }
@@ -170,6 +173,7 @@ const RoomTypes = () => {
       searchLoading={loading}
       columns={roomTypeColumns}
       title="Room Types"
+      errorMessage={error || undefined}
       actions={actions}
       primaryAction={{
         label: 'Add Room Type',

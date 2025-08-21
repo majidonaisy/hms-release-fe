@@ -60,6 +60,7 @@ const CurrentGuestList = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const debouncedIndividualSearch = useDebounce(individualSearchTerm, 500)
   const debouncedGroupSearch = useDebounce(groupSearchTerm, 500)
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
@@ -84,14 +85,16 @@ const CurrentGuestList = () => {
       if (activeTab === "groups") return
 
       setSearchLoading(true)
+      setError(null)
       try {
         const response = ((await getCurrentGuests({
           q: debouncedIndividualSearch,
 
         })) as GetCurrentGuestsResponse)
         setGuests(response.data)
-      } catch (error) {
+      } catch (error: any) {
         console.error(error)
+        setError(error.userMessage || "Failed to get guests")
       } finally {
         setSearchLoading(false)
       }
@@ -104,13 +107,15 @@ const CurrentGuestList = () => {
       if (activeTab === "individuals") return
 
       setSearchLoading(true)
+      setError(null)
       try {
         const response = ((await getCurrentGroupProfiles({
           q: debouncedGroupSearch,
         })) as GetCurrentGroupProfilesResponse)
         setGroupProfiles(response.data)
-      } catch (error) {
+      } catch (error: any) {
         console.error(error)
+        setError(error.userMessage || "Failed to get group profiles")
       } finally {
         setSearchLoading(false)
       }
@@ -328,6 +333,12 @@ const CurrentGuestList = () => {
                           Loading guests...
                         </TableCell>
                       </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          {error}
+                        </TableCell>
+                      </TableRow>
                     ) : combinedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
@@ -430,11 +441,18 @@ const CurrentGuestList = () => {
                           Loading guests...
                         </TableCell>
                       </TableRow>
-                    ) : combinedData.length === 0 ? (<TableRow>
-                      <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                        No group profiles found
-                      </TableCell>
-                    </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          {error}
+                        </TableCell>
+                      </TableRow>
+                    ) : combinedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-gray-600">
+                          No group profiles found
+                        </TableCell>
+                      </TableRow>
                     ) : (
                       combinedData.map((item) => (
                         <TableRow
