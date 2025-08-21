@@ -1,10 +1,11 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import { store } from "@/redux/store";
 import { logout, setTokens } from "@/redux/slices/authSlice";
 import { refreshToken as rf } from "@/services/Auth";
 import { toast } from "sonner";
 
-// Track if we're currently refreshing to avoid multiple refresh calls
+const instancesCache = new Map<string, AxiosInstance>();
+
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: any) => void;
@@ -22,7 +23,11 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-export const createAxiosInstance = (baseURL: string) => {
+export const createAxiosInstance = (baseURL: string): AxiosInstance => {
+  if (instancesCache.has(baseURL)) {
+    return instancesCache.get(baseURL)!;
+  }
+
   const instance = axios.create({
     baseURL,
     headers: {
@@ -34,7 +39,7 @@ export const createAxiosInstance = (baseURL: string) => {
   instance.interceptors.request.use(
     (config) => {
       const state = store.getState();
-      const { accessToken, permissions } = state.auth;
+      const { accessToken } = state.auth;
 
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -44,21 +49,10 @@ export const createAxiosInstance = (baseURL: string) => {
       config.headers["X-Request-ID"] = `req_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       config.headers["X-Request-Time"] = new Date().toISOString();
 
-      // Log full request details
-      console.log("Full Request Details:", {
-        method: config.method?.toUpperCase(),
-        url: `${config.baseURL}${config.url}`,
-        headers: config.headers,
-        params: config.params,
-        data: config.data,
-        token: accessToken ? `Bearer ${accessToken.substring(0, 10)}...` : "No token",
-        permissions: permissions,
-      });
-
       return config;
     },
     (error) => {
-      console.error("Request Error Interceptor:", error);
+      console.error("Request Error:", error);
       return Promise.reject(error);
     }
   );
@@ -66,18 +60,6 @@ export const createAxiosInstance = (baseURL: string) => {
   // Response interceptor
   instance.interceptors.response.use(
     (response) => {
-      // Log successful response details
-      console.log("Response Success:", {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.config.url,
-        method: response.config.method?.toUpperCase(),
-        data: response.data,
-        headers: response.headers,
-        requestData: response.config.data,
-        requestParams: response.config.params,
-      });
-
       return response;
     },
     async (error) => {
@@ -85,54 +67,24 @@ export const createAxiosInstance = (baseURL: string) => {
       const state = store.getState();
       const { refreshToken } = state.auth;
 
-      // Log error response details
-      console.error("Response Error:", {
-        url: error.config?.url,
-        method: error.config?.method?.toUpperCase(),
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers,
-        requestData: error.config?.data,
-        requestParams: error.config?.params,
-        message: error.message,
-      });
-
-      // Handle 403 Forbidden (Insufficient Permissions)
       if (error.response?.status === 403) {
         const errorData = error.response?.data;
-
         if (errorData?.error === "INSUFFICIENT_PERMISSIONS" && errorData?.required) {
-          // Format the missing permissions message
           const missingPermissions = errorData.required.join(", ");
           const message = `You don't have the permissions to perform this action, missing: ${missingPermissions}`;
-
-          // Show error toast
           toast.error(message);
-
-          console.error("Permission Error:", {
-            message,
-            required: errorData.required,
-            denied: errorData.denied,
-            available: errorData.available,
-          });
         }
-
         return Promise.reject(error);
       }
 
-      // Handle 401 Unauthorized with refresh token logic
       if (error.response?.status === 401 && !originalRequest._retry) {
-        // If no refresh token, logout immediately
         if (!refreshToken) {
           console.log("No refresh token available, logging out");
           store.dispatch(logout());
           return Promise.reject(error);
         }
 
-        // If already refreshing, queue this request
         if (isRefreshing) {
-          console.log("Already refreshing, queueing request");
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject });
           })
@@ -145,19 +97,11 @@ export const createAxiosInstance = (baseURL: string) => {
             });
         }
 
-        // Mark request as retry and start refreshing
         originalRequest._retry = true;
         isRefreshing = true;
 
         try {
-          console.log("Attempting to refresh token...");
-
-          // Call refresh token service
           const refreshResponse = await rf(refreshToken);
-
-          console.log("Token refreshed successfully");
-
-          // Update tokens in Redux store (accessing data property)
           store.dispatch(
             setTokens({
               accessToken: refreshResponse.data.accessToken,
@@ -165,23 +109,15 @@ export const createAxiosInstance = (baseURL: string) => {
             })
           );
 
-          // Update original request with new token
           originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
-
-          // Process all queued requests
           processQueue(null, refreshResponse.data.accessToken);
-
-          // Retry the original request
           return instance(originalRequest);
         } catch (refreshError) {
           console.error("Token refresh failed:", refreshError);
-
-          // Process queue with error and logout
           processQueue(refreshError, null);
           store.dispatch(logout());
           return Promise.reject(refreshError);
         } finally {
-          // Reset refreshing state
           isRefreshing = false;
         }
       }
@@ -190,5 +126,10 @@ export const createAxiosInstance = (baseURL: string) => {
     }
   );
 
+  instancesCache.set(baseURL, instance);
   return instance;
+};
+
+export const clearAxiosInstanceCache = () => {
+  instancesCache.clear();
 };

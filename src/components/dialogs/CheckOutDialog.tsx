@@ -120,6 +120,7 @@ const CheckOutDialog = ({
             await checkOut(targetReservationId);
             onCheckOutComplete?.(); // This will trigger refreshReservations in parent
             setOpen(false);
+            toast.success("Check out was successful")
         } catch (error: any) {
             console.error('Check-out failed:', error);
 
@@ -181,7 +182,7 @@ const CheckOutDialog = ({
                     setError('Please select a payment method');
                     return;
                 }
-            
+
                 // Prepare manual fee body
                 body = {
                     fee: parseFloat(lateCheckoutFee),
@@ -191,7 +192,7 @@ const CheckOutDialog = ({
 
                 toast.success(`Late checkout fee of ${parseFloat(lateCheckoutFee).toFixed(2)} ${selectedCurrency} has been settled`);
             } else {
-                if (!automaticFeeInfo || automaticFeeInfo.fee <= 0) {   
+                if (!automaticFeeInfo || automaticFeeInfo.fee <= 0) {
                     setError('No automatic late checkout fee is applicable');
                     return;
                 }

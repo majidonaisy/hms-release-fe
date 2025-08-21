@@ -291,6 +291,17 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
             return 0;
         });
 
+    // Get unpaid items from filtered list for select all functionality
+    const unpaidFilteredItems = filteredAndSortedItems.filter(item => item.status !== 'PAID');
+
+    // Check if all unpaid items are selected
+    const isAllUnpaidSelected = unpaidFilteredItems.length > 0 &&
+        unpaidFilteredItems.every(item => selectedItems.find(selected => selected.id === item.id));
+
+    // Check if some but not all unpaid items are selected
+    const isSomeUnpaidSelected = unpaidFilteredItems.some(item =>
+        selectedItems.find(selected => selected.id === item.id));
+
     const handleItemToggle = (item: PaymentChargeItem) => {
         // Prevent toggling paid items
         if (item.status === 'PAID') {
@@ -303,6 +314,20 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
             setSelectedItems(prev => prev.filter(selected => selected.id !== item.id));
         } else {
             setSelectedItems(prev => [...prev, item]);
+        }
+    };
+
+    // Handle select all/deselect all for unpaid items
+    const handleSelectAllToggle = () => {
+        if (isAllUnpaidSelected) {
+            // Deselect all unpaid items from current filtered list
+            const unpaidIds = new Set(unpaidFilteredItems.map(item => item.id));
+            setSelectedItems(prev => prev.filter(item => !unpaidIds.has(item.id)));
+        } else {
+            // Select all unpaid items from current filtered list
+            const currentSelectedIds = new Set(selectedItems.map(item => item.id));
+            const newItemsToAdd = unpaidFilteredItems.filter(item => !currentSelectedIds.has(item.id));
+            setSelectedItems(prev => [...prev, ...newItemsToAdd]);
         }
     };
 
@@ -471,6 +496,28 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                         </Button>
                                     </div>
 
+                                    {/* Select All Checkbox */}
+                                    {unpaidFilteredItems.length > 0 && (
+                                        <div className="mb-3 pb-2 border-b">
+                                            <div className="flex items-center gap-3">
+                                                <Checkbox
+                                                    checked={isAllUnpaidSelected}
+                                                    onCheckedChange={handleSelectAllToggle}
+                                                    className={`data-[state=checked]:bg-hms-primary ${isSomeUnpaidSelected && !isAllUnpaidSelected ? 'opacity-50' : ''
+                                                        }`}
+                                                />
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    {isAllUnpaidSelected
+                                                        ? `Deselect All (${unpaidFilteredItems.length} items)`
+                                                        : isSomeUnpaidSelected && !isAllUnpaidSelected
+                                                            ? `Select All (${unpaidFilteredItems.length - selectedItems.filter(item => unpaidFilteredItems.find(unpaid => unpaid.id === item.id)).length} remaining)`
+                                                            : `Select All (${unpaidFilteredItems.length} unpaid items)`
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Charge Items List */}
                                     <ScrollArea className="h-36 ">
                                         <div className="space-y-2">
@@ -494,7 +541,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                                 disabled={isPaid}
                                                                 className={`data-[state=checked]:bg-hms-primary ${isPaid ? 'opacity-50 cursor-not-allowed' : ''
                                                                     }`}
-                                                                onChange={() => !isPaid && handleItemToggle(item)}
+                                                                onCheckedChange={() => !isPaid && handleItemToggle(item)}
                                                             />
                                                             <div className="flex flex-col">
                                                                 <div className="flex items-center gap-2">
