@@ -511,7 +511,7 @@ const AddPaymentDialog = ({ open, setOpen, reservationId, onBackToChooseOptions 
                                                                 <span className={`text-xs ${isPaid ? 'text-gray-400' : 'text-gray-500'
                                                                     }`}>
                                                                     <p>Qty: {item.quantity} × ${parseFloat(item.unitPrice).toFixed(2)}</p>
-                                                                    <p>Added By: {item.createdByUser.firstName} {item.createdByUser.lastName}</p>
+                                                                    <p>Added By: {item?.createdByUser?.firstName || 'Unknown'} {item?.createdByUser?.lastName || 'Unknown'}</p>
                                                                     {item.receiptId && (
                                                                         <p>Receipt ID: {item.receiptId}</p>
                                                                     )}
