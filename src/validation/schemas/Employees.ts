@@ -197,6 +197,7 @@ const AddChargeActivity = BaseActivityShape.extend({
     statusCode: z.number(),
     chargeAmount: z.string().optional(),
     operationType: z.string().optional(),
+    currencyCode: z.string().optional()
   }),
 });
 
