@@ -164,8 +164,18 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
         </div>
     );
 
+    // Calculate flexible height based on details count
+    const getFlexibleHeight = (detailsCount: number, isLast: boolean) => {
+        if (isLast) return 80; // Short line for last item
+
+        // Base height + additional height per detail line
+        const baseHeight = 60;
+        const heightPerDetail = 16; // ~16px per detail line
+        return Math.max(baseHeight, baseHeight + (detailsCount * heightPerDetail));
+    };
+
     return (
-        <Card className="p-3">
+        <Card className="p-3 w-6/12">
             <CardHeader className="p-0">
                 <CardTitle className="font-bold text-lg p-0 pb-1 border-b">Activity Logs</CardTitle>
             </CardHeader>
@@ -195,12 +205,18 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                                     <div key={dateKey} className="space-y-3">
                                         <div className="text-sm font-medium bg-hms-primary/15 px-2 py-1 mb-5 rounded">{dateKey}</div>
                                         <div className="space-y-3 pl-4">
-                                            {activities.map(activity => {
+                                            {activities.map((activity, index) => {
                                                 const activityDisplay = getActivityDisplay(activity);
+                                                const isLast = index === activities.length - 1;
+                                                const flexibleHeight = getFlexibleHeight(activityDisplay.details.length, isLast);
+
                                                 return (
                                                     <div key={activity.id} className="ml-10">
                                                         <div className="flex-shrink-0 relative -left-30 -top-6">
-                                                            <div className="w-px h-20 bg-hms-primary mt-1 absolute left-20">
+                                                            <div
+                                                                className="w-px bg-hms-primary mt-1 absolute left-20"
+                                                                style={{ height: `${flexibleHeight}px` }}
+                                                            >
                                                                 <div className='w-12 bg-hms-primary h-px relative top-19'></div>
                                                                 <div className='w-2 h-2 rounded-full bg-hms-primary relative top-18 -left-1'></div>
                                                             </div>
