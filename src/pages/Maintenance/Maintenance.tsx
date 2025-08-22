@@ -422,7 +422,7 @@ const MaintenancePage = () => {
                                             ) : request.area ? (
                                                 request.area.name
                                             ) : (
-                                                <></>
+                                                <>Unknown</>
                                             )}
                                         </div>
                                     </TableCell>
