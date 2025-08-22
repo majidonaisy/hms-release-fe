@@ -88,6 +88,14 @@ export const getPayments = async (reservationId: string): Promise<APIPaymentResp
     });
     return response as APIPaymentResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No payments found",
+        status: 404
+      } as APIPaymentResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get payments";
     throw {
       userMessage: errorMessage,

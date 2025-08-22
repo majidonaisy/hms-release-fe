@@ -21,6 +21,14 @@ export const getAmenities = async (params?: GetAmenitiesParams): Promise<Amenity
     });
     return response as AmenityResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No amenities found",
+        status: 404
+      } as AmenityResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get amenities";
     throw {
       userMessage: errorMessage,

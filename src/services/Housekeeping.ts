@@ -49,6 +49,14 @@ export const getHousekeepingTasks = async (params?: GetHousekeepingParams): Prom
     });
     return response as GetHousekeepingResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No housekeeping tasks found",
+        status: 404
+      } as GetHousekeepingResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get housekeeping tasks";
     throw {
       userMessage: errorMessage,
