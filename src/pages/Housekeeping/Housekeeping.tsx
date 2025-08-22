@@ -121,7 +121,7 @@ const HousekeepingPage = () => {
         e.stopPropagation();
         setTaskToDelete({
             id: task.id,
-            title: `Room ${task.room?.roomNumber || task.roomId} }`
+            title: `Room ${task.room?.roomNumber || task.roomId}`
         });
         setDeleteDialogOpen(true);
     };

@@ -241,8 +241,8 @@ const TeamMemberProfile = () => {
                         </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1 space-y-6">
+                    <div className="flex  gap-6">
+                        <div className="lg:col-span-1 space-y-6 w-4/12">
                             <Card className="bg-white rounded-lg shadow p-6">
                                 <p className='text-center font-semibold'>
                                     {isEditMode ? `${formData.firstName} ${formData.lastName}` : `${teamMember.firstName} ${teamMember.lastName}`}
@@ -421,7 +421,7 @@ const TeamMemberProfile = () => {
                             </Card>
                         </div>
 
-                        <Card className="p-3">
+                        <Card className="p-3 w-5/12">
                             <CardHeader className='p-0'>
                                 <CardTitle className='font-bold text-lg p-0 pb-1 border-b'>
                                     Sessions
@@ -464,7 +464,7 @@ const TeamMemberProfile = () => {
                                                                         <span className="text-xs flex gap-1 text-gray-500">
                                                                             <p className='text-end'>{formatTime(new Date(session.lastActivity || session.createdAt))}</p>
                                                                             {session.isActive && (
-                                                                                <span className="text-xs text-green-600"> - Currently active</span>
+                                                                                <span className="text-xs text-green-600"> - Active</span>
                                                                             )}
                                                                         </span>
                                                                     </div>
