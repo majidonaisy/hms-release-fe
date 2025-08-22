@@ -472,13 +472,6 @@ const NewGroupProfile = () => {
 
                     <div className="flex justify-center gap-3 pt-6 col-span-2">
                         <Button
-                            type="button"
-                            variant='background'
-                            className='px-8'
-                        >
-                            Save Draft
-                        </Button>
-                        <Button
                             type="submit"
                             variant="foreground"
                             className="px-8"

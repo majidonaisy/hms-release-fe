@@ -159,13 +159,6 @@ const NewTeamMember = () => {
         }
     };
 
-    const handleSaveDraft = () => {
-        console.log('Draft saved:', formData);
-        toast("Draft Saved!", {
-            description: "Your progress has been saved as a draft.",
-        });
-    };
-
     const handleBack = () => {
         navigate(-1);
     };
@@ -302,14 +295,6 @@ const NewTeamMember = () => {
                     </div>
 
                     <div className="flex justify-center gap-3 pt-6 col-span-2">
-                        <Button
-                            type="button"
-                            variant='background'
-                            className='px-8'
-                            onClick={handleSaveDraft}
-                        >
-                            Save Draft
-                        </Button>
                         <Button
                             type="submit"
                             variant="foreground"
