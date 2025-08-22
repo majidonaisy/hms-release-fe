@@ -21,6 +21,14 @@ export const getRatePlans = async (params?: GetRatePlansParams): Promise<GetRate
     });
     return response as GetRatePlansResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No rate plans found",
+        status: 404
+      } as GetRatePlansResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get rate plans";
     throw {
       userMessage: errorMessage,

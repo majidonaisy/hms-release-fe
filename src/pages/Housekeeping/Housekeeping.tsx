@@ -12,7 +12,6 @@ import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { type ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import { addHousekeepingTask, deleteHousekeepingTask, getHousekeepingTasks, startHousekeepingTask, completeHousekeepingTask, updateHousekeepingTask } from '@/services/Housekeeping';
 import { type Housekeeping } from '@/validation';
-import TableSkeleton from '@/components/Templates/TableSkeleton';
 import { Can, CanAll } from '@/context/CASLContext';
 
 interface HousekeepingFormData {
@@ -320,9 +319,9 @@ const HousekeepingPage = () => {
         fetchHousekeepingTasks();
     }, [fetchHousekeepingTasks]);
 
-    if (loading) {
-        return <TableSkeleton title='HouseKeeping' />;
-    }
+    // if (loading) {
+    //     return <TableSkeleton title='Housekeeping' />;
+    // }
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">

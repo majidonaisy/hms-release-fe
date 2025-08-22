@@ -22,7 +22,15 @@ export const getEmployees = async (params?: GetEmployeesParams): Promise<GetEmpl
     });
     return response as GetEmployeesResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to get employees";
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No team members found",
+        status: 404
+      } as GetEmployeesResponse;
+    }
+
+    const errorMessage = error.response?.data?.message || "Failed to get team members";
     throw {
       userMessage: errorMessage,
       originalError: error,

@@ -100,8 +100,8 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                     title: "Create Group Booking",
                     details: [
                         `Group: ${activity.metadata.groupProfileName || "Unknown"}`,
-                        `Check-in: ${formatCheckInCheckOutDate(activity.metadata.checkInDate) || "N/A"}`,
-                        `Check-out: ${formatCheckInCheckOutDate(activity.metadata.checkOutDate) || "N/A"}`,
+                        `Check In: ${formatCheckInCheckOutDate(activity.metadata.checkInDate) || "N/A"}`,
+                        `Check Out: ${formatCheckInCheckOutDate(activity.metadata.checkOutDate) || "N/A"}`,
                     ],
                 };
             case "Create Reservation":
@@ -109,8 +109,8 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                     title: "Create Reservation",
                     details: [
                         `Guest: ${activity.metadata.guestName || "Unknown Guest"}`,
-                        `Check-in: ${formatCheckInCheckOutDate(activity.metadata.checkInDate) || "N/A"}`,
-                        `Check-out: ${formatCheckInCheckOutDate(activity.metadata.checkOutDate) || "N/A"}`,
+                        `Check In: ${formatCheckInCheckOutDate(activity.metadata.checkInDate) || "N/A"}`,
+                        `Check Out: ${formatCheckInCheckOutDate(activity.metadata.checkOutDate) || "N/A"}`,
                         `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
                     ],
                 };
@@ -136,7 +136,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                     title: "Check Out Reservation",
                     details: [
                         `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
-                        `Check Out Time: ${activity.metadata.checkOutTime}`,
+                        `Check Out Time: ${formatCheckInCheckOutDate(activity.metadata.checkOutTime)}`,
                     ],
                 };
             default:

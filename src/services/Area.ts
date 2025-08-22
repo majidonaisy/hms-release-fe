@@ -15,6 +15,14 @@ export const getAllAreas = async (params?: string): Promise<Areas> => {
         });
         return response as Areas;
     } catch (error: any) {
+        if (error.response?.status === 404) {
+            return {
+                data: [],
+                message: "No areas found",
+                status: 404
+            } as Areas;
+        }
+
         const errorMessage = error.response?.data?.message || "Failed to get areas";
         throw {
             userMessage: errorMessage,

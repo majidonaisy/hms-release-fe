@@ -39,6 +39,14 @@ export const getExchangeRates = async (params?: GetExchangeRateParams): Promise<
         });
         return response as GetExchangeRateResponse;
     } catch (error: any) {
+        if (error.response?.status === 404) {
+            return {
+                data: [],
+                message: "No exchange rates found",
+                status: 404
+            } as GetExchangeRateResponse;
+        }
+
         const errorMessage = error.response?.data?.message || "Failed to get exchange rates";
         throw {
             userMessage: errorMessage,

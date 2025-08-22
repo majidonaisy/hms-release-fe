@@ -40,8 +40,16 @@ export const searchGuests = async (params: GuestSearchParams): Promise<GetGuests
     });
     return response as GetGuestsResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No guests found",
+        status: 404
+      } as GetGuestsResponse;
+    }
+    const errorMessage = error.response?.data?.message || "Failed to get guests";
     throw {
-      userMessage: error.response?.data?.message || "Failed to search guests",
+      userMessage: errorMessage,
       originalError: error,
     };
   }
@@ -64,8 +72,17 @@ export const searchGroupProfiles = async (params: GroupProfileSearchParams): Pro
     });
     return response as GetGroupProfilesResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No group profiles found",
+        status: 404
+      } as GetGroupProfilesResponse;
+    }
+
+    const errorMessage = error.response?.data?.message || "Failed to get groups";
     throw {
-      userMessage: error.response?.data?.message || "Failed to search group profiles",
+      userMessage: errorMessage,
       originalError: error,
     };
   }

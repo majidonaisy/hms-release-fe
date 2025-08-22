@@ -9,18 +9,15 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 const Reports = () => {
     const [reports, setReports] = useState<ReportType[] | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [previewFile, setPreviewFile] = useState<string | null>(null);
 
     const fetchReports = async () => {
         setLoading(true);
-        setError(null)
         try {
             const response = await getReports();
             setReports(response);
         } catch (error: any) {
             console.error("Failed to get reports");
-            setError(error.userMessage || "Failed to load housekeeping tasks")
 
         } finally {
             setLoading(false);
@@ -80,24 +77,7 @@ const Reports = () => {
                                             Loading reports...
                                         </TableCell>
                                     </TableRow>
-                                ) : error ? (
-                                    <TableRow className="">
-                                        <TableCell
-                                            colSpan={3}
-                                            className="py-10 text-center text-gray-600"
-                                        >
-                                            Error fetching reports
-                                        </TableCell>
-                                    </TableRow>) : reports?.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={2}
-                                                className="py-10 text-center text-gray-600"
-                                            >
-                                                No reports found
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
+                                ) :
                                     reports?.map((report) => (
                                         <TableRow
                                             key={`report-${report.id}`}
@@ -117,7 +97,7 @@ const Reports = () => {
                                             </TableCell>
                                         </TableRow>
                                     ))
-                                )}
+                                }
                             </TableBody>
                         </Table>
                     </div>

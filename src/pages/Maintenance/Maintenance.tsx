@@ -12,7 +12,6 @@ import DeleteDialog from '@/components/molecules/DeleteDialog';
 import ActivityLogDialog, { ActivityLogEntry } from '@/components/dialogs/ActivityLogDialog';
 import { addMaintenance, completeMaintenance, deleteMaintenance, getMaintenances, startMaintenance, updateMaintenance } from '@/services/Maintenance';
 import { Maintenance as MaintenanceType } from '@/validation';
-import TableSkeleton from '@/components/Templates/TableSkeleton';
 import { Can, CanAll } from '@/context/CASLContext';
 
 const MaintenancePage = () => {
@@ -333,10 +332,6 @@ const MaintenancePage = () => {
         fetchMaintenanceRequests();
     }, [fetchMaintenanceRequests]);
 
-    if (loading) {
-        return (<TableSkeleton title='Maintenance' />)
-    }
-
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             {/* Header Section */}
@@ -422,7 +417,13 @@ const MaintenancePage = () => {
                                 <TableRow key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <TableCell className="px-6 py-4">
                                         <div className="font-medium text-gray-900">
-                                            {request.room?.roomNumber || request.roomId || 'Unknown Room'}
+                                            {request.room ? (
+                                                <> Room {request.room.roomNumber}</>
+                                            ) : request.area ? (
+                                                request.area.name
+                                            ) : (
+                                                <></>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
