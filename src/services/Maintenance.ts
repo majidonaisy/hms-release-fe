@@ -49,6 +49,14 @@ export const getMaintenances = async (params?: GetMaintenancesParams): Promise<G
     });
     return response as GetMaintenancesResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No maintenance requests found",
+        status: 404
+      } as GetMaintenancesResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get maintenance requests";
     throw {
       userMessage: errorMessage,

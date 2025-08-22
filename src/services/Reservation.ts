@@ -71,7 +71,15 @@ export const getReservations = async (startDate?: Date, endDate?: Date, paginati
     });
     return response as ReservationResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to get reservation";
+    if (error.response?.status === 404) {
+      return {
+        data: {},
+        message: "No reservations found",
+        status: 404
+      } as ReservationResponse;
+    }
+
+    const errorMessage = error.response?.data?.message || "Failed to get reservations";
     throw {
       userMessage: errorMessage,
       originalError: error,
@@ -234,13 +242,21 @@ export const getCurrentGuests = async (params: { q: string }): Promise<GetCurren
     });
     return response as GetCurrentGuestsResponse;
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to get guests";
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No current guests found",
+        status: 404
+      } as GetCurrentGuestsResponse;
+    }
+
+    const errorMessage = error.response?.data?.message || "Failed to get reservations";
     throw {
       userMessage: errorMessage,
       originalError: error,
     };
   }
-};
+}
 
 export const getCurrentGroupProfiles = async (params: { q: string }): Promise<GetCurrentGroupProfilesResponse> => {
   try {
@@ -252,6 +268,14 @@ export const getCurrentGroupProfiles = async (params: { q: string }): Promise<Ge
     });
     return response as GetCurrentGroupProfilesResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No current group profiles found",
+        status: 404,
+      } as GetCurrentGroupProfilesResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get group profiles";
     throw {
       userMessage: errorMessage,

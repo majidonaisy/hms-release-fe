@@ -42,6 +42,14 @@ export const getRooms = async (params?: GetRoomsParams): Promise<GetRoomsRespons
     });
     return response as GetRoomsResponse;
   } catch (error: any) {
+    if (error.response?.status === 404) {
+      return {
+        data: [],
+        message: "No rooms found",
+        status: 404
+      } as GetRoomsResponse;
+    }
+
     const errorMessage = error.response?.data?.message || "Failed to get rooms";
     throw {
       userMessage: errorMessage,

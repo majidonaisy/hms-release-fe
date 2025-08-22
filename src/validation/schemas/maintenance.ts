@@ -61,6 +61,10 @@ const MaintenanceShape = z.object({
     firstName: z.string(),
     lastName: z.string(),
   }),
+  area: z.object({
+    id: z.string(),
+    name: z.string()
+  }).optional()
 });
 
 // Add Maintenance Request
