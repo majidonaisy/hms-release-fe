@@ -45,6 +45,18 @@ export type UIReservation = {
   identification?: string
   createdByUser?: string
   checkInTime?: Date
+  hasOverlap?: boolean
+}
+
+interface GridEvent extends UIReservation {
+  gridColumnStart: number;
+  gridColumnEnd: number;
+  gridRowStart: number;
+  gridRowEnd: number;
+  isSegmented?: boolean;
+  overlapIndex?: number;
+  totalOverlaps?: number;
+  segmentId?: string;
 }
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
@@ -226,9 +238,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     });
   }, [reservations, searchTerm, filterStatus, weekStart, weekEnd, validRoomNumbers]);
 
-  // Map reservations to grid
-  const gridEvents = useMemo(() => {
-    return filteredReservations.map((reservation) => {
+
+  const gridEvents = useMemo((): GridEvent[] => {
+    const basicGridEvents: GridEvent[] = filteredReservations.map((reservation) => {
       const visibleStart = reservation.start > weekStart ? reservation.start : weekStart;
       const visibleEnd = reservation.end < weekEnd ? reservation.end : weekEnd;
 
@@ -250,16 +262,99 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         gridRowEnd: roomGridIndex + 2,
       };
     });
+
+    const segmentedEvents: GridEvent[] = [];
+
+    const reservationsByRoom = new Map<string, GridEvent[]>();
+    basicGridEvents.forEach(event => {
+      if (!reservationsByRoom.has(event.resourceId)) {
+        reservationsByRoom.set(event.resourceId, []);
+      }
+      reservationsByRoom.get(event.resourceId)!.push(event);
+    });
+
+    reservationsByRoom.forEach(roomReservations => {
+      if (roomReservations.length === 1) {
+        segmentedEvents.push(...roomReservations);
+        return;
+      }
+
+      const overlappingColumns = new Set<number>();
+      for (let i = 0; i < roomReservations.length; i++) {
+        for (let j = i + 1; j < roomReservations.length; j++) {
+          const res1 = roomReservations[i];
+          const res2 = roomReservations[j];
+
+          const overlapStart = Math.max(res1.gridColumnStart, res2.gridColumnStart);
+          const overlapEnd = Math.min(res1.gridColumnEnd, res2.gridColumnEnd);
+
+          if (overlapStart < overlapEnd) {
+            for (let col = overlapStart; col < overlapEnd; col++) {
+              overlappingColumns.add(col);
+            }
+          }
+        }
+      }
+
+      roomReservations.forEach(event => {
+        if (overlappingColumns.size === 0) {
+          segmentedEvents.push(event);
+          return;
+        }
+
+        let currentPos = event.gridColumnStart;
+
+        while (currentPos < event.gridColumnEnd) {
+          if (overlappingColumns.has(currentPos)) {
+            const overlappingInThisColumn = roomReservations.filter(other =>
+              other.gridColumnStart <= currentPos &&
+              other.gridColumnEnd > currentPos
+            );
+
+            const allInColumn = overlappingInThisColumn.sort((a, b) =>
+              a.start.getTime() - b.start.getTime()
+            );
+            const overlapIndex = allInColumn.findIndex(r => r.id === event.id);
+            const totalInColumn = allInColumn.length;
+
+            segmentedEvents.push({
+              ...event,
+              gridColumnStart: currentPos,
+              gridColumnEnd: currentPos + 1,
+              isSegmented: true,
+              overlapIndex,
+              totalOverlaps: totalInColumn,
+              segmentId: `${event.id}-overlap-${currentPos}`
+            });
+
+            currentPos++;
+          } else {
+            let segmentEnd = currentPos + 1;
+            while (segmentEnd < event.gridColumnEnd && !overlappingColumns.has(segmentEnd)) {
+              segmentEnd++;
+            }
+
+            segmentedEvents.push({
+              ...event,
+              gridColumnStart: currentPos,
+              gridColumnEnd: segmentEnd,
+              isSegmented: segmentEnd - currentPos < event.gridColumnEnd - event.gridColumnStart,
+              segmentId: `${event.id}-normal-${currentPos}-${segmentEnd}`
+            });
+
+            currentPos = segmentEnd;
+          }
+        }
+      });
+    });
+
+    return segmentedEvents;
   }, [filteredReservations, flattenedRooms, weekStart, weekEnd]);
 
   const getStatusColor = (status: string) => {
     const colors = {
       "CHECKED_IN": "bg-chart-1/20 border-l-4 border-chart-1",
       "CHECKED_OUT": "bg-chart-5/20 border-l-4 border-chart-5",
-      // DRAFT: "bg-chart-3/20 border-l-4 border-chart-3",
-      // "CONFIRMED": "bg-chart-3/20 border-l-4 border-chart-3",
-      // "CANCELLED": "bg-chart-4/20 border-l-4 border-chart-4",
-      // NO_SHOW: "bg-chart-5/20 border-l-4 border-chart-5",
       "HELD": "bg-chart-3/20 border-l-4 border-chart-3",
     };
     return colors[status as keyof typeof colors] || colors.HELD;
@@ -596,7 +691,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                   )}
 
                   {gridEvents.map((event) => (
-                    <Tooltip key={event.id}>
+                    <Tooltip key={event.segmentId || event.id}>
                       <TooltipTrigger asChild>
                         <div
                           className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
@@ -607,6 +702,12 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                             gridColumnEnd: event.gridColumnEnd,
                             gridRowStart: event.gridRowStart,
                             gridRowEnd: event.gridRowEnd,
+                            ...(event.totalOverlaps && event.totalOverlaps > 1 && {
+                              position: 'relative',
+                              left: `${(event.overlapIndex! * 100) / event.totalOverlaps}%`,
+                              width: `${100 / event.totalOverlaps}%`,
+                              margin: '1px 0'
+                            })
                           }}
                           onClick={() => {
                             setChooseOptionDialog(true);
@@ -616,9 +717,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                         >
                           <div className="truncate font-medium">{event.guestName}</div>
                           <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
-                          {/* Uncomment these if you want to show more info */}
-                          {/* <div className="truncate text-xs opacity-60">{event.roomType}</div> */}
-                          {/* <div className="truncate text-xs opacity-60">${event.rate}/night</div> */}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>

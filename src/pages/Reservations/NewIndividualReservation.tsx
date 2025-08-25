@@ -3,7 +3,7 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
-import { Check, ChevronLeft, X, Search } from "lucide-react"
+import { Check, ChevronLeft, X, Search, Calendar as CalendarIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { AddReservationRequest } from "@/validation/schemas/Reservations"
 import { GetRatePlansResponse, GetRoomTypesResponse } from "@/validation"
@@ -17,8 +17,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms
 import { Separator } from "@/components/atoms/Separator"
 import { Input } from "@/components/atoms/Input"
 import { getAlRoomTypes } from "@/services/RoomTypes"
-import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 import { GetGuestsResponse, Guest } from "@/validation/schemas/Guests"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
+import { Calendar as CalendarComponent } from '@/components/molecules/Calendar'
+import { format } from "date-fns"
 
 export default function NewIndividualReservation() {
     const [currentStep, setCurrentStep] = useState(1)
@@ -325,40 +327,71 @@ export default function NewIndividualReservation() {
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
                         <div className="space-y-1">
-                            <DateTimePicker
-                                label="Check In"
-                                date={formData.checkIn}
-                                onDateTimeChange={(date) => {
-                                    if (date) {
-                                        setFormData({ ...formData, checkIn: date });
-                                        setFormData(prev => ({ ...prev, roomIds: [] }));
-                                        setConnectableRooms([]);
-                                    }
-                                }}
-                                placeholder="Select check-in date and time"
-                                disabled={(date) => date < new Date()}
-                            />
+                            <Label>Check In</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        data-empty={!formData.checkIn}
+                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                    >
+                                        <CalendarIcon />
+                                        {formData.checkIn ? format(formData.checkIn, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <CalendarComponent
+                                        mode="single"
+                                        selected={formData.checkIn}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkIn: date });
+                                                // Clear room selection when dates change
+                                                setFormData(prev => ({ ...prev, roomIds: [] }));
+                                                setConnectableRooms([]);
+                                            }
+                                        }}
+                                        disabled={(date) => date < new Date()}
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="space-y-1">
-                            <DateTimePicker
-                                label="Check Out"
-                                date={formData.checkOut}
-                                onDateTimeChange={(date) => {
-                                    if (date) {
-                                        setFormData({ ...formData, checkOut: date });
-                                        setFormData(prev => ({ ...prev, roomIds: [] }));
-                                        setConnectableRooms([]);
-                                    }
-                                }}
-                                placeholder="Select check-out date and time"
-                                disabled={(date) => {
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    if (date < today) return true;
-                                    if (formData.checkIn && date <= formData.checkIn) return true;
-                                    return false;
-                                }}
-                            />
+                            <Label>Check Out</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        data-empty={!formData.checkOut}
+                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                    >
+                                        <CalendarIcon />
+                                        {formData.checkOut ? format(formData.checkOut, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <CalendarComponent
+                                        mode="single"
+                                        selected={formData.checkOut}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkOut: date });
+                                                // Clear room selection when dates change
+                                                setFormData(prev => ({ ...prev, roomIds: [] }));
+                                                setConnectableRooms([]);
+                                            }
+                                        }}
+                                        disabled={(date) => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+
+                                            if (date < today) return true;
+                                            if (formData.checkIn && date <= formData.checkIn) return true;
+                                            return false;
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="space-y-1">
                             <Label>Rate Plan</Label>

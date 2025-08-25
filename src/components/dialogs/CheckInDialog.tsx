@@ -10,6 +10,7 @@ import type { UIReservation } from "@/pages/HotelScheduler"
 import { format } from "date-fns"
 import { Input } from "../atoms/Input"
 import { toast } from "sonner"
+import { store } from "@/redux/store";
 
 interface CheckInDialogProps {
     open: boolean
@@ -36,6 +37,7 @@ const CheckInDialog = ({
     const [identificationFiles, setIdentificationFiles] = useState<File[]>([]);
     const [identificationData, setIdentificationData] = useState<any>(null);
     const [uploadingIdentification, setUploadingIdentification] = useState(false);
+    const baseCurrency = store.getState().currency.currency || 'USD';
 
     const {
         getRootProps: getIdentificationRootProps,
@@ -267,7 +269,7 @@ const CheckInDialog = ({
                             <div>
                                 <Label className="text-gray-600 text-xs">Deposit Amount</Label>
                                 <p className="font-medium text-lg">
-                                    {deposit ? `$${parseFloat(deposit).toFixed(2)}` : "$0.00"}
+                                    {deposit ? `${parseFloat(deposit).toFixed(2)}` : "0.00"} {baseCurrency}
                                 </p>
                             </div>
                             {identificationFiles.length > 0 && (
