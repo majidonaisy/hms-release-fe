@@ -8,6 +8,7 @@ import { Calendar } from "@/components/molecules/Calendar";
 import { Button } from "@/components/atoms/Button";
 import { format } from "date-fns";
 import { PaymentsResponse } from "@/validation/schemas/Payouts";
+import { Badge } from "@/components/atoms/Badge";
 
 type PaymentItem = PaymentsResponse["data"][number];
 
@@ -16,13 +17,11 @@ const Payouts = () => {
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState<any | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
+    const pageSize = 5;
 
-    // Filters used in API
     const [filterFromDate, setFilterFromDate] = useState<Date>(new Date(new Date().setDate(new Date().getDate() - 3)));
     const [filterToDate, setFilterToDate] = useState<Date>(new Date());
 
-    // Temporary selections in calendar
     const [tempFromDate, setTempFromDate] = useState<Date>(filterFromDate);
     const [tempToDate, setTempToDate] = useState<Date>(filterToDate);
 
@@ -65,14 +64,49 @@ const Payouts = () => {
     const applyFilters = () => {
         setFilterFromDate(tempFromDate);
         setFilterToDate(tempToDate);
-        setCurrentPage(1); // reset page
+        setCurrentPage(1);
+    };
+
+    const getTypeName = (type: string) => {
+        switch (type) {
+            case "GUEST_PAYMENT":
+                return "Guest Payment";
+            default:
+                ''
+        }
+    };
+
+    const prettifyText = (text: string): string => {
+        return text
+            .replace(/([a-z])([A-Z])/g, "$1 $2")
+            .replace(/_/g, " ")
+            .toLowerCase()
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+    };
+
+    const formatInformation = (
+        type: string,
+        information: Record<string, any> | null
+    ): string[] => {
+        if (!information) return [];
+
+        return Object.entries(information)
+            .filter(([key]) => {
+                if (type === "GUEST_PAYMENT" && key === "reservationId") return false;
+                return true;
+            })
+            .map(([key, value]) => {
+                const prettyKey = prettifyText(key);
+                const prettyValue =
+                    typeof value === "string" ? prettifyText(value) : String(value);
+                return `${prettyKey}: ${prettyValue}`;
+            });
     };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <h1 className="text-2xl font-semibold mb-4">Payouts</h1>
 
-            {/* Date Filter */}
             <div className="flex gap-4 mb-4">
                 <Popover>
                     <PopoverTrigger asChild>
@@ -99,6 +133,8 @@ const Payouts = () => {
                 <Table>
                     <TableHeader className="bg-hms-accent/15">
                         <TableRow>
+                            <TableHead className="px-6 py-2 text-left">Type</TableHead>
+                            <TableHead className="px-6 py-2 text-left">Payout Info</TableHead>
                             <TableHead className="px-6 py-2 text-left">Amount</TableHead>
                             <TableHead className="px-6 py-2 text-left">Status</TableHead>
                             <TableHead className="px-6 py-2 text-left">Created At</TableHead>
@@ -108,30 +144,46 @@ const Payouts = () => {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="py-10 text-center text-gray-600">
+                                <TableCell colSpan={5} className="py-10 text-center text-gray-600">
                                     Loading payouts...
                                 </TableCell>
                             </TableRow>
                         ) : payouts.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="py-10 text-center text-gray-600">
+                                <TableCell colSpan={5} className="py-10 text-center text-gray-600">
                                     No payouts found
                                 </TableCell>
                             </TableRow>
                         ) : (
                             payouts.map((p) => (
-                                <TableRow key={p.id} className="border-b hover:bg-accent cursor-pointer">
-                                    <TableCell className="px-6 py-4 font-medium">{p.amount} {p.currencyId}</TableCell>
-                                    <TableCell className="px-6 py-4">{p.status}</TableCell>
+                                <TableRow key={p.id} className="border-b">
+                                    <TableCell className="px-6 py-4 font-medium">{getTypeName(p.type)}</TableCell>
+                                    <TableCell className="px-6 py-4">
+                                        {formatInformation(p.type, p.information).length > 0
+                                            ? formatInformation(p.type, p.information).map((info, idx) => (
+                                                <div key={idx} className="text-sm text-gray-700">
+                                                    {info}
+                                                </div>
+                                            ))
+                                            : "-"}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-4 font-medium">
+                                        {p.amount} {p.currencyId}
+                                    </TableCell>
+                                    <TableCell className={`px-6 py-4 `}>
+                                        <Badge className={`${p.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} border-0`}>
+                                            {p.status}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell className="px-6 py-4">{formatDateTime(p.createdAt)}</TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
+
                 </Table>
             </div>
 
-            {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
                 <div className="mt-4">
                     <Pagination
