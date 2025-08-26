@@ -238,7 +238,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     });
   }, [reservations, searchTerm, filterStatus, weekStart, weekEnd, validRoomNumbers]);
 
-
   const gridEvents = useMemo((): GridEvent[] => {
     const basicGridEvents: GridEvent[] = filteredReservations.map((reservation) => {
       const visibleStart = reservation.start > weekStart ? reservation.start : weekStart;
@@ -263,8 +262,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       };
     });
 
-    const segmentedEvents: GridEvent[] = [];
-
     const reservationsByRoom = new Map<string, GridEvent[]>();
     basicGridEvents.forEach(event => {
       if (!reservationsByRoom.has(event.resourceId)) {
@@ -273,82 +270,57 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       reservationsByRoom.get(event.resourceId)!.push(event);
     });
 
+    const finalEvents: GridEvent[] = [];
+
     reservationsByRoom.forEach(roomReservations => {
       if (roomReservations.length === 1) {
-        segmentedEvents.push(...roomReservations);
+        finalEvents.push(...roomReservations);
         return;
       }
 
-      const overlappingColumns = new Set<number>();
-      for (let i = 0; i < roomReservations.length; i++) {
-        for (let j = i + 1; j < roomReservations.length; j++) {
-          const res1 = roomReservations[i];
-          const res2 = roomReservations[j];
+      const sortedReservations = roomReservations.sort((a, b) =>
+        a.gridColumnStart - b.gridColumnStart || a.start.getTime() - b.start.getTime()
+      );
 
-          const overlapStart = Math.max(res1.gridColumnStart, res2.gridColumnStart);
-          const overlapEnd = Math.min(res1.gridColumnEnd, res2.gridColumnEnd);
+      sortedReservations.forEach((reservation, index) => {
+        let hasOverlap = false;
+        let overlapIndex = 0;
+
+        for (let i = 0; i < sortedReservations.length; i++) {
+          if (i === index) continue;
+
+          const other = sortedReservations[i];
+          const overlapStart = Math.max(reservation.gridColumnStart, other.gridColumnStart);
+          const overlapEnd = Math.min(reservation.gridColumnEnd, other.gridColumnEnd);
 
           if (overlapStart < overlapEnd) {
-            for (let col = overlapStart; col < overlapEnd; col++) {
-              overlappingColumns.add(col);
+            hasOverlap = true;
+            if (reservation.status === 'CHECKED_OUT' && other.status !== 'CHECKED_OUT') {
+              overlapIndex = 0;
+            } else if (other.status === 'CHECKED_OUT' && reservation.status !== 'CHECKED_OUT') {
+              overlapIndex = 1;
+            } else {
+              overlapIndex = index;
             }
+            break;
           }
         }
-      }
 
-      roomReservations.forEach(event => {
-        if (overlappingColumns.size === 0) {
-          segmentedEvents.push(event);
-          return;
-        }
-
-        let currentPos = event.gridColumnStart;
-
-        while (currentPos < event.gridColumnEnd) {
-          if (overlappingColumns.has(currentPos)) {
-            const overlappingInThisColumn = roomReservations.filter(other =>
-              other.gridColumnStart <= currentPos &&
-              other.gridColumnEnd > currentPos
-            );
-
-            const allInColumn = overlappingInThisColumn.sort((a, b) =>
-              a.start.getTime() - b.start.getTime()
-            );
-            const overlapIndex = allInColumn.findIndex(r => r.id === event.id);
-            const totalInColumn = allInColumn.length;
-
-            segmentedEvents.push({
-              ...event,
-              gridColumnStart: currentPos,
-              gridColumnEnd: currentPos + 1,
-              isSegmented: true,
-              overlapIndex,
-              totalOverlaps: totalInColumn,
-              segmentId: `${event.id}-overlap-${currentPos}`
-            });
-
-            currentPos++;
-          } else {
-            let segmentEnd = currentPos + 1;
-            while (segmentEnd < event.gridColumnEnd && !overlappingColumns.has(segmentEnd)) {
-              segmentEnd++;
-            }
-
-            segmentedEvents.push({
-              ...event,
-              gridColumnStart: currentPos,
-              gridColumnEnd: segmentEnd,
-              isSegmented: segmentEnd - currentPos < event.gridColumnEnd - event.gridColumnStart,
-              segmentId: `${event.id}-normal-${currentPos}-${segmentEnd}`
-            });
-
-            currentPos = segmentEnd;
-          }
+        if (hasOverlap) {
+          finalEvents.push({
+            ...reservation,
+            isSegmented: true,
+            overlapIndex: overlapIndex,
+            totalOverlaps: 2,
+            segmentId: `${reservation.id}-overlap`
+          });
+        } else {
+          finalEvents.push(reservation);
         }
       });
     });
 
-    return segmentedEvents;
+    return finalEvents;
   }, [filteredReservations, flattenedRooms, weekStart, weekEnd]);
 
   const getStatusColor = (status: string) => {
@@ -638,7 +610,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                   style={{
                     gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
                     gridTemplateRows: flattenedRooms
-                      .map((item) => ("type" in item && item.type === "header" ? "40px" : "80px"))
+                      .map((item) => ("type" in item && item.type === "header" ? "40px" : "100px"))
                       .join(" "),
                   }}
                 >
@@ -647,7 +619,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                       key={`room-${index}`}
                       className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
                         ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
-                        : "bg-gray-50 border-r p-1"
+                        : "bg-gray-50 border-r flex justify-center"
                         }`}
                       style={{
                         gridColumn: 1,
@@ -703,10 +675,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                             gridRowStart: event.gridRowStart,
                             gridRowEnd: event.gridRowEnd,
                             ...(event.totalOverlaps && event.totalOverlaps > 1 && {
+                              height: event.overlapIndex === 0 ? 'calc(50% - 3px)' : 'calc(50% - 9px)',
                               position: 'relative',
-                              left: `${(event.overlapIndex! * 100) / event.totalOverlaps}%`,
-                              width: `${100 / event.totalOverlaps}%`,
-                              margin: '1px 0'
+                              top: event.overlapIndex === 0 ? '0%' : '50%',
+                              zIndex: 35 + (event.overlapIndex || 0),
                             })
                           }}
                           onClick={() => {
