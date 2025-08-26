@@ -1,5 +1,5 @@
 import { HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog, FileText } from "lucide-react";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog, FileText, BanknoteArrowUp } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -515,7 +515,7 @@ const RoutesList = () => {
         {
             path: '/payouts',
             title: "Payouts",
-            icon: <FileText />,
+            icon: <BanknoteArrowUp />,
             component: Payouts,
             isShown: true,
             requiredPermissions: [
