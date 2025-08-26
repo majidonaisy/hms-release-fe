@@ -247,6 +247,30 @@ const CheckOutReservationActivity = BaseActivityShape.extend({
   }),
 });
 
+const SettleFolioItemActivity = BaseActivityShape.extend({
+  action: z.literal("Settle Folio Item"),
+  metadata: z.object({
+    ip: z.string(),
+    path: z.string(),
+    method: z.string(),
+    batchId: z.string(),
+    duration: z.number(),
+    itemType: z.string(),
+    itemIndex: z.number(),
+    roomCount: z.number(),
+    userAgent: z.string(),
+    statusCode: z.number(),
+    totalItems: z.number(),
+    isConverted: z.boolean(),
+    roomNumbers: z.array(z.string()).optional(),
+    guestFullName: z.string(),
+    operationType: z.string(),
+    paymentMethod: z.string(),
+    paymentCurrency: z.string(),
+    amount: z.string()
+  }),
+});
+
 // Full Activity Logs response
 export const ActivityLogsSchema = z.object({
   status: z.number(),
@@ -258,6 +282,7 @@ export const ActivityLogsSchema = z.object({
       AddChargeActivity,
       CheckInReservationActivity,
       CheckOutReservationActivity,
+      SettleFolioItemActivity
     ])
   ),
 });
@@ -287,5 +312,6 @@ export type ActivityLogItem = z.infer<typeof CreateGroupBookingActivity>
   | z.infer<typeof CreateReservationActivity>
   | z.infer<typeof AddChargeActivity>
   | z.infer<typeof CheckInReservationActivity>
-  | z.infer<typeof CheckOutReservationActivity>;
+  | z.infer<typeof CheckOutReservationActivity>
+  | z.infer<typeof SettleFolioItemActivity>;
 export type PaginatedActivityLogs = z.infer<typeof PaginatedActivityLogsSchema>;

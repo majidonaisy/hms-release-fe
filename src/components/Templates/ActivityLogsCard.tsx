@@ -139,6 +139,16 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                         `Check Out Time: ${formatCheckInCheckOutDate(activity.metadata.checkOutTime)}`,
                     ],
                 };
+            case "Settle Folio Item":
+                return {
+                    title: "Settle Folio Item",
+                    details: [
+                        `Guest Name: ${activity.metadata.guestFullName}`,
+                        `Item Type: ${activity.metadata.itemType}`,
+                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Amount: ${activity.metadata} ${activity.metadata.paymentCurrency}`,
+                    ],
+                };
             default:
                 return { title: (activity as any).action || "", details: [] };
         }
