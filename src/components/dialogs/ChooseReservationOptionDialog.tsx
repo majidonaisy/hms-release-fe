@@ -200,19 +200,19 @@ const ChooseReservationOptionDialog = ({
                         { action: "read", subject: "ExchangeRate" }
                     ]}>
                         <div
-                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${!isCheckedIn && !isCheckedOut ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                            className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isCheckedOut || !isCheckedIn ? "bg-gray-50 opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
                                 }`}
                             onClick={() => {
-                                if (isCheckedIn || isCheckedOut) {
+                                if (!isCheckedOut && isCheckedIn) {
                                     addCharges()
                                 }
                             }}
                         >
                             <div className="flex items-center gap-3">
-                                <Banknote className={`h-5 w-5 ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-600"}`} />
-                                <span className={`font-medium ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : "text-gray-900"}`}>Add Payment</span>
+                                <Banknote className={`h-5 w-5 ${isCheckedOut || !isCheckedIn ? "text-gray-400" : "text-gray-600"}`} />
+                                <span className={`font-medium ${isCheckedOut || !isCheckedIn ? "text-gray-400" : "text-gray-900"}`}>Add Payment</span>
                             </div>
-                            <span className={` ${!isCheckedIn && !isCheckedOut ? "text-gray-400" : ""}`}>
+                            <span className={` ${isCheckedOut || !isCheckedIn ? "text-gray-400" : ""}`}>
                                 <ChevronRight size={15} />
                             </span>
                         </div>

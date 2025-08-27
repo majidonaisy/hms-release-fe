@@ -1,5 +1,5 @@
 import { HotelReservationCalendar, Rooms, NewTeamMember, TeamMembers, TeamMemberProfile, Roles, Room, AdminDashboard, Amenities, RatePlans, RoomTypes } from "@/pages";
-import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog, FileText } from "lucide-react";
+import { Calendar, ChartColumnBig, DoorOpen, Eye, Plus, User, Users, Wrench, Sparkles, LayoutDashboard, Coffee, DollarSign, Settings, HomeIcon, UserCheck, UserCog, FileText, BanknoteArrowUp } from "lucide-react";
 import createHomeRoute, { HomeRouteConfig } from "./routerConfig";
 import CurrentGuestList from "@/pages/Guests/CurrentGuestList";
 import GuestProfile from "@/pages/Guests/GuestProfile";
@@ -17,6 +17,7 @@ import Departments from "@/pages/dashboard/Departments/Departments";
 import HomePage from "@/pages/HomePage";
 import Areas from "@/pages/dashboard/Areas/Areas";
 import Reports from "@/pages/Reports";
+import Payouts from "@/pages/Payouts";
 
 const RoutesList = () => {
     const homeRoutesList: HomeRouteConfig[] = [
@@ -510,7 +511,22 @@ const RoutesList = () => {
                     ]
                 }
             ]
-        }
+        },
+        {
+            path: '/payouts',
+            title: "Payouts",
+            icon: <BanknoteArrowUp />,
+            component: Payouts,
+            isShown: true,
+            requiredPermissions: [
+                {
+                    type: 'AND' as const,
+                    permissions: [
+                        { action: "read", subject: "Report" },
+                    ]
+                }
+            ]
+        },
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
         )

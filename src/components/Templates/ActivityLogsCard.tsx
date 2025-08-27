@@ -111,7 +111,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                         `Guest: ${activity.metadata.guestName || "Unknown Guest"}`,
                         `Check In: ${formatCheckInCheckOutDate(activity.metadata.checkInDate) || "N/A"}`,
                         `Check Out: ${formatCheckInCheckOutDate(activity.metadata.checkOutDate) || "N/A"}`,
-                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
                     ],
                 };
             case "Add Charge":
@@ -120,14 +120,14 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                     details: [
                         `Amount: ${activity.metadata.chargeAmount || "0"} ${activity.metadata.currencyCode || ''}`,
                         `Type: ${activity.metadata.chargeType || "Unknown"}`,
-                        `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
                     ],
                 };
             case "Check In Reservation":
                 return {
                     title: "Check In Reservation",
                     details: [
-                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
                         `Deposit Amount: ${activity.metadata.depositAmount} ${baseCurrency}`,
                     ],
                 };
@@ -135,8 +135,27 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                 return {
                     title: "Check Out Reservation",
                     details: [
-                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
                         `Check Out Time: ${formatCheckInCheckOutDate(activity.metadata.checkOutTime)}`,
+                    ],
+                };
+            case "Settle Folio Item":
+                return {
+                    title: "Settle Folio Item",
+                    details: [
+                        `Guest Name: ${activity.metadata.guestFullName}`,
+                        `Item Type: ${activity.metadata.itemType}`,
+                        `Room(s): ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Amount: ${activity.responseData.amount} ${activity.metadata.paymentCurrency}`,
+                    ],
+                };
+            case "Void Folio Item":
+                return {
+                    title: "Void Folio Item",
+                    details: [
+                        `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
+                        `Voided At: ${formatCheckInCheckOutDate(activity.metadata.voidedAt)}`,
+                        `Number of Items: ${activity.metadata.nbOfItems}`,
                     ],
                 };
             default:
