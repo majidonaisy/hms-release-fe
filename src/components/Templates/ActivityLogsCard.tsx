@@ -149,6 +149,15 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                         `Amount: ${activity.responseData.amount} ${activity.metadata.paymentCurrency}`,
                     ],
                 };
+            case "Void Folio Item":
+                return {
+                    title: "Void Folio Item",
+                    details: [
+                        `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
+                        `Voided At: ${formatCheckInCheckOutDate(activity.metadata.voidedAt)}`,
+                        `Number of Items: ${activity.metadata.nbOfItems}`,
+                    ],
+                };
             default:
                 return { title: (activity as any).action || "", details: [] };
         }

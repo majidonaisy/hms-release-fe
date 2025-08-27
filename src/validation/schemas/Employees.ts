@@ -273,6 +273,18 @@ const SettleFolioItemActivity = BaseActivityShape.extend({
   })
 });
 
+const VoidFolioItemActivity = BaseActivityShape.extend({
+  action: z.literal("Void Folio Item"),
+  metadata: z.object({
+    rooms: z.array(z.string()).optional(),
+    voidedAt: z.date(),
+    nbOfItems: z.number()
+  }),
+  responseData: z.object({
+    amount: z.number()
+  })
+});
+
 // Full Activity Logs response
 export const ActivityLogsSchema = z.object({
   status: z.number(),
@@ -284,7 +296,8 @@ export const ActivityLogsSchema = z.object({
       AddChargeActivity,
       CheckInReservationActivity,
       CheckOutReservationActivity,
-      SettleFolioItemActivity
+      SettleFolioItemActivity,
+      VoidFolioItemActivity
     ])
   ),
 });
@@ -315,5 +328,6 @@ export type ActivityLogItem = z.infer<typeof CreateGroupBookingActivity>
   | z.infer<typeof AddChargeActivity>
   | z.infer<typeof CheckInReservationActivity>
   | z.infer<typeof CheckOutReservationActivity>
-  | z.infer<typeof SettleFolioItemActivity>;
+  | z.infer<typeof SettleFolioItemActivity>
+  | z.infer<typeof VoidFolioItemActivity>;
 export type PaginatedActivityLogs = z.infer<typeof PaginatedActivityLogsSchema>;
