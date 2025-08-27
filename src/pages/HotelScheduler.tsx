@@ -45,7 +45,23 @@ export type UIReservation = {
   identification?: string
   createdByUser?: string
   checkInTime?: Date
+  hasOverlap?: boolean
 }
+
+interface GridEvent extends UIReservation {
+  gridColumnStart: number;
+  gridColumnEnd: number;
+  gridRowStart: number;
+  gridRowEnd: number;
+  isSegmented?: boolean;
+  overlapIndex?: number;
+  totalOverlaps?: number;
+  segmentId?: string;
+  width?: number;
+  left?: number;
+}
+
+const COLUMNS_PER_DAY = 4; // Number of sub-columns per day for horizontal overlap handling
 
 const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pageTitle }) => {
   const [allRooms, setAllRooms] = useState<Room[]>([]);
@@ -113,10 +129,8 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
         setAllRooms(extractedRooms);
 
-        // Create reservations with guest names - THIS WAS MISSING THE ACTUAL MAPPING LOGIC
         const reservationsWithGuestNames: UIReservation[] = [];
 
-        // Add the missing logic to populate reservations
         for (const reservation of apiReservations) {
           for (const room of reservation.Room) {
             for (const mappedReservation of room.reservations || []) {
@@ -174,18 +188,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     const filtered: Record<string, Room[]> = {};
 
     Object.entries(roomsByType).forEach(([type, typeRooms]) => {
-      // Filter rooms that match the search term (by room number, room type, or guest name)
       const matchingRooms = typeRooms.filter((room) =>
         room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         room.roomType?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        // Also search by guest name in reservations
         reservations.some(res =>
           res.resourceId === room.id &&
           res.guestName.toLowerCase().includes(searchTerm.toLowerCase())
         )
       );
 
-      // Only include room types that have matching rooms
       if (matchingRooms.length > 0) {
         filtered[type] = matchingRooms;
       }
@@ -203,7 +214,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     return flattened;
   }, [filteredRoomsByType]);
 
-  // Replace filteredReservations logic to make status filter functional
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
       const matchesSearch =
@@ -212,7 +222,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         reservation.roomType.toLowerCase().includes(searchTerm.toLowerCase()) ||
         reservation.guestName.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Normalize status for comparison
       const normalizedStatus = reservation.status?.toLowerCase();
       let matchesStatus = true;
       if (filterStatus !== "all") {
@@ -226,17 +235,24 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     });
   }, [reservations, searchTerm, filterStatus, weekStart, weekEnd, validRoomNumbers]);
 
-  // Map reservations to grid
-  const gridEvents = useMemo(() => {
-    return filteredReservations.map((reservation) => {
+  // Grid template with sub-columns for each day
+  const gridTemplateColumns = useMemo(() => {
+    const dayColumns = Array(7).fill(`repeat(${COLUMNS_PER_DAY}, minmax(35px, 1fr))`).join(" ");
+    return `130px ${dayColumns}`;
+  }, []);
+
+  // Calculate grid events with horizontal overlap handling
+  const gridEvents = useMemo((): GridEvent[] => {
+    const basicGridEvents: GridEvent[] = filteredReservations.map((reservation) => {
       const visibleStart = reservation.start > weekStart ? reservation.start : weekStart;
       const visibleEnd = reservation.end < weekEnd ? reservation.end : weekEnd;
 
       const startDayIndex = differenceInDays(visibleStart, weekStart);
       const endDayIndex = differenceInDays(visibleEnd, weekStart);
 
-      const gridStart = Math.max(0, Math.min(startDayIndex, 6)) + 2;
-      const gridEnd = Math.max(gridStart, Math.min(endDayIndex, 6) + 3);
+      // Calculate grid position with sub-columns - FIXED: Ensure proper end calculation
+      const gridStart = Math.max(0, Math.min(startDayIndex, 6)) * COLUMNS_PER_DAY + 2;
+      const gridEnd = Math.min(endDayIndex + 1, 7) * COLUMNS_PER_DAY + 2;
 
       const roomGridIndex = flattenedRooms.findIndex(
         (item) => "id" in item && item.id === reservation.resourceId
@@ -250,16 +266,100 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
         gridRowEnd: roomGridIndex + 2,
       };
     });
+
+    // Group reservations by room to handle overlaps
+    const reservationsByRoom = new Map<string, GridEvent[]>();
+    basicGridEvents.forEach(event => {
+      if (!reservationsByRoom.has(event.resourceId)) {
+        reservationsByRoom.set(event.resourceId, []);
+      }
+      reservationsByRoom.get(event.resourceId)!.push(event);
+    });
+
+    const finalEvents: GridEvent[] = [];
+
+    // Process each room's reservations
+    reservationsByRoom.forEach(roomReservations => {
+      if (roomReservations.length === 1) {
+        // No overlaps - use full width
+        finalEvents.push(...roomReservations);
+        return;
+      }
+
+      // Find overlapping reservations for each day
+      const overlapsByDay = new Map<number, GridEvent[]>();
+
+      roomReservations.forEach(reservation => {
+        const startDay = Math.max(0, differenceInDays(reservation.start, weekStart));
+        const endDay = Math.min(6, differenceInDays(reservation.end, weekStart));
+
+        for (let day = startDay; day <= endDay; day++) {
+          if (!overlapsByDay.has(day)) {
+            overlapsByDay.set(day, []);
+          }
+          overlapsByDay.get(day)!.push(reservation);
+        }
+      });
+
+      // Process reservations and handle horizontal overlaps
+      const processedReservations = new Set<string>();
+
+      roomReservations.forEach(reservation => {
+        if (processedReservations.has(reservation.id)) return;
+
+        const startDay = Math.max(0, differenceInDays(reservation.start, weekStart));
+        const endDay = Math.min(6, differenceInDays(reservation.end, weekStart));
+
+        // Check for overlaps on each day this reservation spans
+        let maxOverlapsOnAnyDay = 1;
+        let overlapIndex = 0;
+
+        for (let day = startDay; day <= endDay; day++) {
+          const dayReservations = overlapsByDay.get(day) || [];
+          if (dayReservations.length > maxOverlapsOnAnyDay) {
+            maxOverlapsOnAnyDay = dayReservations.length;
+            // Find this reservation's position among overlapping ones
+            overlapIndex = dayReservations
+              .sort((a, b) => a.start.getTime() - b.start.getTime())
+              .findIndex(r => r.id === reservation.id);
+          }
+        }
+
+        if (maxOverlapsOnAnyDay > 1) {
+          // Calculate horizontal positioning for overlaps
+          const widthPerReservation = Math.floor(COLUMNS_PER_DAY / maxOverlapsOnAnyDay);
+
+          const startCol =
+            (startDay * COLUMNS_PER_DAY) + 2 + (overlapIndex * widthPerReservation);
+
+          // Always end at the real end date, not just widthPerReservation
+          const endCol =
+            ((endDay + 1) * COLUMNS_PER_DAY) + 2 - ((maxOverlapsOnAnyDay - overlapIndex - 1) * widthPerReservation);
+
+          finalEvents.push({
+            ...reservation,
+            gridColumnStart: startCol,
+            gridColumnEnd: endCol,
+            isSegmented: true,
+            overlapIndex,
+            totalOverlaps: maxOverlapsOnAnyDay,
+            segmentId: `${reservation.id}-overlap`,
+          });
+        } else {
+          finalEvents.push(reservation);
+        }
+
+        processedReservations.add(reservation.id);
+      });
+    });
+
+    return finalEvents;
   }, [filteredReservations, flattenedRooms, weekStart, weekEnd]);
 
   const getStatusColor = (status: string) => {
     const colors = {
       "CHECKED_IN": "bg-chart-1/20 border-l-4 border-chart-1",
       "CHECKED_OUT": "bg-chart-5/20 border-l-4 border-chart-5",
-      // DRAFT: "bg-chart-3/20 border-l-4 border-chart-3",
-      // "CONFIRMED": "bg-chart-3/20 border-l-4 border-chart-3",
-      // "CANCELLED": "bg-chart-4/20 border-l-4 border-chart-4",
-      // NO_SHOW: "bg-chart-5/20 border-l-4 border-chart-5",
       "HELD": "bg-chart-3/20 border-l-4 border-chart-3",
     };
     return colors[status as keyof typeof colors] || colors.HELD;
@@ -317,7 +417,6 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
       const response: ReservationResponse = await getReservations(weekStart, weekEnd);
       const apiReservations = response.data.reservations;
 
-      // Extract all rooms from the reservation response
       const extractedRooms: Room[] = [];
       const seenRoomIds = new Set<string>();
 
@@ -353,18 +452,15 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
       setAllRooms(extractedRooms);
 
-      // Create reservations with guest names
       const reservationsWithGuestNames: UIReservation[] = [];
 
       for (const reservation of apiReservations) {
         for (const room of reservation.Room) {
           for (const mappedReservation of room.reservations || []) {
-            // Fetch guest name for each reservation
-
             reservationsWithGuestNames.push({
               id: mappedReservation.id,
               resourceId: room.id,
-              guestName: mappedReservation.guest.firstName + mappedReservation.guest.lastName,
+              guestName: mappedReservation.guest.firstName + ' ' + mappedReservation.guest.lastName,
               bookingId: reservation.id,
               start: new Date(mappedReservation.checkIn),
               end: new Date(mappedReservation.checkOut),
@@ -424,20 +520,17 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
             <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           </div>
 
-          <div className="grid grid-cols-5 ww-full items-center gap-4">
-            {/* <div className="flex gap-2 text-sm w-full"> */}
-            <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+          <div className="grid grid-cols-5 w-full items-center gap-4">
+            <div className="flex items-center bg-chart-1/20 border-l-chart-1 border-l-4 pl-1 rounded py-0.5 font-semibold">
               <span className="text-xs">Checked In</span>
             </div>
-            <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+            <div className="flex items-center bg-chart-5/20 border-l-chart-5 border-l-4 pl-1 rounded py-0.5 font-semibold">
               <span className="text-xs">Checked Out</span>
             </div>
-            <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold ">
+            <div className="flex items-center bg-chart-3/20 border-l-chart-3 border-l-4 pl-1 rounded py-0.5 font-semibold">
               <span className="text-xs">Held</span>
             </div>
-            {/* </div> */}
 
-            {/* <div className="flex gap-2"> */}
             <Input
               placeholder="Search Room or Room Type"
               value={searchTerm}
@@ -453,11 +546,9 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="CHECKED_IN">Checked In</SelectItem>
                 <SelectItem value="CHECKED_OUT">Checked Out</SelectItem>
-                {/* <SelectItem value="CONFIRMED">Confirmed</SelectItem> */}
                 <SelectItem value="HELD">Held</SelectItem>
               </SelectContent>
             </Select>
-            {/* </div> */}
           </div>
         </div>
 
@@ -466,7 +557,7 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           <div
             className="grid"
             style={{
-              gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
+              gridTemplateColumns: gridTemplateColumns,
               gridTemplateRows: `auto auto auto`,
             }}
           >
@@ -476,7 +567,10 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
 
             <div
               className="border-b border-r border-gray-300 p-2 flex items-center justify-start gap-2"
-              style={{ gridColumn: `2 / ${weekDates.length + 2}`, gridRow: 1 }}
+              style={{
+                gridColumn: `2 / -1`,
+                gridRow: 1
+              }}
             >
               <span className="text-md font-bold">{format(currentDate, "MMMM yyyy")}</span>
               <Button
@@ -495,26 +589,38 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
               </Button>
             </div>
 
+            {/* Day headers */}
             {weekDates.map((date, index) => {
+              const startCol = (index * COLUMNS_PER_DAY) + 2;
+              const endCol = startCol + COLUMNS_PER_DAY;
+
               return (
                 <div
                   key={`day-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-xs text-muted-foreground font-medium ${isToday(date) ? "bg-blue-50 text-blue-700" : ""
-                    }`}
-                  style={{ gridColumn: index + 2, gridRow: 2 }}
+                  className={`border-r border-gray-300 text-center px-2 text-xs text-muted-foreground font-medium ${isToday(date) ? "bg-blue-50 text-blue-700" : ""}`}
+                  style={{
+                    gridColumn: `${startCol} / ${endCol}`,
+                    gridRow: 2
+                  }}
                 >
                   {format(date, "EEE").toUpperCase()}
                 </div>
               );
             })}
 
+            {/* Date headers */}
             {weekDates.map((date, index) => {
+              const startCol = (index * COLUMNS_PER_DAY) + 2;
+              const endCol = startCol + COLUMNS_PER_DAY;
+
               return (
                 <div
                   key={`date-${date.toISOString()}`}
-                  className={`border-r border-gray-300 text-start px-2 text-lg font-semibold ${isToday(date) ? "bg-blue-50 text-blue-700" : ""
-                    }`}
-                  style={{ gridColumn: index + 2, gridRow: 3 }}
+                  className={`border-r border-gray-300 text-center px-2 text-lg font-semibold ${isToday(date) ? "bg-blue-50 text-blue-700" : ""}`}
+                  style={{
+                    gridColumn: `${startCol} / ${endCol}`,
+                    gridRow: 3
+                  }}
                 >
                   {format(date, "d")}
                 </div>
@@ -523,125 +629,127 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
           </div>
         </div>
 
-        {
-          loading ? (
-            <>
-              <Skeleton className="h-[100px] mb-2" />
-              <Skeleton className="h-[100px] mb-2" />
-              <Skeleton className="h-[100px] mb-2" />
-              <Skeleton className="h-[100px] mb-2" />
-              <Skeleton className="h-[100px] mb-2" />
-              <Skeleton className="h-[100px] mb-2" />
-            </>
-          ) : error ? (
-            <div className="mt-10 text-center text-muted-foreground text-lg">{error}</div>
-          ) : (
-            <div className="flex-1 overflow-hidden">
-              <ScrollArea className="h-[calc(100vh-280px)]">
-                <div
-                  className="grid border-collapse"
-                  style={{
-                    gridTemplateColumns: `130px repeat(${weekDates.length}, minmax(145px, 5fr))`,
-                    gridTemplateRows: flattenedRooms
-                      .map((item) => ("type" in item && item.type === "header" ? "40px" : "80px"))
-                      .join(" "),
-                  }}
-                >
-                  {flattenedRooms.map((item, index) => (
-                    <div
-                      key={`room-${index}`}
-                      className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
-                        ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
-                        : "bg-gray-50 border-r p-1"
-                        }`}
-                      style={{
-                        gridColumn: 1,
-                        gridRow: index + 1,
-                      }}
-                    >
-                      {"type" in item && item.type === "header" ? (
-                        <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
-                          <span
-                            className={`text-xs gap-1 font-medium flex items-center ${getRoomStatusColor((item as Room).status)}`}
-                            style={{ minWidth: 70, textAlign: 'center' }}
-                          >
-                            <Circle className={`${getRoomStatusColor((item as Room).status)} size-1`} />
-                            {(item as Room).status}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {flattenedRooms.map((item, roomIndex) =>
-                    weekDates.map((date, dateIndex) => {
-                      return (
-                        <div
-                          key={`cell-${roomIndex}-${date.toISOString()}`}
-                          className={`border-b border-gray-200 transition-colors ${"type" in item && item.type === "header"
-                            ? "bg-hms-accent/15 cursor-default"
-                            : `border-r ${isToday(date) ? "bg-blue-50" : "bg-white"
-                            }`
-                            }`}
-                          style={{
-                            gridColumn: dateIndex + 2,
-                            gridRow: roomIndex + 1,
-                          }}
-                        />
-                      );
-                    })
-                  )}
-
-                  {gridEvents.map((event) => (
-                    <Tooltip key={event.id}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
-                            event.status
-                          )}`}
-                          style={{
-                            gridColumnStart: event.gridColumnStart,
-                            gridColumnEnd: event.gridColumnEnd,
-                            gridRowStart: event.gridRowStart,
-                            gridRowEnd: event.gridRowEnd,
-                          }}
-                          onClick={() => {
-                            setChooseOptionDialog(true);
-                            setDialogReservation(event);
-                            setReservationToCancel(event.id)
-                          }}
+        {loading ? (
+          <>
+            <Skeleton className="h-[100px] mb-2" />
+            <Skeleton className="h-[100px] mb-2" />
+            <Skeleton className="h-[100px] mb-2" />
+            <Skeleton className="h-[100px] mb-2" />
+            <Skeleton className="h-[100px] mb-2" />
+            <Skeleton className="h-[100px] mb-2" />
+          </>
+        ) : error ? (
+          <div className="mt-10 text-center text-muted-foreground text-lg">{error}</div>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-[calc(100vh-280px)]">
+              <div
+                className="grid border-collapse"
+                style={{
+                  gridTemplateColumns: gridTemplateColumns,
+                  gridTemplateRows: flattenedRooms
+                    .map((item) => ("type" in item && item.type === "header" ? "40px" : "100px"))
+                    .join(" "),
+                }}
+              >
+                {/* Room labels */}
+                {flattenedRooms.map((item, index) => (
+                  <div
+                    key={`room-${index}`}
+                    className={`border-b border-gray-200 flex items-center justify-between sticky left-0 z-10 ${"type" in item && item.type === "header"
+                      ? "bg-hms-accent/15 font-bold text-gray-700 px-3 py-1"
+                      : "bg-gray-50 border-r flex justify-center"
+                      }`}
+                    style={{
+                      gridColumn: 1,
+                      gridRow: index + 1,
+                    }}
+                  >
+                    {"type" in item && item.type === "header" ? (
+                      <div className="font-bold text-xs uppercase tracking-wide">{item.name}</div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold text-sm">{(item as Room).roomNumber}</div>
+                        <span
+                          className={`text-xs gap-1 font-medium flex items-center ${getRoomStatusColor((item as Room).status)}`}
+                          style={{ minWidth: 70, textAlign: 'center' }}
                         >
-                          <div className="truncate font-medium">{event.guestName}</div>
-                          <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
-                          {/* Uncomment these if you want to show more info */}
-                          {/* <div className="truncate text-xs opacity-60">{event.roomType}</div> */}
-                          {/* <div className="truncate text-xs opacity-60">${event.rate}/night</div> */}
+                          <Circle className={`${getRoomStatusColor((item as Room).status)} size-1`} />
+                          {(item as Room).status}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Grid cells - only day boundaries */}
+                {flattenedRooms.map((item, roomIndex) => {
+                  const cells = [];
+                  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+                    const date = weekDates[dayIndex];
+                    const colIndex = (dayIndex * COLUMNS_PER_DAY) + 2 + COLUMNS_PER_DAY - 1; // Only the last column of each day
+                    cells.push(
+                      <div
+                        key={`cell-${roomIndex}-${dayIndex}`}
+                        className={`border-b border-r border-gray-200 transition-colors ${"type" in item && item.type === "header"
+                          ? "bg-hms-accent/15 cursor-default"
+                          : `${isToday(date) ? "bg-blue-50" : "bg-white"}`
+                          }`}
+                        style={{
+                          gridColumn: `${(dayIndex * COLUMNS_PER_DAY) + 2} / ${colIndex + 1}`,
+                          gridRow: roomIndex + 1,
+                        }}
+                      />
+                    );
+                  }
+                  return cells;
+                })}
+
+                {/* Reservation events */}
+                {gridEvents.map((event) => (
+                  <Tooltip key={event.segmentId || event.id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`rounded m-1 px-2 py-1 text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:scale-101 z-30 ${getStatusColor(
+                          event.status
+                        )}`}
+                        style={{
+                          gridColumnStart: event.gridColumnStart,
+                          gridColumnEnd: event.gridColumnEnd,
+                          gridRowStart: event.gridRowStart,
+                          gridRowEnd: event.gridRowEnd,
+                        }}
+                        onClick={() => {
+                          setChooseOptionDialog(true);
+                          setDialogReservation(event);
+                          setReservationToCancel(event.id)
+                        }}
+                      >
+                        <div className="truncate font-medium">{event.guestName}</div>
+                        <div className="truncate text-xs opacity-75">{getStatusLabel(event.status)}</div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-medium">{event.guestName}</div>
+                        <div className="text-sm">Room: {event.roomNumber}</div>
+                        <div className="text-sm">Type: {event.roomType}</div>
+                        <div className="text-sm">
+                          {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
                         </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-medium">{event.guestName}</div>
-                          <div className="text-sm">Room: {event.roomNumber}</div>
-                          <div className="text-sm">Type: {event.roomType}</div>
-                          <div className="text-sm">
-                            {format(event.start, "MMM d")} - {format(event.end, "MMM d")}
-                          </div>
-                          <div className="text-sm">Status: {getStatusLabel(event.status)}</div>
-                          <div className="text-sm">${event.rate}/night</div>
-                          {event.specialRequests && (
-                            <div className="text-sm text-gray-600">{event.specialRequests}</div>
-                          )}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
+                        <div className="text-sm">Status: {getStatusLabel(event.status)}</div>
+                        <div className="text-sm">${event.rate}/night</div>
+                        {event.specialRequests && (
+                          <div className="text-sm text-gray-600">{event.specialRequests}</div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
 
       </div>
       <CheckInDialog open={checkInCheckOutDialog} setOpen={setCheckInCheckOutDialog} reservationId={dialogReservation?.id} reservationData={dialogReservation} onCheckInComplete={refreshReservations} onBackToChooseOptions={handleBackToChooseOptions} />

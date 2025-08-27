@@ -441,8 +441,8 @@ const MaintenancePage = () => {
                                             {request.status.replace('_', ' ').charAt(0).toUpperCase() + request.status.replace('_', ' ').slice(1).toLowerCase()}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4 text-gray-600">
-                                        {request.user?.firstName + " " + request.user?.lastName || 'Unassigned'}
+                                    <TableCell className={`px-6 py-4 text-gray-600 ${request.user ? 'text-black' : 'text-muted-foreground'}`}>
+                                        {request.user ? `${request.user.firstName} ${request.user.lastName}` : 'Unassigned'}
                                     </TableCell>
                                     <TableCell className="px-6 py-4">
                                         <DropdownMenu modal={false}>

@@ -3,7 +3,7 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { Button } from "@/components/atoms/Button"
 import { Label } from "@/components/atoms/Label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/molecules/Select"
-import { Check, ChevronLeft, X, Search } from "lucide-react"
+import { Check, ChevronLeft, X, Search, Calendar as CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { useNavigate } from "react-router-dom"
 import { GetRatePlansResponse, GetRoomTypesResponse } from "@/validation"
@@ -15,12 +15,11 @@ import { addGroupReservation, getNightPrice } from "@/services/Reservation"
 import NewDialogsWithTypes from "@/components/dialogs/NewDialogWIthTypes"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card"
 import { Separator } from "@/components/atoms/Separator"
-import { Checkbox } from "@/components/atoms/Checkbox"
 import { Input } from "@/components/atoms/Input"
 import { getAlRoomTypes } from "@/services/RoomTypes"
-import { DateTimePicker } from "@/components/Organisms/DateTimePicker"
 import { GetGroupProfilesResponse } from "@/validation/schemas/Guests"
-import { ScrollArea } from "@/components/atoms/ScrollArea"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/molecules/Popover"
+import { Calendar as CalendarComponent } from '@/components/molecules/Calendar'
 
 interface GroupReservationRequest {
     groupProfileId: string;
@@ -338,38 +337,66 @@ export default function NewGroupReservation() {
                 return (
                     <div className="bg-hms-accent/15 p-5 rounded-lg space-y-2">
                         <div className="space-y-1">
-                            <DateTimePicker
-                                label="Check In"
-                                date={formData.checkIn}
-                                onDateTimeChange={(date) => {
-                                    if (date) {
-                                        setFormData({ ...formData, checkIn: date });
-                                        setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
-                                    }
-                                }}
-                                placeholder="Select check-in date and time"
-                                disabled={(date) => date < new Date()}
-                            />
+                            <Label>Check In</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        data-empty={!formData.checkIn}
+                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                    >
+                                        <CalendarIcon />
+                                        {formData.checkIn ? format(formData.checkIn, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <CalendarComponent
+                                        mode="single"
+                                        selected={formData.checkIn}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkIn: date });
+                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                            }
+                                        }}
+                                        disabled={(date) => date < new Date()}
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="space-y-1">
-                            <DateTimePicker
-                                label="Check Out"
-                                date={formData.checkOut}
-                                onDateTimeChange={(date) => {
-                                    if (date) {
-                                        setFormData({ ...formData, checkOut: date });
-                                        setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
-                                    }
-                                }}
-                                placeholder="Select check-out date and time"
-                                disabled={(date) => {
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    if (date < today) return true;
-                                    if (formData.checkIn && date <= formData.checkIn) return true;
-                                    return false;
-                                }}
-                            />
+                            <Label>Check Out</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        data-empty={!formData.checkOut}
+                                        className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                                    >
+                                        <CalendarIcon />
+                                        {formData.checkOut ? format(formData.checkOut, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <CalendarComponent
+                                        mode="single"
+                                        selected={formData.checkOut}
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, checkOut: date });
+                                                setFormData(prev => ({ ...prev, guestsAndRooms: {} }));
+                                            }
+                                        }}
+                                        disabled={(date) => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+                                            if (date < today) return true;
+                                            if (formData.checkIn && date <= formData.checkIn) return true;
+                                            return false;
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                         <div className="space-y-1">
                             <Label>Rate Plan</Label>
@@ -523,38 +550,39 @@ export default function NewGroupReservation() {
                                                         <Label className="block text-sm font-medium text-gray-700 mb-1">
                                                             Room Numbers
                                                         </Label>
-                                                        <ScrollArea className="h-[30px] rounded-lg">
-                                                            <div className=" border rounded-lg bg-white px-2 py-1">
-                                                                {roomsByType.map((room) => {
-                                                                    const isChecked = formData.guestsAndRooms[guest.id]?.includes(room.id) ?? false;
-                                                                    return (
-                                                                        <div key={room.id} className="flex items-center space-x-2 text-sm py-1">
-                                                                            <Checkbox
-                                                                                checked={isChecked}
-                                                                                onCheckedChange={(checked) => {
-                                                                                    const currentRooms = formData.guestsAndRooms[guest.id] || [];
-                                                                                    if (checked) {
-                                                                                        handleGuestRoomAssignment(guest.id, [...currentRooms, room.id]);
-                                                                                    } else {
-                                                                                        handleGuestRoomAssignment(
-                                                                                            guest.id,
-                                                                                            currentRooms.filter((r) => r !== room.id)
-                                                                                        );
-                                                                                    }
-                                                                                }}
-                                                                            />
-                                                                            <Label htmlFor={`guest-${guest.id}-room-${room.id}`}>
-                                                                                {room.roomNumber}
-                                                                            </Label>
-                                                                        </div>
-                                                                    );
-                                                                })}
+                                                        <Select
+                                                            value={formData.guestsAndRooms[guest.id]?.[0] || ""}
+                                                            onValueChange={(roomId) => {
+                                                                if (roomId) {
+                                                                    handleGuestRoomAssignment(guest.id, [roomId]);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="bg-white w-full">
+                                                                <SelectValue placeholder="Select room" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {roomsByType.map((room) => (
+                                                                    <SelectItem key={room.id} value={room.id}>
+                                                                        {room.roomNumber}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+
+                                                        {/* Show selected room numbers if any */}
+                                                        {formData.guestsAndRooms[guest.id] && formData.guestsAndRooms[guest.id].length > 0 && (
+                                                            <div className="mt-1 text-xs text-gray-600">
+                                                                Selected: {roomsByType
+                                                                    .filter((room) => formData.guestsAndRooms[guest.id]?.includes(room.id))
+                                                                    .map((room) => room.roomNumber)
+                                                                    .join(", ")}
                                                             </div>
-                                                        </ScrollArea>
+                                                        )}
                                                     </div>
 
                                                     {/* Remove Button */}
-                                                    <div className="col-span-2 flex items-end justify-end">
+                                                    <div className="col-span-2 flex items-center justify-end">
                                                         {formData.guestsAndRooms[guest.id] && (
                                                             <Button
                                                                 variant="ghost"

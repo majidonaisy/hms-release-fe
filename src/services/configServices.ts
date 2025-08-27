@@ -5,6 +5,7 @@ interface AppConfig {
   authServiceUrl: string;
   customerServiceUrl: string;
   frontdeskServiceUrl: string;
+  paymentServiceUrl: string;
   setupDate: string;
 }
 
@@ -12,6 +13,7 @@ interface CachedUrls {
   authServiceUrl: string;
   customerServiceUrl: string;
   frontdeskServiceUrl: string;
+  paymentServiceUrl: string;
 }
 
 class ConfigService {
@@ -26,7 +28,7 @@ class ConfigService {
     try {
       // Get config from main process
       this.config = await (window as any).ipcRenderer.invoke('get-config');
-      
+
       if (!this.config) {
         throw new Error('Configuration not found. Please restart the application.');
       }
@@ -48,7 +50,8 @@ class ConfigService {
     this.cachedUrls = {
       authServiceUrl: config.authServiceUrl,
       customerServiceUrl: config.customerServiceUrl,
-      frontdeskServiceUrl: config.frontdeskServiceUrl
+      frontdeskServiceUrl: config.frontdeskServiceUrl,
+      paymentServiceUrl: config.paymentServiceUrl
     };
 
     return this.cachedUrls;
@@ -67,6 +70,11 @@ class ConfigService {
   async getFrontdeskServiceUrl(): Promise<string> {
     const urls = await this.initializeUrls();
     return urls.frontdeskServiceUrl;
+  }
+
+  async getPaymentServiceUrl(): Promise<string> {
+    const urls = await this.initializeUrls();
+    return urls.paymentServiceUrl;
   }
 
   async getUserEmail(): Promise<string> {
@@ -93,6 +101,7 @@ export const configService = new ConfigService();
 let authServiceUrl: string | null = null;
 let customerServiceUrl: string | null = null;
 let frontdeskServiceUrl: string | null = null;
+let paymentServiceUrl: string | null = null;
 
 export const getAuthServiceUrl = async (): Promise<string> => {
   if (!authServiceUrl) {
@@ -115,6 +124,13 @@ export const getFrontdeskServiceUrl = async (): Promise<string> => {
   return frontdeskServiceUrl;
 };
 
+export const getPaymentServiceUrl = async (): Promise<string> => {
+  if (!paymentServiceUrl) {
+    paymentServiceUrl = await configService.getPaymentServiceUrl();
+  }
+  return paymentServiceUrl;
+};
+
 // Get all URLs at once (cached after first call)
 let allUrls: CachedUrls | null = null;
 
@@ -133,6 +149,7 @@ export const clearUrlCache = () => {
   authServiceUrl = null;
   customerServiceUrl = null;
   frontdeskServiceUrl = null;
+  paymentServiceUrl = null;
   allUrls = null;
   configService.clearCache();
 };
