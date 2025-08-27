@@ -145,7 +145,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                     details: [
                         `Guest Name: ${activity.metadata.guestFullName}`,
                         `Item Type: ${activity.metadata.itemType}`,
-                        `Rooms: ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.roomNumbers?.length ? activity.metadata.roomNumbers.join(", ") : "N/A"}`,
                         `Amount: ${activity.responseData.amount} ${activity.metadata.paymentCurrency}`,
                     ],
                 };
