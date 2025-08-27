@@ -267,8 +267,10 @@ const SettleFolioItemActivity = BaseActivityShape.extend({
     operationType: z.string(),
     paymentMethod: z.string(),
     paymentCurrency: z.string(),
-    amount: z.string()
   }),
+  responseData: z.object({
+    amount: z.number()
+  })
 });
 
 // Full Activity Logs response
