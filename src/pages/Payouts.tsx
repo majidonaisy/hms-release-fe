@@ -168,10 +168,10 @@ const Payouts = () => {
                                             : "-"}
                                     </TableCell>
                                     <TableCell className="px-6 py-4 font-medium">
-                                        {p.amount} {p.currencyId}
+                                        {p.amount.toFixed(2)} {p.currencyId}
                                     </TableCell>
                                     <TableCell className={`px-6 py-4 `}>
-                                        <Badge className={`${p.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} border-0`}>
+                                        <Badge className={`${p.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} border-0`}>
                                             {p.status}
                                         </Badge>
                                     </TableCell>

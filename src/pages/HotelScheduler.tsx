@@ -241,115 +241,66 @@ const HotelReservationCalendar: React.FC<HotelReservationCalendarProps> = ({ pag
     return `130px ${dayColumns}`;
   }, []);
 
-  // Calculate grid events with horizontal overlap handling
   const gridEvents = useMemo((): GridEvent[] => {
-    const basicGridEvents: GridEvent[] = filteredReservations.map((reservation) => {
-      const visibleStart = reservation.start > weekStart ? reservation.start : weekStart;
-      const visibleEnd = reservation.end < weekEnd ? reservation.end : weekEnd;
-
-      const startDayIndex = differenceInDays(visibleStart, weekStart);
-      const endDayIndex = differenceInDays(visibleEnd, weekStart);
-
-      // Calculate grid position with sub-columns - FIXED: Ensure proper end calculation
-      const gridStart = Math.max(0, Math.min(startDayIndex, 6)) * COLUMNS_PER_DAY + 2;
-      const gridEnd = Math.min(endDayIndex + 1, 7) * COLUMNS_PER_DAY + 2;
-
-      const roomGridIndex = flattenedRooms.findIndex(
-        (item) => "id" in item && item.id === reservation.resourceId
-      );
-
-      return {
-        ...reservation,
-        gridColumnStart: gridStart,
-        gridColumnEnd: gridEnd,
-        gridRowStart: roomGridIndex + 1,
-        gridRowEnd: roomGridIndex + 2,
-      };
-    });
-
-    // Group reservations by room to handle overlaps
-    const reservationsByRoom = new Map<string, GridEvent[]>();
-    basicGridEvents.forEach(event => {
-      if (!reservationsByRoom.has(event.resourceId)) {
-        reservationsByRoom.set(event.resourceId, []);
-      }
-      reservationsByRoom.get(event.resourceId)!.push(event);
-    });
-
     const finalEvents: GridEvent[] = [];
 
-    // Process each room's reservations
-    reservationsByRoom.forEach(roomReservations => {
-      if (roomReservations.length === 1) {
-        // No overlaps - use full width
-        finalEvents.push(...roomReservations);
-        return;
+    // Group reservations by room
+    const reservationsByRoom = new Map<string, UIReservation[]>();
+    filteredReservations.forEach(reservation => {
+      if (!reservationsByRoom.has(reservation.resourceId)) {
+        reservationsByRoom.set(reservation.resourceId, []);
       }
+      reservationsByRoom.get(reservation.resourceId)!.push(reservation);
+    });
 
-      // Find overlapping reservations for each day
-      const overlapsByDay = new Map<number, GridEvent[]>();
+    reservationsByRoom.forEach(roomReservations => {
+      // Build a per-day map for overlaps
+      const eventsPerDay: Map<number, UIReservation[]> = new Map();
 
-      roomReservations.forEach(reservation => {
-        const startDay = Math.max(0, differenceInDays(reservation.start, weekStart));
-        const endDay = Math.min(6, differenceInDays(reservation.end, weekStart));
+      roomReservations.forEach(res => {
+        const startDayIndex = Math.max(0, differenceInDays(res.start, weekStart));
+        const endDayIndex = Math.min(6, differenceInDays(res.end, weekStart));
 
-        for (let day = startDay; day <= endDay; day++) {
-          if (!overlapsByDay.has(day)) {
-            overlapsByDay.set(day, []);
-          }
-          overlapsByDay.get(day)!.push(reservation);
+        for (let day = startDayIndex; day <= endDayIndex; day++) {
+          if (!eventsPerDay.has(day)) eventsPerDay.set(day, []);
+          eventsPerDay.get(day)!.push(res);
         }
       });
 
-      // Process reservations and handle horizontal overlaps
-      const processedReservations = new Set<string>();
+      // Calculate grid positions
+      roomReservations.forEach(res => {
+        const roomGridIndex = flattenedRooms.findIndex(
+          (item) => "id" in item && item.id === res.resourceId
+        );
 
-      roomReservations.forEach(reservation => {
-        if (processedReservations.has(reservation.id)) return;
+        const startDayIndex = Math.max(0, differenceInDays(res.start, weekStart));
+        const endDayIndex = Math.min(6, differenceInDays(res.end, weekStart));
 
-        const startDay = Math.max(0, differenceInDays(reservation.start, weekStart));
-        const endDay = Math.min(6, differenceInDays(reservation.end, weekStart));
+        let minStartCol = Infinity;
+        let maxEndCol = -Infinity;
 
-        // Check for overlaps on each day this reservation spans
-        let maxOverlapsOnAnyDay = 1;
-        let overlapIndex = 0;
+        for (let day = startDayIndex; day <= endDayIndex; day++) {
+          const dayEvents = eventsPerDay.get(day)!;
+          dayEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
+          const index = dayEvents.findIndex(e => e.id === res.id);
+          const widthPerReservation = Math.floor(COLUMNS_PER_DAY / dayEvents.length);
 
-        for (let day = startDay; day <= endDay; day++) {
-          const dayReservations = overlapsByDay.get(day) || [];
-          if (dayReservations.length > maxOverlapsOnAnyDay) {
-            maxOverlapsOnAnyDay = dayReservations.length;
-            // Find this reservation's position among overlapping ones
-            overlapIndex = dayReservations
-              .sort((a, b) => a.start.getTime() - b.start.getTime())
-              .findIndex(r => r.id === reservation.id);
-          }
+          const dayStartCol = 2 + (day * COLUMNS_PER_DAY) + (index * widthPerReservation);
+          const dayEndCol = dayStartCol + widthPerReservation;
+
+          if (dayStartCol < minStartCol) minStartCol = dayStartCol;
+          if (dayEndCol > maxEndCol) maxEndCol = dayEndCol;
         }
 
-        if (maxOverlapsOnAnyDay > 1) {
-          // Calculate horizontal positioning for overlaps
-          const widthPerReservation = Math.floor(COLUMNS_PER_DAY / maxOverlapsOnAnyDay);
-
-          const startCol =
-            (startDay * COLUMNS_PER_DAY) + 2 + (overlapIndex * widthPerReservation);
-
-          // Always end at the real end date, not just widthPerReservation
-          const endCol =
-            ((endDay + 1) * COLUMNS_PER_DAY) + 2 - ((maxOverlapsOnAnyDay - overlapIndex - 1) * widthPerReservation);
-
-          finalEvents.push({
-            ...reservation,
-            gridColumnStart: startCol,
-            gridColumnEnd: endCol,
-            isSegmented: true,
-            overlapIndex,
-            totalOverlaps: maxOverlapsOnAnyDay,
-            segmentId: `${reservation.id}-overlap`,
-          });
-        } else {
-          finalEvents.push(reservation);
-        }
-
-        processedReservations.add(reservation.id);
+        finalEvents.push({
+          ...res,
+          gridRowStart: roomGridIndex + 1,
+          gridRowEnd: roomGridIndex + 2,
+          gridColumnStart: minStartCol,
+          gridColumnEnd: maxEndCol,
+          isSegmented: true,
+          segmentId: `${res.id}-overlap`,
+        });
       });
     });
 
