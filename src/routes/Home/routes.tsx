@@ -522,7 +522,7 @@ const RoutesList = () => {
                 {
                     type: 'AND' as const,
                     permissions: [
-                        { action: "read", subject: "Report" },
+                        { action: "read", subject: "Payout" },
                     ]
                 }
             ]

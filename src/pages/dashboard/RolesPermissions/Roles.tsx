@@ -8,13 +8,7 @@ import { Button } from "@/components/atoms/Button"
 import { Input } from "@/components/atoms/Input"
 import { Search, Plus, EllipsisVertical, ChevronLeft } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Organisms/Table"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/atoms/DropdownMenu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/atoms/DropdownMenu"
 import DeleteDialog from "@/components/molecules/DeleteDialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/molecules/Tabs"
 import { Can, CanAny } from "@/context/CASLContext"
@@ -183,6 +177,12 @@ const Roles = () => {
                         <TableRow>
                             <TableCell colSpan={showActions ? 3 : 2} className="py-10 text-center text-gray-600">
                                 Loading...
+                            </TableCell>
+                        </TableRow>
+                    ) : error ? (
+                        <TableRow>
+                            <TableCell colSpan={showActions ? 3 : 2} className="py-10 text-center text-gray-600">
+                                Failed to load roles
                             </TableCell>
                         </TableRow>
                     ) : data.length === 0 ? (

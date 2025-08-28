@@ -153,7 +153,7 @@ const ActivityLogsCard: React.FC<ActivityLogsCardProps> = ({ teamMemberId }) => 
                 return {
                     title: "Void Folio Item",
                     details: [
-                        `Rooms: ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
+                        `Room(s): ${activity.metadata.rooms?.length ? activity.metadata.rooms.join(", ") : "N/A"}`,
                         `Voided At: ${formatCheckInCheckOutDate(activity.metadata.voidedAt)}`,
                         `Number of Items: ${activity.metadata.nbOfItems}`,
                     ],
