@@ -231,7 +231,19 @@
     @apply border-border outline-ring/50;
   }
 
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    min-width: 100vw;
+  }
+  /* Hide default scrollbars unless content overflows */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
   }
 }
