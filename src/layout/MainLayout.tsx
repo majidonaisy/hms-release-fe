@@ -144,7 +144,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
 
     return (
         <SidebarProvider>
-            <div className="flex h-screen w-full overflow-hidden" style={{overflow: 'hidden', height: '100%'}}>
+            <div className="flex h-screen w-full overflow-hidden ">
                 <Sidebar collapsible="icon">
                     <SidebarHeader className='group-data-[collapsible=icon]:px-2 transition-all duration-300 ease-in-out'>
                         <div className="flex items-center justify-center min-h-[3rem]">
@@ -183,7 +183,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                     </SidebarFooter>
                 </Sidebar>
 
-                <SidebarInset className="flex flex-col flex-1 min-w-0" style={{height: '100%'}}>
+                <SidebarInset className="flex flex-col flex-1 min-w-0">
                     {/* Fixed Header */}
                     <header className="flex h-16 shrink-0 items-center px-4 border-b sticky top-0 z-10 justify-between ">
                         <div className='flex gap-1'>
@@ -225,7 +225,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ routes }) => {
                         </div>
                     </header>
 
-                    <main className="flex-1" style={{overflow: 'auto', height: '100%'}}>
+                    <main className="flex-1 overflow-auto">
                         <Outlet />
                     </main>
                 </SidebarInset>
