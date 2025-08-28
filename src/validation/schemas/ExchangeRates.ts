@@ -22,9 +22,9 @@ const PaginationSchema = z.object({
 });
 
 export const ExchangeRateRequestSchema = z.object({
-    baseCurrency: z.string(),
-    targetCurrency: z.string(),
-    rate: z.number(),
+    baseCurrency: z.string().min(1, "Base currency is required"),
+    targetCurrency: z.string().min(1, "Target currency is required"),
+    rate: z.number().positive("Rate must be positive"),
 });
 
 export const ExchangeRateResponseSchema = z.object({

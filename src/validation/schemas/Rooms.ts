@@ -47,8 +47,8 @@ export const RoomShape = z.object({
 });
 
 export const AddRoomRequestSchema = z.object({
-  roomNumber: z.string(),
-  roomTypeId: z.string(),
+  roomNumber: z.string().min(1, "Room number is required"),
+  roomTypeId: z.string().min(1, "Room type ID is required"),
   hotelId: z.string().optional(),
   floor: z.number(),
   amenities: z.array(z.string()),
