@@ -17,7 +17,7 @@ import { Can, CanAll } from '@/context/CASLContext';
 const MaintenancePage = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(18);
+    const [pageSize] = useState(8);
     const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceType[]>([]);
     const [isNewMaintenanceDialogOpen, setIsNewMaintenanceDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
