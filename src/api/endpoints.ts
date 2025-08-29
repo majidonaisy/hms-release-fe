@@ -4,6 +4,8 @@ export const ENDPOINTS = {
     AddUser: "auth/add-user",
     RefreshToken: "auth/refresh",
     Logout: "auth/logout",
+    ChangePassword: "auth/change-password",
+    Profile: "auth/me"
   },
   RoomType: {
     Add: "roomtype/add",
@@ -113,6 +115,8 @@ export const ENDPOINTS = {
   Hotel: {
     Get: "hotel/",
     Update: "hotel/update",
+    Countries: "hotel/countries",
+    HousekeepingUsers: "hotel/housekeeping-users",
   },
   Area: {
     Add: "area/add",

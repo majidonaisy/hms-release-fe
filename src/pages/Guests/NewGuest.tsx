@@ -15,7 +15,9 @@ import { Switch } from '@/components/atoms/Switch';
 import { toast } from 'sonner';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
-import { AddGuestRequest, AddGuestRequestSchema } from '@/validation/schemas/Guests';
+import { AddGuestRequest } from '@/validation/schemas/Guests';
+import { getCountries } from '@/services/Hotel';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const NewGuest = () => {
     const navigate = useNavigate();
@@ -42,6 +44,10 @@ const NewGuest = () => {
     const { id } = useParams();
     const [isEditMode, setIsEditMode] = useState(false);
     const [guestCreatedDialog, setGuestCreatedDialog] = useState(false);
+    const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+    const [countrySearch, setCountrySearch] = useState("");
+    const debouncedCountrySearch = useDebounce(countrySearch, 400);
+    const [countriesLoading, setCountriesLoading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -127,9 +133,8 @@ const NewGuest = () => {
             }
             setGuestCreatedDialog(true)
         } catch (error: any) {
-            const err = error?.userMessage || "Failed to submit form.";
             toast.error("Error!", {
-                description: err,
+                description: error.userMessage,
             });
             console.error("Failed to submit form:", error);
         } finally {
@@ -146,8 +151,30 @@ const NewGuest = () => {
                 console.error(error);
             }
         };
+
         handleGetRoomTypes();
     }, []);
+
+    // Fixed countries fetch - similar pattern to guest search in reservation
+    useEffect(() => {
+        const handleGetCountries = async () => {
+            setCountriesLoading(true);
+            try {
+                const response = await getCountries({ q: debouncedCountrySearch });
+                setCountries(response.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+                setCountries([]);
+            } finally {
+                setCountriesLoading(false);
+            }
+        };
+        handleGetCountries();
+    }, [debouncedCountrySearch]);
+
+    const clearCountrySearch = () => {
+        setCountrySearch("");
+    };
 
     const handleBack = () => {
         navigate(-1);
@@ -233,12 +260,65 @@ const NewGuest = () => {
 
                         <div className='space-y-1'>
                             <Label>Nationality</Label>
-                            <Input
-                                value={formData.nationality}
-                                onChange={(e) => handleInputChange('nationality', e.target.value)}
-                                className='border border-slate-300'
-                                placeholder='US'
-                            />
+                            <div className="relative">
+                                <Select
+                                    value={formData.nationality}
+                                    onValueChange={(value) => handleInputChange('nationality', value)}
+                                  
+                                >
+                                    <SelectTrigger className='w-full border border-slate-300'>
+                                        <SelectValue placeholder="Select Nationality" />
+                                    </SelectTrigger>
+                                    <SelectContent 
+                                        onKeyDown={(e) => {
+                                            if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    >
+                                        <div className="p-2">
+                                            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Search countries..."
+                                                    value={countrySearch}
+                                                    onChange={e => setCountrySearch(e.target.value)}
+                                                    className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                                    onKeyDown={(e) => {
+                                                        // Stop propagation to prevent triggering Select's keyboard navigation
+                                                        e.stopPropagation();
+                                                    }}
+                                                />
+                                                {countrySearch && (
+                                                    <button
+                                                        onClick={clearCountrySearch}
+                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium cursor-pointer"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                                <CalendarIcon className="h-4 w-4 text-gray-400" />
+                                            </div>
+                                        </div>
+                                        {countriesLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading countries...
+                                            </SelectItem>
+                                        ) : countries.length > 0 ? (
+                                            countries.map((country) => (
+                                                <SelectItem key={country.code} value={country.code}>
+                                                    {country.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-results" disabled>
+                                                No countries found.
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         <div className='space-y-1'>

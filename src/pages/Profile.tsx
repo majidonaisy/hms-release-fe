@@ -1,0 +1,168 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
+import { Button } from "@/components/atoms/Button";
+import { Input } from "@/components/atoms/Input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
+import { Dialog, DialogContent, DialogHeader } from "@/components/Organisms/Dialog";
+import { changePassword, getProfile } from "@/services/Auth";
+import { getRoleBId } from "@/services/Role";
+import { GetProfileResponse } from "@/validation";
+import { Role } from "@/validation/schemas/Roles";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+const Profile = () => {
+    const [profile, setProfile] = useState<GetProfileResponse['data'] | null>(null);
+    const [role, setRole] = useState<Role | null>(null);
+    const [changePasswordDialog, setChangePasswordDialog] = useState(false);
+    const [changePasswordData, setChangePasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleGetProfile = async () => {
+        try {
+            const response = await getProfile();
+            setProfile(response.data);
+        } catch (error) {
+            console.error("Failed to fetch profile:", error);
+        }
+    };
+
+    const handleGetRole = async (roleId: string) => {
+        try {
+            const response = await getRoleBId(roleId);
+            setRole(response.data);
+        } catch (error) {
+            console.error("Failed to fetch role:", error);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        setLoading(true);
+        try {
+            await changePassword({
+                currentPassword: changePasswordData.currentPassword,
+                newPassword: changePasswordData.newPassword,
+                confirmPassword: changePasswordData.confirmPassword
+            });
+            toast.success("Password changed successfully");
+            setChangePasswordDialog(false);
+            // Reset form
+            setChangePasswordData({
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+            });
+        } catch (error: any) {
+            // Use the custom error message from the service
+            const errorMessage = error.userMessage || "Failed to change password";
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        handleGetProfile();
+        handleGetRole(profile?.roleId || '');
+    }, [profile?.roleId]);
+
+    return (
+        <div className="p-6">
+            <h1 className="text-3xl font-bold">Profile</h1>
+            <div className="p-6 flex items-center gap-3">
+                <div className="h-32 w-32">
+                    <Avatar className="w-full h-full">
+                        <AvatarImage></AvatarImage>
+                        <AvatarFallback className="text-4xl">{profile?.firstName.charAt(0)}{profile?.lastName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                </div>
+                <div>
+                    <p className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</p>
+                    <p className="text-lg">{role?.name}</p>
+                </div>
+            </div>
+
+            <div className="flex flex-row gap-2 mt-10">
+                <Card className="w-full p-3 gap-2">
+                    <CardHeader className="p-0">
+                        <CardTitle className="text-xl font-bold border-b p-0 pb-2">Profile Info</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-2">
+                        <span className="flex justify-between">
+                            <p className="font-semibold">Email:</p>
+                            <p>{profile?.email}</p>
+                        </span>
+                        <span className="flex justify-between">
+                            <p className="font-semibold">Department:</p>
+                            <p>{profile?.department.name}</p>
+                        </span>
+                    </CardContent>
+                </Card>
+
+                <Card className="w-full p-3 gap-2">
+                    <CardHeader className="p-0">
+                        <CardTitle className="text-xl font-bold border-b p-0 pb-2">Account Info</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-2">
+                        <span className="flex justify-between">
+                            <p className="font-semibold">Username:</p>
+                            <p>{profile?.username}</p>
+                        </span>
+                        <span className="flex justify-end mt-5">
+                            <Button onClick={() => setChangePasswordDialog(true)} className="h-7">Change Password</Button>
+                        </span>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Dialog open={changePasswordDialog} onOpenChange={setChangePasswordDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold">
+                            Change Password
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-5">
+                        <span className="space-y-2">
+                            <p className="font-semibold">Current Password</p>
+                            <Input
+                                type="password"
+                                placeholder="Enter current password"
+                                className="border border-gray-300"
+                                value={changePasswordData.currentPassword}
+                                onChange={(e) => setChangePasswordData({ ...changePasswordData, currentPassword: e.target.value })}
+                            />
+                        </span>
+                        <span className="space-y-2">
+                            <p className="font-semibold">New Password</p>
+                            <Input
+                                type="password"
+                                placeholder="Enter new password"
+                                className="border border-gray-300"
+                                value={changePasswordData.newPassword}
+                                onChange={(e) => setChangePasswordData({ ...changePasswordData, newPassword: e.target.value })}
+                            />
+                        </span>
+                        <span className="space-y-2">
+                            <p className="font-semibold">Confirm New Password</p>
+                            <Input
+                                type="password"
+                                placeholder="Confirm new password"
+                                className="border border-gray-300"
+                                value={changePasswordData.confirmPassword}
+                                onChange={(e) => setChangePasswordData({ ...changePasswordData, confirmPassword: e.target.value })}
+                            />
+                        </span>
+                    </div>
+                    <Button className="mt-5" onClick={handleChangePassword} disabled={loading}>{loading ? "Changing..." : "Change Password"}</Button>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+};
+
+export default Profile;
