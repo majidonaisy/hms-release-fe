@@ -9,6 +9,7 @@ import { getRoleBId } from "@/services/Role";
 import { GetProfileResponse } from "@/validation";
 import { Role } from "@/validation/schemas/Roles";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +21,11 @@ const Profile = () => {
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
+    });
+    const [showPasswords, setShowPasswords] = useState({
+        currentPassword: false,
+        newPassword: false,
+        confirmPassword: false
     });
     const [loading, setLoading] = useState(false);
     const [getLoading, setGetLoading] = useState(false);
@@ -63,6 +69,11 @@ const Profile = () => {
                 newPassword: '',
                 confirmPassword: ''
             });
+            setShowPasswords({
+                currentPassword: false,
+                newPassword: false,
+                confirmPassword: false
+            });
         } catch (error: any) {
             const errorMessage = error.userMessage || "Failed to change password";
             toast.error(errorMessage);
@@ -70,6 +81,13 @@ const Profile = () => {
             setLoading(false);
         }
     }
+
+    const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
+        setShowPasswords(prev => ({
+            ...prev,
+            [field]: !prev[field]
+        }));
+    };
 
     useEffect(() => {
         handleGetProfile();
@@ -174,33 +192,60 @@ const Profile = () => {
                     <div className="grid gap-5">
                         <span className="space-y-2">
                             <p className="font-semibold">Current Password</p>
-                            <Input
-                                type="password"
-                                placeholder="Enter current password"
-                                className="border border-gray-300"
-                                value={changePasswordData.currentPassword}
-                                onChange={(e) => setChangePasswordData({ ...changePasswordData, currentPassword: e.target.value })}
-                            />
+                            <div className="relative">
+                                <Input
+                                    type={showPasswords.currentPassword ? "text" : "password"}
+                                    placeholder="Enter current password"
+                                    className="border border-gray-300 pr-10"
+                                    value={changePasswordData.currentPassword}
+                                    onChange={(e) => setChangePasswordData({ ...changePasswordData, currentPassword: e.target.value })}
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onClick={() => togglePasswordVisibility('currentPassword')}
+                                >
+                                    {showPasswords.currentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </span>
                         <span className="space-y-2">
                             <p className="font-semibold">New Password</p>
-                            <Input
-                                type="password"
-                                placeholder="Enter new password"
-                                className="border border-gray-300"
-                                value={changePasswordData.newPassword}
-                                onChange={(e) => setChangePasswordData({ ...changePasswordData, newPassword: e.target.value })}
-                            />
+                            <div className="relative">
+                                <Input
+                                    type={showPasswords.newPassword ? "text" : "password"}
+                                    placeholder="Enter new password"
+                                    className="border border-gray-300 pr-10"
+                                    value={changePasswordData.newPassword}
+                                    onChange={(e) => setChangePasswordData({ ...changePasswordData, newPassword: e.target.value })}
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onClick={() => togglePasswordVisibility('newPassword')}
+                                >
+                                    {showPasswords.newPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </span>
                         <span className="space-y-2">
                             <p className="font-semibold">Confirm New Password</p>
-                            <Input
-                                type="password"
-                                placeholder="Confirm new password"
-                                className="border border-gray-300"
-                                value={changePasswordData.confirmPassword}
-                                onChange={(e) => setChangePasswordData({ ...changePasswordData, confirmPassword: e.target.value })}
-                            />
+                            <div className="relative">
+                                <Input
+                                    type={showPasswords.confirmPassword ? "text" : "password"}
+                                    placeholder="Confirm new password"
+                                    className="border border-gray-300 pr-10"
+                                    value={changePasswordData.confirmPassword}
+                                    onChange={(e) => setChangePasswordData({ ...changePasswordData, confirmPassword: e.target.value })}
+                                />
+                                <button
+                                    type="button"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onClick={() => togglePasswordVisibility('confirmPassword')}
+                                >
+                                    {showPasswords.confirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </span>
                     </div>
                     <Button className="mt-5" onClick={handleChangePassword} disabled={loading}>{loading ? "Changing..." : "Change Password"}</Button>
