@@ -15,7 +15,7 @@ import { Switch } from '@/components/atoms/Switch';
 import { toast } from 'sonner';
 import { Dialog, DialogFooter, DialogHeader, DialogContent, DialogDescription, DialogTitle } from '@/components/Organisms/Dialog';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
-import { AddGuestRequest } from '@/validation/schemas/Guests';
+import { AddGuestRequest, AddGuestRequestSchema } from '@/validation/schemas/Guests';
 import { getCountries } from '@/services/Hotel';
 import { useDebounce } from '@/hooks/useDebounce';
 
