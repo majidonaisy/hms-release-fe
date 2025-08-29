@@ -2,7 +2,7 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Label } from '@/components/atoms/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/molecules/Select';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, X, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AddGroupProfileRequest, GetGuestsResponse, UpdateGroupProfileRequest } from '@/validation/schemas/Guests';
@@ -14,6 +14,8 @@ import { Avatar, AvatarFallback } from '@/components/atoms/Avatar';
 import { GuestSelectionDialog } from '@/components/dialogs/AddGuestDialog';
 import EditingSkeleton from '@/components/Templates/EditingSkeleton';
 import { Guest } from '@/validation/schemas/Guests';
+import { getCountries } from '@/services/Hotel';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const NewGroupProfile = () => {
     const navigate = useNavigate();
@@ -45,6 +47,31 @@ const NewGroupProfile = () => {
         },
         specialRequirements: '',
     });
+    const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+    const [countrySearch, setCountrySearch] = useState("");
+    const debouncedCountrySearch = useDebounce(countrySearch, 400);
+    const [countriesLoading, setCountriesLoading] = useState(false);
+
+    useEffect(() => {
+        const handleGetCountries = async () => {
+            setCountriesLoading(true);
+            try {
+                const response = await getCountries({ q: debouncedCountrySearch });
+                setCountries(response.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+                setCountries([]);
+            } finally {
+                setCountriesLoading(false);
+            }
+        };
+        handleGetCountries();
+    }, [debouncedCountrySearch]);
+
+    // Clear search function
+    const clearCountrySearch = () => {
+        setCountrySearch("");
+    };
 
     const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
     const businessTypeOptions = [
@@ -329,12 +356,63 @@ const NewGroupProfile = () => {
 
                             <div className='ml-5 space-y-2'>
                                 <Label>Country</Label>
-                                <Input
+                                <Select
                                     value={formData.address.country}
-                                    onChange={(e) => handleNestedInputChange('address', 'country', e.target.value)}
-                                    className='border border-slate-300'
-                                    placeholder='USA'
-                                />
+                                    onValueChange={(value) => handleNestedInputChange('address', 'country', value)}
+                                >
+                                    <SelectTrigger className='w-full border border-slate-300'>
+                                        <SelectValue placeholder="Select Country" />
+                                    </SelectTrigger>
+                                    <SelectContent
+                                        onKeyDown={(e) => {
+                                            // Prevent the default letter navigation behavior
+                                            if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    >
+                                        <div className="p-2">
+                                            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Search countries..."
+                                                    value={countrySearch}
+                                                    onChange={e => setCountrySearch(e.target.value)}
+                                                    className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                                    onKeyDown={(e) => {
+                                                        // Stop propagation to prevent triggering Select's keyboard navigation
+                                                        e.stopPropagation();
+                                                    }}
+                                                />
+                                                {countrySearch && (
+                                                    <button
+                                                        onClick={clearCountrySearch}
+                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium cursor-pointer"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                                <Search className="h-4 w-4 text-gray-400" />
+                                            </div>
+                                        </div>
+                                        {countriesLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading countries...
+                                            </SelectItem>
+                                        ) : countries.length > 0 ? (
+                                            countries.map((country) => (
+                                                <SelectItem key={country.code} value={country.code}>
+                                                    {country.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-results" disabled>
+                                                No countries found.
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
 
                                 <Label>State</Label>
                                 <Input
@@ -351,12 +429,63 @@ const NewGroupProfile = () => {
 
                             <div className='ml-5 space-y-2'>
                                 <Label>Country</Label>
-                                <Input
+                                <Select
                                     value={formData.billingAddress.country}
-                                    onChange={(e) => handleNestedInputChange('billingAddress', 'country', e.target.value)}
-                                    className='border border-slate-300'
-                                    placeholder='USA'
-                                />
+                                    onValueChange={(value) => handleNestedInputChange('billingAddress', 'country', value)}
+                                >
+                                    <SelectTrigger className='w-full border border-slate-300'>
+                                        <SelectValue placeholder="Select Country" />
+                                    </SelectTrigger>
+                                    <SelectContent
+                                        onKeyDown={(e) => {
+                                            // Prevent the default letter navigation behavior
+                                            if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    >
+                                        <div className="p-2">
+                                            <div className="flex flex-row justify-between items-center border border-slate-300 rounded-full px-3">
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Search countries..."
+                                                    value={countrySearch}
+                                                    onChange={e => setCountrySearch(e.target.value)}
+                                                    className="w-full h-7 border-none outline-none focus-visible:ring-0 focus:border-none bg-transparent flex-1 px-0"
+                                                    onKeyDown={(e) => {
+                                                        // Stop propagation to prevent triggering Select's keyboard navigation
+                                                        e.stopPropagation();
+                                                    }}
+                                                />
+                                                {countrySearch && (
+                                                    <button
+                                                        onClick={clearCountrySearch}
+                                                        className="text-gray-400 hover:text-gray-600 mr-2 text-sm font-medium cursor-pointer"
+                                                        aria-label="Clear search"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                                <Search className="h-4 w-4 text-gray-400" />
+                                            </div>
+                                        </div>
+                                        {countriesLoading ? (
+                                            <SelectItem value="loading" disabled>
+                                                Loading countries...
+                                            </SelectItem>
+                                        ) : countries.length > 0 ? (
+                                            countries.map((country) => (
+                                                <SelectItem key={country.code} value={country.code}>
+                                                    {country.name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="no-results" disabled>
+                                                No countries found.
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
 
                                 <Label>City</Label>
                                 <Input

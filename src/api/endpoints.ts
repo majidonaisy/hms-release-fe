@@ -113,6 +113,8 @@ export const ENDPOINTS = {
   Hotel: {
     Get: "hotel/",
     Update: "hotel/update",
+    Countries: "hotel/countries",
+    HousekeepingUsers: "hotel/housekeeping-users",
   },
   Area: {
     Add: "area/add",
