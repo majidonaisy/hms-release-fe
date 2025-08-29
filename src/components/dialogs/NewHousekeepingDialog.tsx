@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/atoms/Input';
 import { toast } from 'sonner';
 import { getRooms } from '@/services/Rooms';
-import { getEmployees } from '@/services/Employees';
 import { useDebounce } from '@/hooks/useDebounce';
+import { HousekeepingUsers } from '@/validation';
+import { getHousekeepingUsers } from '@/services/Hotel';
 
 interface NewHousekeepingDialogProps {
     isOpen: boolean;
@@ -36,15 +37,6 @@ interface Room {
     floor: number;
 }
 
-interface Employee {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: {
-        name: string;
-    };
-}
-
 const NewHousekeepingDialog = ({
     isOpen,
     onConfirm,
@@ -57,7 +49,7 @@ const NewHousekeepingDialog = ({
     const debouncedRoomSearch = useDebounce(roomSearch, 400);
     const [roomSearchLoading, setRoomSearchLoading] = useState(false);
 
-    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [employees, setEmployees] = useState<HousekeepingUsers>();
     const [loadingData, setLoadingData] = useState(false);
 
     const [formData, setFormData] = useState<HousekeepingFormData>({
@@ -101,8 +93,8 @@ const NewHousekeepingDialog = ({
     const loadEmployees = async () => {
         setLoadingData(true);
         try {
-            const employeesResponse = await getEmployees();
-            setEmployees(employeesResponse.data || []);
+            const employeesResponse = await getHousekeepingUsers();
+            setEmployees(employeesResponse || null);
         } catch (error: any) {
             toast.error(error.userMessage || 'Failed to load employees');
         } finally {
@@ -264,9 +256,9 @@ const NewHousekeepingDialog = ({
                                     <SelectValue placeholder="Select a staff member" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {employees.map((employee) => (
+                                    {employees?.data.data.map((employee) => (
                                         <SelectItem key={employee.id} value={employee.id}>
-                                            {employee.firstName} {employee.lastName} - {employee.role.name}
+                                            {employee.firstName} {employee.lastName}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
