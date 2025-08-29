@@ -40,6 +40,7 @@ const NewGuest = () => {
         }
     });
     const [roomTypes, setRoomTypes] = useState<GetRoomTypesResponse['data']>([]);
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const { id } = useParams();
     const [isEditMode, setIsEditMode] = useState(false);
     const [guestCreatedDialog, setGuestCreatedDialog] = useState(false);
@@ -100,6 +101,20 @@ const NewGuest = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
+        setValidationErrors({});
+        // Validate using Zod
+        const result = AddGuestRequestSchema.safeParse(formData);
+        if (!result.success) {
+            // Extract errors
+            const errors: Record<string, string> = {};
+            result.error.issues.forEach((err) => {
+                const path = err.path.join('.');
+                errors[path] = err.message;
+            });
+            setValidationErrors(errors);
+            setLoading(false);
+            return;
+        }
         try {
             if (isEditMode) {
                 if (id) {
@@ -107,7 +122,6 @@ const NewGuest = () => {
                     toast.success("Success!", {
                         description: "Guest was updated successfully.",
                     })
-
                 } else {
                     console.error("Guest ID is undefined.");
                 }
@@ -199,6 +213,9 @@ const NewGuest = () => {
                                 className='border border-slate-300'
                                 placeholder='John'
                             />
+                            {validationErrors.firstName && (
+                                <span className="text-red-500 text-xs">{validationErrors.firstName}</span>
+                            )}
                         </div>
 
                         <div className='space-y-1'>
@@ -209,6 +226,9 @@ const NewGuest = () => {
                                 className='border border-slate-300'
                                 placeholder='Doe'
                             />
+                            {validationErrors.lastName && (
+                                <span className="text-red-500 text-xs">{validationErrors.lastName}</span>
+                            )}
                         </div>
 
                         <div className='space-y-1'>
@@ -310,6 +330,9 @@ const NewGuest = () => {
                                 className='border border-slate-300'
                                 placeholder='john.doe@example.com'
                             />
+                            {validationErrors.email && (
+                                <span className="text-red-500 text-xs">{validationErrors.email}</span>
+                            )}
                         </div>
 
                         <div className='space-y-1'>

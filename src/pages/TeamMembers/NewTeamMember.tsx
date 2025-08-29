@@ -115,10 +115,10 @@ const NewTeamMember = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const requiredFields = ['email', 'username', 'password', 'firstName', 'lastName', 'roleId'];
+        const requiredFields = ['email', 'username', 'firstName', 'lastName', 'roleId'];
+        if (!isEditMode) requiredFields.push('password'); // Only require password when creating
 
         const missingFields = requiredFields.filter(field => !formData[field as keyof AddEmployeeRequest]);
-
         if (missingFields.length > 0) {
             toast.error("Error!", {
                 description: "Please fill in all required fields.",
@@ -130,8 +130,8 @@ const NewTeamMember = () => {
         try {
             if (isEditMode) {
                 if (id) {
-                    const updateData = { ...formData };
-
+                    // Exclude password when updating
+                    const { password, ...updateData } = formData;
                     await updateEmployee(id, updateData);
                     toast.success("Success!", {
                         description: "Team member was updated successfully.",
@@ -150,9 +150,7 @@ const NewTeamMember = () => {
             setTeamMemberCreatedDialog(true);
         } catch (error: any) {
             const err = error?.userMessage || `Failed to ${isEditMode ? 'update' : 'create'} team member.`;
-            toast.error("Error!", {
-                description: err,
-            });
+            toast.error("Error!", { description: err });
             console.error(`Failed to ${isEditMode ? 'update' : 'create'} team member:`, error);
         } finally {
             setLoading(false);
@@ -235,19 +233,21 @@ const NewTeamMember = () => {
                                 />
                             </div>
 
-                            <div className='space-y-1'>
-                                <Label>
-                                    Password
-                                </Label>
-                                <Input
-                                    type='password'
-                                    value={formData.password}
-                                    onChange={(e) => handleInputChange('password', e.target.value)}
-                                    className='border border-slate-300'
-                                    placeholder='••••••••'
-                                    required
-                                />
-                            </div>
+                            {!isEditMode && (
+                                <div className='space-y-1'>
+                                    <Label>
+                                        Password
+                                    </Label>
+                                    <Input
+                                        type='password'
+                                        value={formData.password}
+                                        onChange={(e) => handleInputChange('password', e.target.value)}
+                                        className='border border-slate-300'
+                                        placeholder='••••••••'
+                                        required
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className='space-y-5'>

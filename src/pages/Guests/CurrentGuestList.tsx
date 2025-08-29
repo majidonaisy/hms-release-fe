@@ -342,7 +342,7 @@ const CurrentGuestList = () => {
                     ) : combinedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No individual guests found
+                          No current guests found
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -450,7 +450,7 @@ const CurrentGuestList = () => {
                     ) : combinedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="py-10 text-center text-gray-600">
-                          No group profiles found
+                          No current group profiles found
                         </TableCell>
                       </TableRow>
                     ) : (

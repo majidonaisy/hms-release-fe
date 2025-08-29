@@ -62,9 +62,9 @@ export const GroupProfileResponseSchema = z.object({
 
 // Add Guest
 export const AddGuestRequestSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().email(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.email("Invalid email address"),
   phoneNumber: z.string(),
   identification: z.object({
     type: z.string(),

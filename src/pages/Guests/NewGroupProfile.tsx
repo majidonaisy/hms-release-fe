@@ -20,7 +20,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 const NewGroupProfile = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const [loading, setLoading] = useState(false);
+    const [createLoading, setCreateLoading] = useState(false);
     const [groupLoading, setGroupLoading] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
 
@@ -125,14 +125,14 @@ const NewGroupProfile = () => {
 
     useEffect(() => {
         const handleGetGuests = async () => {
-            setLoading(true)
+            setGroupLoading(true)
             try {
                 const response = await getGuests()
                 setGuests(response.data)
             } catch (error) {
                 console.error(error)
             } finally {
-                setLoading(false)
+                setGroupLoading(false)
             }
         }
 
@@ -162,7 +162,7 @@ const NewGroupProfile = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setLoading(true);
+        setCreateLoading(true);
 
         try {
             if (isEditMode && id) {
@@ -231,7 +231,7 @@ const NewGroupProfile = () => {
             });
             console.error("Failed to submit form:", error);
         } finally {
-            setLoading(false);
+            setCreateLoading(false);
         }
     };
 
@@ -604,9 +604,9 @@ const NewGroupProfile = () => {
                             type="submit"
                             variant="foreground"
                             className="px-8"
-                            disabled={loading}
+                            disabled={createLoading}
                         >
-                            {loading
+                            {createLoading
                                 ? isEditMode
                                     ? "Updating..."
                                     : "Creating..."
