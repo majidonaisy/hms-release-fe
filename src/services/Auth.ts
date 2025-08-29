@@ -1,4 +1,4 @@
-import { AddUserRequest, AddUserResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
+import { AddUserRequest, AddUserResponse, GetProfileResponse, LoginRequest, LoginResponse } from '@/validation/schemas';
 import { apiClient } from '@/api/base';
 import { ENDPOINTS } from '@/api/endpoints';
 import { getAuthServiceUrl } from './configServices';
@@ -70,6 +70,40 @@ export const logoutService = async (): Promise<void> => {
     });
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || "Logout failed";
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
+  }
+};
+
+export const changePassword = async (data: { currentPassword: string; newPassword: string; confirmPassword: string }): Promise<void> => {
+  try {
+    await apiClient({
+      method: "PUT",
+      endpoint: ENDPOINTS.Auth.ChangePassword,
+      data,
+      baseURL
+    });
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to change password";
+    const customError = new Error(errorMessage);
+    (customError as any).userMessage = errorMessage;
+    (customError as any).originalError = error;
+    throw customError;
+  }
+};
+
+export const getProfile = async (): Promise<GetProfileResponse> => {
+  try {
+    const response = await apiClient({
+      method: "GET",
+      endpoint: ENDPOINTS.Auth.Profile,
+      baseURL
+    });
+    return response as GetProfileResponse;
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || "Failed to get profile";
     throw {
       userMessage: errorMessage,
       originalError: error,

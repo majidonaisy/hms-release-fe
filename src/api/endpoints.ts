@@ -4,6 +4,8 @@ export const ENDPOINTS = {
     AddUser: "auth/add-user",
     RefreshToken: "auth/refresh",
     Logout: "auth/logout",
+    ChangePassword: "auth/change-password",
+    Profile: "auth/me"
   },
   RoomType: {
     Add: "roomtype/add",

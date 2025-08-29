@@ -48,7 +48,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
       setSuccess(`Login successful! Welcome back!`);
       dispatch(loginAction({
         accessToken: response.data.accessToken,
-        permissions: response.data.permissions ,
+        permissions: response.data.permissions,
         refreshToken: response.data.refreshToken,
       }));
       navigate("/")
@@ -103,7 +103,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
               className="w-full"
             />
           </div>
-          
+
           {/* Error Message */}
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">

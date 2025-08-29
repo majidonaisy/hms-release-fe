@@ -18,6 +18,7 @@ import HomePage from "@/pages/HomePage";
 import Areas from "@/pages/dashboard/Areas/Areas";
 import Reports from "@/pages/Reports";
 import Payouts from "@/pages/Payouts";
+import Profile from "@/pages/Profile";
 
 const RoutesList = () => {
     const homeRoutesList: HomeRouteConfig[] = [
@@ -526,6 +527,13 @@ const RoutesList = () => {
                     ]
                 }
             ]
+        },
+        {
+            path: '/profile',
+            title: "Profile",
+            icon: <User />,
+            component: Profile,
+            isShown: true,
         },
     ].map((route) =>
         createHomeRoute(route.path, route.title, route.component, route.isShown, route.icon, route.isAuthenticated, route.requiredPermissions, route.subRoutes
