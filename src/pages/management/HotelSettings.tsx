@@ -182,7 +182,7 @@ const HotelSettingsPage: React.FC = () => {
                                         Housekeeping Role
                                     </Label>
                                     <Select
-                                        value={formData.housekeepingRoleId === null ? 'none' : formData.housekeepingRoleId}
+                                        value={formData.housekeepingRoleId === 'Any' ? 'none' : (formData.housekeepingRoleId ?? undefined)}
                                         onValueChange={(value) => {
                                             if (value === 'none') {
                                                 handleInputChange('housekeepingRoleId', '');
