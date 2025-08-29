@@ -86,11 +86,19 @@ export const changePassword = async (data: { currentPassword: string; newPasswor
       baseURL
     });
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || "Failed to change password";
-    const customError = new Error(errorMessage);
-    (customError as any).userMessage = errorMessage;
-    (customError as any).originalError = error;
-    throw customError;
+    const responseData = error.response?.data;
+
+    let errorMessage;
+    if (responseData?.errors && Array.isArray(responseData.errors)) {
+      errorMessage = responseData.errors.map((err: any) => err.message).join(". ");
+    } else {
+      errorMessage = responseData?.error || responseData?.message || (typeof responseData === "string" ? responseData : null) || "Failed to change password";
+    }
+
+    throw {
+      userMessage: errorMessage,
+      originalError: error,
+    };
   }
 };
 
