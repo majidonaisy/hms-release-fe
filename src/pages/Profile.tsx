@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar";
 import { Button } from "@/components/atoms/Button";
 import { Input } from "@/components/atoms/Input";
+import { Skeleton } from "@/components/atoms/Skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/Organisms/Card";
 import { Dialog, DialogContent, DialogHeader } from "@/components/Organisms/Dialog";
 import { changePassword, getProfile } from "@/services/Auth";
@@ -21,22 +22,29 @@ const Profile = () => {
         confirmPassword: ''
     });
     const [loading, setLoading] = useState(false);
+    const [getLoading, setGetLoading] = useState(false);
 
     const handleGetProfile = async () => {
+        setGetLoading(true);
         try {
             const response = await getProfile();
             setProfile(response.data);
         } catch (error) {
             console.error("Failed to fetch profile:", error);
+        } finally {
+            setGetLoading(false);
         }
     };
 
     const handleGetRole = async (roleId: string) => {
+        setGetLoading(true);
         try {
             const response = await getRoleBId(roleId);
             setRole(response.data);
         } catch (error) {
             console.error("Failed to fetch role:", error);
+        } finally {
+            setGetLoading(false);
         }
     };
 
@@ -50,14 +58,12 @@ const Profile = () => {
             });
             toast.success("Password changed successfully");
             setChangePasswordDialog(false);
-            // Reset form
             setChangePasswordData({
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
             });
         } catch (error: any) {
-            // Use the custom error message from the service
             const errorMessage = error.userMessage || "Failed to change password";
             toast.error(errorMessage);
         } finally {
@@ -81,8 +87,17 @@ const Profile = () => {
                     </Avatar>
                 </div>
                 <div>
-                    <p className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</p>
-                    <p className="text-lg">{role?.name}</p>
+                    {getLoading ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-5 w-40" />
+                            <Skeleton className="h-5 w-32" />
+                        </div>
+                    ) : (
+                        <>
+                            <p className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</p>
+                            <p className="text-lg">{role?.name}</p>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -92,32 +107,62 @@ const Profile = () => {
                         <CardTitle className="text-xl font-bold border-b p-0 pb-2">Profile Info</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-2">
-                        <span className="flex justify-between">
-                            <p className="font-semibold">Email:</p>
-                            <p>{profile?.email}</p>
-                        </span>
-                        <span className="flex justify-between">
-                            <p className="font-semibold">Department:</p>
-                            <p>{profile?.department.name}</p>
-                        </span>
+                        {getLoading ? (
+                            <>
+                                <span className="flex justify-between">
+                                    <Skeleton className="h-5 w-40" />
+                                    <Skeleton className="h-5 w-32" />
+                                </span>
+                                <span className="flex justify-between">
+                                    <Skeleton className="h-5 w-40" />
+                                    <Skeleton className="h-5 w-32" />
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="flex justify-between">
+                                    <p className="font-semibold">Email:</p>
+                                    <p>{profile?.email}</p>
+                                </span>
+                                <span className="flex justify-between">
+                                    <p className="font-semibold">Department:</p>
+                                    <p>{profile?.department.name}</p>
+                                </span>
+                            </>
+                        )}
+
                     </CardContent>
-                </Card>
+                </Card >
 
                 <Card className="w-full p-3 gap-2">
                     <CardHeader className="p-0">
                         <CardTitle className="text-xl font-bold border-b p-0 pb-2">Account Info</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-2">
-                        <span className="flex justify-between">
-                            <p className="font-semibold">Username:</p>
-                            <p>{profile?.username}</p>
-                        </span>
-                        <span className="flex justify-end mt-5">
-                            <Button onClick={() => setChangePasswordDialog(true)} className="h-7">Change Password</Button>
-                        </span>
+                        {getLoading ? (
+                            <>
+                                <span className="flex justify-between">
+                                    <Skeleton className="h-5 w-40" />
+                                    <Skeleton className="h-5 w-32" />
+                                </span>
+                                <span className="flex justify-end mt-5">
+                                    <Skeleton className="h-5 w-40" />
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="flex justify-between">
+                                    <p className="font-semibold">Username:</p>
+                                    <p>{profile?.username}</p>
+                                </span>
+                                <span className="flex justify-end mt-5">
+                                    <Button onClick={() => setChangePasswordDialog(true)} className="h-7">Change Password</Button>
+                                </span>
+                            </>
+                        )}
                     </CardContent>
-                </Card>
-            </div>
+                </Card >
+            </div >
 
             <Dialog open={changePasswordDialog} onOpenChange={setChangePasswordDialog}>
                 <DialogContent>
@@ -161,7 +206,7 @@ const Profile = () => {
                     <Button className="mt-5" onClick={handleChangePassword} disabled={loading}>{loading ? "Changing..." : "Change Password"}</Button>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 
