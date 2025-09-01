@@ -1,5 +1,6 @@
 import { app, BrowserWindow, screen, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
+import { autoUpdater } from "electron-updater";
 import path from "node:path";
 import fs from "fs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -252,4 +253,26 @@ app.on("activate", () => {
   }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow;
+  // Configure auto-updater for GitHub releases
+  autoUpdater.autoDownload = true;  // Automatically download updates
+  autoUpdater.autoInstallOnAppQuit = true;  // Install on app quit
+
+  // Check for updates (you can trigger this manually or on app start)
+  autoUpdater.checkForUpdatesAndNotify();  // Checks and notifies user if update available
+
+  // Optional: Listen for update events
+  autoUpdater.on('update-available', () => {
+    console.log('Update available.');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    console.log('Update downloaded. Will install on quit.');
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('Update error:', err);
+  });
+}
+);

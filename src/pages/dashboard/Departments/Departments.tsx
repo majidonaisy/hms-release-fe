@@ -31,10 +31,11 @@ const Departments = () => {
             const response = await getDepartments(params);
 
             setDepartments(response.data);
-        } catch (error: any) {
-            toast.error(error.userMessage || 'Failed to load departments');
+        } catch (err: any) {
+            toast.error(err.userMessage || 'Failed to load departments');
             setDepartments([]);
-            setError(error.userMessage || "Failed to get departments")
+            setError(err.userMessage || "Failed to get departments");
+            console.log(error)
         } finally {
             setLoading(false);
         }
