@@ -83,8 +83,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "toptechsoftware",
-        "repo": "hms-fe"
+        "owner": "majidonaisy",
+        "repo": "hms-release-fe"
       }
     ],
     "extraResources": [
