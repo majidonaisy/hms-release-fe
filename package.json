@@ -78,7 +78,12 @@
     "productName": "Hotelli",
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "!dist-electron/**/*.map", 
+      "!dist-electron/**/*.md", 
+      "!dist-electron/**/*.ts", 
+      "dist/**/*", 
+      "!dist/**/*.md",
+      "!dist/**/*.ts"
     ],
     "publish": [
       {

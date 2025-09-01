@@ -19,7 +19,7 @@ const Dashboard: React.FC<DashboardProps> = ({ pageTitle }) => {
   const navigate = useNavigate();
   // Form state
   const [credentials, setCredentials] = useState<LoginRequest>({
-    username: 'majid',
+    username: '',
     password: 'StrongPassword123!'
   });
 
