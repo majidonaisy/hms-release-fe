@@ -254,14 +254,14 @@ app.on("activate", () => {
 });
 
 app.whenReady().then(() => {
-  createWindow;
   // Configure auto-updater for GitHub releases
+  createWindow();
   autoUpdater.autoDownload = true;  // Automatically download updates
   autoUpdater.autoInstallOnAppQuit = true;  // Install on app quit
-
+  
   // Check for updates (you can trigger this manually or on app start)
   autoUpdater.checkForUpdatesAndNotify();  // Checks and notifies user if update available
-
+  
   // Optional: Listen for update events
   autoUpdater.on('update-available', () => {
     console.log('Update available.');
